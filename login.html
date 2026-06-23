@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#dc2626">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Service Portal">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%23dc2626' width='192' height='192'/><text x='50%' y='50%' font-size='120' fill='white' text-anchor='middle' dominant-baseline='middle' font-weight='bold'>NA</text></svg>">
+    <title>Narrow Aisle Portal - Login</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+            background: #1a1a1a;
+            color: #e0e0e0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url('lines.svg');
+            background-size: cover;
+            opacity: 0.08;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .login-container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 400px;
+            padding: 24px;
+        }
+
+        .login-box {
+            background: rgba(25, 25, 25, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(220, 38, 38, 0.2);
+            border-radius: 12px;
+            padding: 40px;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .login-logo {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 16px;
+            object-fit: contain;
+        }
+
+        .login-header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            letter-spacing: -0.5px;
+        }
+
+        .login-header p {
+            font-size: 13px;
+            color: #a0a0a0;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #a0a0a0;
+            margin-bottom: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 14px;
+            background: rgba(20, 20, 20, 0.8);
+            border: 1px solid rgba(220, 38, 38, 0.2);
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #dc2626;
+            background: rgba(20, 20, 20, 1);
+            box-shadow: 0 0 16px rgba(220, 38, 38, 0.1);
+        }
+
+        .form-input::placeholder {
+            color: #707070;
+        }
+
+        .login-button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            border: none;
+            color: white;
+            font-size: 14px;
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(220, 38, 38, 0.3);
+        }
+
+        .login-button:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .login-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .error-message {
+            display: none;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #a0a0a0;
+            font-size: 12px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 4px;
+            margin-left: 4px;
+            background: #dc2626;
+            border-radius: 50%;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .login-footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #707070;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-box">
+            <div class="login-header">
+                <img src="flexi-logo.png" alt="Flexi Logo" class="login-logo">
+                <h1>Narrow Aisle</h1>
+                <p>Portal Login</p>
+            </div>
+
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="error-message" id="errorMessage"></div>
+
+                <div class="form-group">
+                    <label class="form-label" for="username">Username</label>
+                    <input type="text" id="username" class="form-input" placeholder="Enter your username" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="password">Password</label>
+                    <input type="password" id="password" class="form-input" placeholder="Enter your password" required>
+                </div>
+
+                <button type="submit" class="login-button" id="loginBtn">Sign In</button>
+
+                <div class="loading" id="loadingMessage">Authenticating</div>
+            </form>
+
+            <div class="login-footer">
+                Portal v1.0 | Narrow Aisle Ltd
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const selectedUserType = 'internal';
+
+        // DEMO MODE - Any username/password accepted
+        async function handleLogin(e) {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorEl = document.getElementById('errorMessage');
+            const loadingEl = document.getElementById('loadingMessage');
+            const btnEl = document.getElementById('loginBtn');
+
+            if (!username || !password) {
+                errorEl.textContent = 'Please enter username and password';
+                errorEl.classList.add('show');
+                return;
+            }
+
+            errorEl.classList.remove('show');
+            loadingEl.classList.add('show');
+            btnEl.disabled = true;
+
+            // Simulate login delay
+            setTimeout(() => {
+                localStorage.setItem('portalUser', username);
+                localStorage.setItem('portalRole', 'Field Engineer');
+                localStorage.setItem('portalName', username.charAt(0).toUpperCase() + username.slice(1));
+                localStorage.setItem('portalType', selectedUserType);
+                localStorage.setItem('portalLoginTime', new Date().toLocaleTimeString());
+                
+                window.location.href = 'portal-hub-professional.html';
+            }, 1000);
+        }
+
+        if (localStorage.getItem('portalUser')) {
+            window.location.href = 'portal-hub-professional.html';
+        }
+
+        // Register service worker for PWA support
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js').then((registration) => {
+                console.log('Service Worker registered:', registration);
+            }).catch((error) => {
+                console.log('Service Worker registration failed:', error);
+            });
+        }
+
+        // Listen for app install prompt
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            console.log('Install prompt is available');
+        });
+
+        window.addEventListener('appinstalled', () => {
+            console.log('App was installed');
+            deferredPrompt = null;
+        });
+    </script>
+</body>
+</html>
