@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <title>Report Fault - Flexi Service</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #df0a1e 0%, #c3161e 100%);
+            padding: 32px 24px;
+            color: white;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .form-area {
+            padding: 32px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-group label {
+            display: block;
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            color: #101010;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            color: #101010;
+            transition: all 0.2s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #df0a1e;
+            box-shadow: 0 0 0 3px rgba(223, 10, 30, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .priority-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        .priority-btn {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            text-align: center;
+            font-size: 13px;
+        }
+
+        .priority-btn.critical {
+            border-color: #ff6b6b;
+            color: #ff6b6b;
+        }
+
+        .priority-btn.high {
+            border-color: #ffa940;
+            color: #ffa940;
+        }
+
+        .priority-btn.medium {
+            border-color: #faad14;
+            color: #faad14;
+        }
+
+        .priority-btn.low {
+            border-color: #52c41a;
+            color: #52c41a;
+        }
+
+        .priority-btn.active {
+            background: currentColor;
+            color: white;
+            border-color: currentColor;
+        }
+
+        .form-group.inline {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .form-group.inline .form-group {
+            margin-bottom: 0;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 32px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 8px;
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .btn-submit {
+            background: #df0a1e;
+            color: white;
+        }
+
+        .btn-submit:hover {
+            background: #c3161e;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(223, 10, 30, 0.3);
+        }
+
+        .btn-submit:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-cancel {
+            background: #f0f0f0;
+            color: #101010;
+        }
+
+        .btn-cancel:hover {
+            background: #e0e0e0;
+        }
+
+        .success-message {
+            display: none;
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            font-weight: 500;
+        }
+
+        .error-message {
+            display: none;
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            font-weight: 500;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 3px solid #f0f0f0;
+            border-top: 3px solid #df0a1e;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .fault-id {
+            background: #f5f5f5;
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 16px;
+        }
+
+        .fault-id-label {
+            font-size: 12px;
+            color: #707070;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .fault-id-value {
+            font-family: monospace;
+            font-size: 18px;
+            font-weight: 700;
+            color: #df0a1e;
+        }
+
+        @media (max-width: 640px) {
+            .form-area {
+                padding: 20px;
+            }
+
+            .header {
+                padding: 24px 20px;
+            }
+
+            .header h1 {
+                font-size: 22px;
+            }
+
+            .priority-buttons {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .form-group.inline {
+                grid-template-columns: 1fr;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Report Fault</h1>
+            <p>Report a truck issue quickly and easily</p>
+        </div>
+
+        <div class="form-area">
+            <div class="success-message" id="successMsg">
+                ✅ Fault reported successfully!
+            </div>
+            <div class="error-message" id="errorMsg"></div>
+
+            <form id="faultForm">
+                <div class="form-group inline">
+                    <div class="form-group">
+                        <label for="truckId">Truck ID / Registration</label>
+                        <input type="text" id="truckId" name="truckId" placeholder="e.g. FLX-001" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="reportedBy">Your Name</label>
+                        <input type="text" id="reportedBy" name="reportedBy" placeholder="Your name" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Priority Level</label>
+                    <div class="priority-buttons">
+                        <button type="button" class="priority-btn critical" data-priority="Critical">🔴 Critical</button>
+                        <button type="button" class="priority-btn high" data-priority="High">🟠 High</button>
+                        <button type="button" class="priority-btn medium active" data-priority="Medium">🟡 Medium</button>
+                        <button type="button" class="priority-btn low" data-priority="Low">🟢 Low</button>
+                    </div>
+                    <input type="hidden" id="priority" name="priority" value="Medium">
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Fault Description *</label>
+                    <textarea id="description" name="description" placeholder="Describe the issue in detail..." required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="notes">Additional Notes</label>
+                    <textarea id="notes" name="notes" placeholder="Any additional information..."></textarea>
+                </div>
+
+                <div class="button-group">
+                    <button type="button" class="btn btn-cancel" onclick="resetForm()">Clear</button>
+                    <button type="submit" class="btn btn-submit" id="submitBtn">Submit Fault Report</button>
+                </div>
+            </form>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p style="margin-top: 16px; color: #707070;">Submitting...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // UPDATE THIS with your GAS deployment URL
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbwIs_sxohYd6gMSTZ2GyDmAUQ1qh75Mkx3p4JxAaty_kdWAPtlcy6aLM1WgowwwPnLmOQ/exec";
+
+        const priorityButtons = document.querySelectorAll('.priority-btn');
+        const priorityInput = document.getElementById('priority');
+        const form = document.getElementById('faultForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const loading = document.getElementById('loading');
+        const successMsg = document.getElementById('successMsg');
+        const errorMsg = document.getElementById('errorMsg');
+
+        // Priority button handlers
+        priorityButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                priorityButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                priorityInput.value = btn.dataset.priority;
+            });
+        });
+
+        // Form submission
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            submitBtn.disabled = true;
+            loading.style.display = 'block';
+            successMsg.style.display = 'none';
+            errorMsg.style.display = 'none';
+
+            const formData = {
+                action: 'addFault',
+                truckId: document.getElementById('truckId').value,
+                reportedBy: document.getElementById('reportedBy').value,
+                priority: priorityInput.value,
+                description: document.getElementById('description').value,
+                notes: document.getElementById('notes').value
+            };
+
+            try {
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    successMsg.innerHTML = `
+                        ✅ Fault reported successfully!<br>
+                        <strong>Fault ID:</strong> ${result.faultId}
+                    `;
+                    successMsg.style.display = 'block';
+                    resetForm();
+                    setTimeout(() => {
+                        successMsg.style.display = 'none';
+                    }, 5000);
+                } else {
+                    throw new Error(result.error || 'Failed to submit fault');
+                }
+            } catch (error) {
+                errorMsg.textContent = '❌ Error: ' + error.message;
+                errorMsg.style.display = 'block';
+            } finally {
+                loading.style.display = 'none';
+                submitBtn.disabled = false;
+            }
+        });
+
+        function resetForm() {
+            form.reset();
+            priorityButtons.forEach(b => b.classList.remove('active'));
+            priorityButtons[2].classList.add('active'); // Default to Medium
+            priorityInput.value = 'Medium';
+        }
+    </script>
+</body>
+</html>
