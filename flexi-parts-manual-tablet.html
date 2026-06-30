@@ -1,0 +1,1257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Flexi Parts Manual</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=DM+Sans:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #0a0a0a; --black-soft: #161616; --black-2: #1f1f1f;
+    --red: #DC143C; --red-dim: rgba(220,20,60,.10); --red-dim2: rgba(220,20,60,.18);
+    --white: #ffffff; --off-white: #f7f7f6;
+    --grey-900: #1a1a1a; --grey-700: #4a4a4a; --grey-500: #7a7a7a; --grey-300: #b8b8b8;
+    --grey-200: #e4e2e0; --grey-100: #f0efed; --border: #e6e4e1;
+    --font-head: 'IBM Plex Sans', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+    --font-mono: 'DM Mono', monospace;
+    --header-h: 60px; --toolbar-h: 60px;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { background: var(--off-white); color: var(--grey-900); font-family: var(--font-body); font-size: 14px; min-height: 100vh; overscroll-behavior-y: contain; }
+  button { font: inherit; }
+
+  /* ───── Header ───── */
+  header { background: var(--black); border-bottom: 3px solid var(--red); padding: var(--safe-top) 8px 0; display: flex; align-items: center; gap: 6px; height: calc(var(--header-h) + var(--safe-top)); position: sticky; top: 0; z-index: 200; }
+  .icon-btn { width: 44px; height: 44px; flex-shrink: 0; background: transparent; border: none; color: #fff; font-size: 19px; display: flex; align-items: center; justify-content: center; border-radius: 8px; cursor: pointer; transition: background .15s; }
+  .icon-btn:active { background: rgba(255,255,255,.12); }
+  .logo { display: flex; align-items: center; margin-left: 4px; }
+  .logo svg { height: 26px; width: auto; }
+  .header-title { font-family: var(--font-head); font-weight: 600; font-size: 12px; color: var(--grey-300); letter-spacing: 2px; text-transform: uppercase; border-left: 1px solid rgba(255,255,255,.18); padding-left: 12px; margin-left: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .header-right { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+  #basket-btn { background: var(--black-soft); border: 1px solid rgba(255,255,255,.16); color: #fff; font-family: var(--font-head); font-weight: 700; font-size: 13px; padding: 0 14px; height: 40px; border-radius: 20px; cursor: pointer; display: flex; align-items: center; gap: 8px; text-decoration: none; transition: border-color .15s; }
+  #basket-btn.has-items { border-color: var(--red); }
+  .basket-count { background: var(--red); color: #fff; font-size: 10px; font-weight: 700; min-width: 18px; height: 18px; border-radius: 9px; display: flex; align-items: center; justify-content: center; padding: 0 4px; }
+  .basket-count.zero { display: none; }
+
+  /* ───── Toolbar ───── */
+  .toolbar { position: sticky; top: calc(var(--header-h) + var(--safe-top)); z-index: 150; background: var(--white); border-bottom: 1px solid var(--border); }
+  .toolbar-row1 { padding: 10px 14px 8px; display: flex; gap: 10px; align-items: center; }
+  .search-wrap { position: relative; flex: 1; }
+  .search-icon { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: var(--grey-500); font-size: 14px; pointer-events: none; }
+  #search-input { width: 100%; height: 46px; background: var(--off-white); border: 1.5px solid var(--grey-200); border-radius: 10px; color: var(--grey-900); font-family: var(--font-body); font-size: 14px; padding: 0 14px 0 38px; outline: none; transition: border-color .15s; }
+  #search-input:focus { border-color: var(--red); background: var(--white); }
+  #search-input::placeholder { color: var(--grey-500); }
+  .results-count { font-family: var(--font-head); font-size: 11px; font-weight: 600; letter-spacing: .5px; color: var(--grey-500); white-space: nowrap; flex-shrink: 0; }
+  .results-count b { color: var(--red); font-weight: 700; }
+
+  .model-scroll { display: flex; gap: 8px; overflow-x: auto; padding: 0 14px 10px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .model-scroll::-webkit-scrollbar { display: none; }
+  .model-chip { flex: 0 0 auto; font-family: var(--font-head); font-weight: 600; font-size: 12px; letter-spacing: .5px; text-transform: uppercase; padding: 0 16px; height: 38px; border-radius: 19px; border: 1.5px solid var(--grey-200); color: var(--grey-700); background: var(--white); cursor: pointer; transition: all .15s; white-space: nowrap; }
+  .model-chip.active { border-color: var(--red); color: #fff; background: var(--red); }
+
+  /* ───── Drawer (sections nav) ───── */
+  .drawer-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 300; opacity: 0; pointer-events: none; transition: opacity .2s; }
+  .drawer-backdrop.open { opacity: 1; pointer-events: auto; }
+  .drawer { position: fixed; top: 0; bottom: 0; left: 0; width: min(86vw, 320px); background: var(--white); z-index: 301; transform: translateX(-100%); transition: transform .25s ease; display: flex; flex-direction: column; box-shadow: 2px 0 24px rgba(0,0,0,.18); }
+  .drawer.open { transform: translateX(0); }
+  .drawer-header { height: calc(var(--header-h) + var(--safe-top)); padding-top: var(--safe-top); background: var(--black); border-bottom: 3px solid var(--red); display: flex; align-items: center; padding-left: 18px; padding-right: 8px; flex-shrink: 0; }
+  .drawer-header span { font-family: var(--font-head); font-weight: 700; font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: #fff; flex: 1; }
+  .drawer-body { overflow-y: auto; flex: 1; padding-bottom: calc(20px + var(--safe-bottom)); }
+  .drawer-section { border-bottom: 1px solid var(--border); }
+  .drawer-section-title { font-family: var(--font-head); font-weight: 700; font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--red); padding: 14px 18px 6px; }
+  .drawer-item { display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 8px 18px; cursor: pointer; border-left: 4px solid transparent; transition: background .12s; font-size: 13.5px; color: var(--grey-700); }
+  .drawer-item:active { background: var(--off-white); }
+  .drawer-item.active { background: var(--red-dim); border-left-color: var(--red); color: var(--grey-900); font-weight: 500; }
+  .drawer-code { font-family: var(--font-mono); font-weight: 500; font-size: 12.5px; color: var(--grey-500); min-width: 38px; flex-shrink: 0; }
+  .drawer-item.active .drawer-code { color: var(--red); }
+
+  /* ───── Main / parts list ───── */
+  .main { padding-bottom: calc(40px + var(--safe-bottom)); }
+  .subsection { border-bottom: 8px solid var(--off-white); }
+  .section-hidden { display: none; }
+  .subsection-title { position: sticky; top: calc(var(--header-h) + var(--toolbar-h) + var(--safe-top) + 50px); z-index: 10; min-height: 52px; background: var(--grey-100); border-bottom: 1px solid var(--border); padding: 0 10px 0 16px; display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
+  .subsection-title .ss-text { font-family: var(--font-head); font-weight: 700; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; color: var(--grey-700); flex: 1; }
+  .subsection-title .ss-code { color: var(--red); }
+  .ss-diag-btn { width: 38px; height: 38px; border-radius: 8px; border: 1.5px solid var(--grey-200); background: var(--white); color: var(--grey-700); font-size: 15px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .ss-diag-btn:active { border-color: var(--red); color: var(--red); }
+  .ss-toggle { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--grey-500); transition: transform .2s; flex-shrink: 0; }
+  .subsection-title.collapsed .ss-toggle { transform: rotate(-90deg); }
+
+  .parts-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; background: var(--white); }
+  .parts-table-wrap.collapsed { display: none; }
+  table.parts-table { width: 100%; min-width: 640px; border-collapse: collapse; }
+  table.parts-table thead th { font-family: var(--font-head); font-weight: 700; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--grey-500); padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; background: var(--white); position: sticky; top: calc(var(--header-h) + var(--toolbar-h) + var(--safe-top) + 102px); z-index: 9; }
+  table.parts-table tbody tr { border-bottom: 1px solid var(--grey-100); }
+  table.parts-table tbody tr.hidden { display: none; }
+  table.parts-table tbody tr:active { background: var(--off-white); }
+  table.parts-table tbody td { padding: 13px 12px; vertical-align: middle; font-size: 13.5px; }
+  .td-ref { font-family: var(--font-mono); font-weight: 500; font-size: 14px; color: var(--red); width: 42px; }
+  .td-partno { font-family: var(--font-mono); font-size: 12.5px; color: var(--grey-900); white-space: nowrap; }
+  .td-supplier { font-family: var(--font-mono); font-size: 11.5px; color: var(--grey-500); white-space: nowrap; }
+  .td-desc { color: var(--grey-900); min-width: 180px; }
+  .td-qty { color: var(--grey-700); text-align: center; width: 36px; font-family: var(--font-mono); }
+  .td-models { min-width: 110px; }
+  .model-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--red); margin: 1.5px; }
+  .model-dot.off { background: var(--grey-100); border: 1px solid var(--grey-200); }
+  .td-actions { width: 52px; text-align: center; }
+  .add-btn { background: var(--white); border: 1.5px solid var(--grey-200); color: var(--grey-700); width: 40px; height: 40px; border-radius: 9px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; margin: auto; transition: all .15s; }
+  .add-btn.added { border-color: var(--red); background: var(--red); color: #fff; }
+  @keyframes addFlash { 0%{ transform: scale(1.25); } 100%{ transform: scale(1); } }
+  .add-btn.flash { animation: addFlash .35s ease; }
+
+  .empty-state { padding: 70px 24px; text-align: center; color: var(--grey-500); }
+  .empty-state .big { font-family: var(--font-head); font-size: 44px; font-weight: 700; color: var(--grey-200); }
+  .empty-state p { margin-top: 8px; font-size: 13px; }
+
+  mark { background: var(--red-dim2); color: var(--grey-900); padding: 0 2px; border-radius: 2px; }
+
+  .toast { position: fixed; bottom: calc(20px + var(--safe-bottom)); left: 50%; transform: translateX(-50%) translateY(90px); background: var(--black); border: 1px solid var(--red); color: #fff; font-family: var(--font-head); font-weight: 600; font-size: 13px; letter-spacing: .5px; padding: 12px 22px; border-radius: 10px; z-index: 400; transition: transform .3s; white-space: nowrap; }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* ───── Fullscreen diagram modal ───── */
+  .diag-modal { display: none; position: fixed; inset: 0; background: #0a0a0a; z-index: 500; flex-direction: column; }
+  .diag-modal.open { display: flex; }
+  .diag-modal-header { padding-top: var(--safe-top); background: var(--black); border-bottom: 3px solid var(--red); flex-shrink: 0; }
+  .diag-modal-header-row { height: var(--header-h); padding: 0 8px 0 16px; display: flex; align-items: center; gap: 10px; }
+  .diag-modal-title { font-family: var(--font-head); font-weight: 700; font-size: 13.5px; color: #fff; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .diag-modal-close { width: 44px; height: 44px; background: transparent; border: none; color: var(--grey-300); font-size: 22px; cursor: pointer; border-radius: 8px; }
+  .diag-modal-close:active { background: rgba(255,255,255,.12); }
+  .diag-modal-body { flex: 1; overflow: hidden; position: relative; cursor: grab; background: #111; }
+  .diag-modal-body.panning { cursor: grabbing; }
+  .diag-modal-viewport { width: 100%; height: 100%; overflow: hidden; position: relative; }
+  .diag-modal-wrap { position: absolute; top: 0; left: 0; transform-origin: 0 0; will-change: transform; }
+  .diag-modal-wrap canvas { display: block; }
+  .diag-none { padding: 50px 20px; text-align: center; color: var(--grey-500); position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .diag-none .icon { font-size: 44px; opacity: .35; }
+  .diag-none p { font-size: 12.5px; margin-top: 8px; font-family: var(--font-head); }
+  .diag-modal-zoom-bar { position: absolute; bottom: calc(16px + var(--safe-bottom)); right: 14px; display: flex; gap: 6px; z-index: 20; }
+  .diag-modal-zoom-bar button, .diag-modal-zoom-bar .diag-zoom-level { background: var(--black-soft); border: 1px solid rgba(255,255,255,.15); color: var(--grey-300); height: 40px; cursor: pointer; font-size: 17px; display: flex; align-items: center; justify-content: center; border-radius: 9px; font-family: var(--font-head); font-weight: 700; }
+  .diag-modal-zoom-bar button { width: 40px; }
+  .diag-modal-zoom-bar button:active { border-color: var(--red); color: #fff; }
+  .diag-modal-zoom-bar .diag-zoom-level { padding: 0 12px; font-size: 12px; min-width: 54px; }
+
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--grey-200); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<header>
+  <button class="icon-btn" id="menuBtn" aria-label="Open sections" title="Sections">☰</button>
+  <div class="logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 841.9 497.3"><style>.st0{fill:#FFFFFF;}</style><g><path class="st0" d="M724.9,251.8l9.8-4.4c0.7-0.3,1.5-0.2,2.1,0.2l21.4,13.9c1.4,0.9,1.4,3.1-0.1,3.9l-8.5,4.9c-0.7,0.4-1.6,0.4-2.3-0.1l-22.7-14.4C723.1,254.8,723.2,252.5,724.9,251.8"/><path class="st0" d="M465.5,354.3c-3.9-1.9-6.2-15.3,4.1-34.8c8-15.1,17.6-20.8,22.6-22.6c5.2-1.9,8.9-0.1,10,1c5.6,5.8,0.6,20-6.5,31.4C487.1,343.2,471.1,357,465.5,354.3 M806,352.8c-8.6,14.7-20.3,14-29.1,8.3c-7.7-5-13.3-26-16.2-34.6c-3.1-9-11.7-19.9-21.8-19.9c-13.1,0-30.8,36.5-35.8,42.1c-11.6,12.8-38.3,28-60.3,14.1c-12.1-7.6-28.3-29-28.3-29s49.6-49.4,51.6-52.3l-18.8-19.1c-2.3,3.8-48.6,51.6-50.4,51.6c-1.8,0-22.7-34.8-25.3-38c0,0-31.1-3-32.5-1.6c0,0,40.1,55.2,38.8,57.5c-2,3.3-45.5,34.9-56,40.5c-21.1,11.1-38.5,6.4-38.5,6.4s30.2-25.5,40.3-45.5c5-9.8,23.1-42.2-16.6-60.4c-23.6-10.8-44.4-1.6-63.6,26.8c-21.1,31-4.3,75.7-4.3,75.7s-23.6,16.7-44.6,1.3c-15.4-11.2-26.2-49.6-28.8-85.2c-3.9-52.6,6.8-158.4,6.8-158.4l-47.3-13.9c0,0,6,51.3-5.2,93.9c-26.9,102.3-97,128.4-104.6,129.3c-7.6,0.9-7.6-52.3-59.1-145C122.7,136.8,60,68.7,60.9,65.5c0.9-3.2,81.3-26.5,150.3-28.4c96.8-2.7,185.3,3,191.5,9.3c6.3,6.4-25.5,16.6,6.7,31.4c15.1,6.9,27.3-5.9,32.9-13.5c2.3-3.2,2.1-7.6-0.4-10.5C430.3,40.4,387.4,7.2,249,11.9C76.6,17.8,15.7,44.2,12.1,50.1s107.1,130.9,138,206.3c24.7,60.2,32.3,97.3,31.4,101.4c-0.9,4.1-44.4,1.4-44.4,1.4l13,21.4l35.4-1c0,0,3.9,24.3-1.8,42.7c-7.9,25.4-22.8,37.7-22.8,42.3l30.9,17.7c0,0,19.5-14.3,25.5-54.6c3-20.2,0-47.7,0-47.7s30.1-8.8,60.5-31.4c30.2-22.5,52.4-60,52.4-60s16.5,73.6,37.7,94.9c25.9,25.9,59,26.5,94,11.5c8.1,3.9,15.5,6.6,22.1,8.5c19.5,5.7,40.4,2.5,57.6-8.5c16.4-10.4,41-30.3,55.5-43.4c2.7-2.4,37.2,42.7,83.1,37.6c30.9-3.4,42.8-19,55.6-39c6.6-10.2,13.7,20.7,45.9,32.5c18.4,6.7,37.5,0.2,44.3-11C837,354,814.7,337.9,806,352.8"/></g></svg></div>
+  <div class="header-title">ACiON Parts</div>
+  <div class="header-right">
+    <a id="basket-btn" href="index.html" title="Go to Parts Order System">
+      🛒
+      <span class="basket-count zero" id="basket-count">0</span>
+    </a>
+  </div>
+</header>
+
+<div class="toolbar">
+  <div class="toolbar-row1">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="search-input" placeholder="Search part number, description…" oninput="doSearch()">
+    </div>
+    <span class="results-count"><b id="visible-count">—</b> parts</span>
+  </div>
+  <div class="model-scroll" id="model-filters">
+    <button class="model-chip active" data-model="all" onclick="setModel('all',this)">ALL</button>
+    <button class="model-chip" data-model="VNA" onclick="setModel('VNA',this)">VNA</button>
+    <button class="model-chip" data-model="17N" onclick="setModel('17N',this)">17N</button>
+    <button class="model-chip" data-model="17N+" onclick="setModel('17N+',this)">17N+</button>
+    <button class="model-chip" data-model="20S" onclick="setModel('20S',this)">20S</button>
+    <button class="model-chip" data-model="22S" onclick="setModel('22S',this)">22S+</button>
+    <button class="model-chip" data-model="25W" onclick="setModel('25W',this)">25W+</button>
+    <button class="model-chip" data-model="MAX22" onclick="setModel('MAX22',this)">MAX22</button>
+    <button class="model-chip" data-model="MAX25" onclick="setModel('MAX25',this)">MAX25</button>
+    <button class="model-chip" data-model="MAXEW" onclick="setModel('MAXEW',this)">MAX EW</button>
+  </div>
+</div>
+
+<div class="drawer-backdrop" id="drawerBackdrop" onclick="closeDrawer()"></div>
+<nav class="drawer" id="drawer">
+  <div class="drawer-header"><span>Sections</span><button class="icon-btn" id="drawerClose" onclick="closeDrawer()">✕</button></div>
+  <div class="drawer-body">
+    <div class="drawer-section">
+      <div class="drawer-item active" data-section="all" onclick="showSection('all',this)"><span class="drawer-code">ALL</span> All Parts</div>
+    </div>
+    <div class="drawer-section">
+      <div class="drawer-section-title">A351 · Transmission</div>
+      <div class="drawer-item" data-section="A351-1A" onclick="showSection('A351-1A',this)"><span class="drawer-code">1A</span> Front Axle Assy</div>
+      <div class="drawer-item" data-section="A351-1B" onclick="showSection('A351-1B',this)"><span class="drawer-code">1B</span> Front Axle VNA</div>
+      <div class="drawer-item" data-section="A351-2A" onclick="showSection('A351-2A',this)"><span class="drawer-code">2A</span> Axle &amp; Transmission</div>
+    </div>
+    <div class="drawer-section">
+      <div class="drawer-section-title">A352 · Chassis</div>
+      <div class="drawer-item" data-section="A352-1" onclick="showSection('A352-1',this)"><span class="drawer-code">1</span> Chassis Kit</div>
+      <div class="drawer-item" data-section="A352-2" onclick="showSection('A352-2',this)"><span class="drawer-code">2</span> Seat &amp; Covers</div>
+      <div class="drawer-item" data-section="A352-3" onclick="showSection('A352-3',this)"><span class="drawer-code">3</span> Overhead Guard</div>
+      <div class="drawer-item" data-section="A352-5" onclick="showSection('A352-5',this)"><span class="drawer-code">5</span> Linkage Lever</div>
+    </div>
+    <div class="drawer-section">
+      <div class="drawer-section-title">A353 · Hydraulic</div>
+      <div class="drawer-item" data-section="A353-1A" onclick="showSection('A353-1A',this)"><span class="drawer-code">1A</span> Oil Tank Module</div>
+      <div class="drawer-item" data-section="A353-2" onclick="showSection('A353-2',this)"><span class="drawer-code">2</span> Spool Valve Assy</div>
+      <div class="drawer-item" data-section="A353-3A" onclick="showSection('A353-3A',this)"><span class="drawer-code">3A</span> Steering Column</div>
+      <div class="drawer-item" data-section="A353-3C" onclick="showSection('A353-3C',this)"><span class="drawer-code">3C</span> Steering Col VNA</div>
+    </div>
+    <div class="drawer-section">
+      <div class="drawer-section-title">A354 · Brakes</div>
+      <div class="drawer-item" data-section="A354-1A" onclick="showSection('A354-1A',this)"><span class="drawer-code">1A</span> Pedal Plate</div>
+      <div class="drawer-item" data-section="A354-2" onclick="showSection('A354-2',this)"><span class="drawer-code">2</span> Rear Wheel Assy</div>
+    </div>
+    <div class="drawer-section">
+      <div class="drawer-section-title">A355 · Control</div>
+      <div class="drawer-item" data-section="A355" onclick="showSection('A355',this)"><span class="drawer-code">—</span> ACiON Specific Parts</div>
+    </div>
+    <div class="drawer-section">
+      <div class="drawer-section-title">A356 · Mast</div>
+      <div class="drawer-item" data-section="A356-1" onclick="showSection('A356-1',this)"><span class="drawer-code">1</span> Mast Support Assy</div>
+      <div class="drawer-item" data-section="A356-VNA" onclick="showSection('A356-VNA',this)"><span class="drawer-code">VNA</span> Mast Support VNA</div>
+    </div>
+    <div class="drawer-section">
+      <div class="drawer-section-title">A357–358</div>
+      <div class="drawer-item" data-section="A357" onclick="showSection('A357',this)"><span class="drawer-code">357</span> Labels &amp; Accessories</div>
+      <div class="drawer-item" data-section="A358" onclick="showSection('A358',this)"><span class="drawer-code">358</span> Repair Kits</div>
+    </div>
+  </div>
+</nav>
+
+<main class="main" id="main-content"></main>
+
+<!-- Fullscreen diagram modal -->
+<div class="diag-modal" id="diagModal">
+  <div class="diag-modal-header">
+    <div class="diag-modal-header-row">
+      <span class="diag-modal-title" id="diagModalTitle">—</span>
+      <button class="diag-modal-close" onclick="diagModalClose()" title="Close">✕</button>
+    </div>
+  </div>
+  <div class="diag-modal-body" id="diagModalBody">
+    <div class="diag-modal-viewport" id="diagModalViewport">
+      <div class="diag-modal-wrap" id="diagModalWrap"></div>
+    </div>
+    <div class="diag-modal-zoom-bar">
+      <button onclick="diagModalZoom(-0.25)" title="Zoom out">−</button>
+      <span class="diag-zoom-level" id="diagModalZoomLevel">100%</span>
+      <button onclick="diagModalZoom(+0.25)" title="Zoom in">+</button>
+      <button onclick="diagModalFit()" title="Fit to screen" style="font-size:11px;width:auto;padding:0 10px;">FIT</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const MODEL_COLS = ['VNA','17N','17N+','20S','22S+','25W+','MAX22','MAX25','MAX EW'];
+
+const SECTIONS = {
+
+'A351-1A': {
+  title:'A351', subtitle:'Front Axle Assembly (A351-1A)',
+  parts:[
+    {ref:'1',  partNo:'6121.10.020', supplier:'M1401-M10*20',   qty:1,  desc:'Cap Head Screw M10x20',        models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'2',  partNo:'6120.10.000', supplier:'M1606-M10',      qty:3,  desc:'Spring Washer M10',            models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'3',  partNo:'6110.10.000', supplier:'M16002028',       qty:1,  desc:'Washer',                      models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'4',  partNo:'55492.08.000',supplier:'E2102028',        qty:1,  desc:'AC Traction Motor',           models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'5',  partNo:'55492.08.001',supplier:'',                qty:1,  desc:'Encoder Sensor',              models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'6',  partNo:'42381.03',    supplier:'30107A',          qty:1,  desc:'Hinge Pin',                   models:[0,1,1,1,1,1,1,1,1]},
+    {ref:'6',  partNo:'42381.02',    supplier:'',                qty:1,  desc:'Hinge Pin',                   models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'7',  partNo:'6110.08.000', supplier:'M1602010',        qty:1,  desc:'Washer M8',                   models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'8',  partNo:'7644.01.000', supplier:'M0919-GE50ES',    qty:2,  desc:'Bearing',                     models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'9',  partNo:'6422.01.000', supplier:'M1312-R75',       qty:2,  desc:'Circlip',                     models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'10', partNo:'6120.08.000', supplier:'M1606.M8',        qty:1,  desc:'Spring Washer M8',            models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'11', partNo:'6121.08.020', supplier:'M1401-M8*20',     qty:1,  desc:'Cap Head Screw M8x20',        models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'12', partNo:'',            supplier:'',                qty:1,  desc:'Axle Support Fabrication',    models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'13', partNo:'6566.04.000', supplier:'M1321001',        qty:2,  desc:'Grease Nipple M10',           models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'14', partNo:'',            supplier:'',                qty:1,  desc:'Front Counterweight',         models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'15', partNo:'6211.20.070', supplier:'M1401-M20*70',    qty:1,  desc:'Hex Head Bolt M20x70',        models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'16', partNo:'6120.20.000', supplier:'M1606-M20',       qty:5,  desc:'Spring Washer M20',           models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'17', partNo:'6211.24.100', supplier:'M1423009',        qty:1,  desc:'Hex Head Bolt M24x100',       models:[0,1,1,1,1,1,1,1,1]},
+    {ref:'17', partNo:'6121.20.060', supplier:'M1401-M20*60',    qty:1,  desc:'Hex Head Bolt M20x60',        models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'18', partNo:'6120.24.000', supplier:'M1606-24',        qty:1,  desc:'Spring Washer M24',           models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'19', partNo:'6121.20.060', supplier:'M1401-M20*60',    qty:1,  desc:'Cap Head Screw M20x60',       models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'20', partNo:'30102B',      supplier:'30102B',          qty:1,  desc:'Cross Beam',                  models:[0,1,1,1,1,1,1,1,1]},
+    {ref:'20', partNo:'35654A',      supplier:'35654A',          qty:1,  desc:'Cross Beam',                  models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'21', partNo:'6211.20.140', supplier:'M1402-M20*140',   qty:4,  desc:'Hex Head Bolt M20x140',       models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'22', partNo:'30114P03',    supplier:'30114P03',        qty:2,  desc:'Axle Clamp',                  models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'23', partNo:'4978.15.000', supplier:'B350603',         qty:1,  desc:'Drive Axle',                  models:[0,1,1,1,1,1,1,1,1]},
+    {ref:'23', partNo:'4978.17.000', supplier:'B351440',         qty:1,  desc:'Drive Axle',                  models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'24', partNo:'7661.17.000', supplier:'B353739',         qty:2,  desc:'Complete Wheel Hub',          models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'24', partNo:'7661.10.000', supplier:'B353738',         qty:2,  desc:'Complete Wheel Hub',          models:[0,1,1,1,1,1,1,1,1]},
+    {ref:'25', partNo:'41218.00',    supplier:'30106C',          qty:2,  desc:'Front Hub',                   models:[0,1,1,1,1,1,1,1,1]},
+    {ref:'25', partNo:'41218.02',    supplier:'35658',           qty:2,  desc:'Front Hub',                   models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'26', partNo:'7635.15.000', supplier:'M1211115',        qty:2,  desc:'Front Tyre',                  models:[0,1,1,1,1,1,1,1,1]},
+    {ref:'26', partNo:'7635.11.000', supplier:'M1211114',        qty:2,  desc:'Front Tyre',                  models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'27', partNo:'42330.00',    supplier:'3004375',         qty:1,  desc:'Cable Protection Plate',      models:[1,1,0,0,0,0,0,0,0]},
+    {ref:'28', partNo:'6121.10.020', supplier:'M1423-M10*20',    qty:2,  desc:'Cap Head Screw M10x20',       models:[1,1,0,0,0,0,0,0,0]},
+    {ref:'29', partNo:'6111.10.025', supplier:'M1402-M10*25',    qty:4,  desc:'Cap Head Screw M10x25',       models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'30', partNo:'6120.10.000', supplier:'M1605-M10',       qty:4,  desc:'Spring Washer M10',           models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'31', partNo:'3010877',     supplier:'3010877',         qty:1,  desc:'Mudguard (RH)',               models:[0,1,1,1,1,1,1,1,1]},
+    {ref:'31', partNo:'42538.02',    supplier:'35651A',          qty:1,  desc:'Mudguard (RH)',               models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'32', partNo:'42538.01',    supplier:'35652A',          qty:1,  desc:'Mudguard (LH)',               models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'32', partNo:'3010878',     supplier:'3010878',         qty:1,  desc:'Mudguard (LH)',               models:[0,1,1,1,1,1,1,1,1]},
+  ]
+},
+
+'A351-1B': {
+  title:'A351', subtitle:'Front Axle Assembly – VNA (A351-1B)',
+  parts:[
+    {ref:'0',  partNo:'7661.21.000', supplier:'B356074B',           qty:2,  desc:'Wheel Assembly',              models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'01', partNo:'7635.38.000', supplier:'M1211130',           qty:2,  desc:'Tyre Band',                   models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'02', partNo:'41218.04',    supplier:'3012449B',           qty:2,  desc:'Hub',                         models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'1',  partNo:'42205.03',    supplier:'3012429D',           qty:1,  desc:'Axle Mounting Fab',           models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'2',  partNo:'7626.11.000', supplier:'M0920-LFB5050',      qty:2,  desc:'Bush',                        models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'3',  partNo:'4626.01.000', supplier:'M1315166',           qty:1,  desc:'P Clip',                      models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'4',  partNo:'6111.10.035', supplier:'M1402-M10*35-23',    qty:8,  desc:'Hex Head Bolt M10x35',        models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'5',  partNo:'6120.10.000', supplier:'M1606-M10',          qty:8,  desc:'Spring Washer M10',           models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'6',  partNo:'6121.20.050', supplier:'M1401-M20*50*25',    qty:6,  desc:'Cap Head Set M20x50',         models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'7',  partNo:'6120.20.000', supplier:'M1606-M20',          qty:6,  desc:'Spring Washer M20',           models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'8',  partNo:'6111.24.110', supplier:'M1402-M24*110-23',   qty:2,  desc:'Hex Head Bolt M24x110',       models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'9',  partNo:'6111.24.000', supplier:'M1501-M24-2',        qty:2,  desc:'Plain Nut M24',               models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'10', partNo:'6120.24.000', supplier:'M1606-M24',          qty:2,  desc:'Spring Washer M24',           models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'11', partNo:'6610.01.000', supplier:'M1410-M6*12-23',     qty:13, desc:'Button Head Screw M6x12',     models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'12', partNo:'6120.06.000', supplier:'M1606-M6',           qty:1,  desc:'Spring Washer M6',            models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'13', partNo:'6111.10.030', supplier:'M1423-M10*30',       qty:1,  desc:'Hex Head Bolt M10x30',        models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'14', partNo:'42201.03',    supplier:'B352911A',           qty:1,  desc:'Drive Axle',                  models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'15', partNo:'42467.00',    supplier:'3012450',            qty:1,  desc:'Terminal Guard',              models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'16', partNo:'42467.01',    supplier:'3012441',            qty:1,  desc:'Terminal Guard Support',      models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'17', partNo:'42467.02',    supplier:'3012519',            qty:1,  desc:'Terminal Guard Strap',        models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'18', partNo:'6111.10.020', supplier:'M1402-M10*20',       qty:1,  desc:'Hex Head Bolt M10x20',        models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'19', partNo:'6110.10.000', supplier:'M1602-M10',          qty:1,  desc:'Washer M10',                  models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'20', partNo:'6111.08.016', supplier:'M1410-M8*16',        qty:2,  desc:'Hex Head Bolt M8x16',         models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'21', partNo:'6120.08.000', supplier:'M1606-M8',           qty:4,  desc:'Spring Washer M8',            models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'22', partNo:'6111.08.000', supplier:'M1501-M8',           qty:2,  desc:'Nut M8',                      models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'23', partNo:'3012958',     supplier:'3012958',            qty:1,  desc:'Hose Bracket',                models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'24', partNo:'42203.03',    supplier:'',                   qty:1,  desc:'Cover Plate',                 models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'25', partNo:'42344.00',    supplier:'3012524A',           qty:1,  desc:'Steer Motor Cover',           models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'26', partNo:'42196.01',    supplier:'3012520A',           qty:1,  desc:'Steer Motor Housing',         models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'27', partNo:'7735.05.000', supplier:'M0901-16019',        qty:1,  desc:'Bearing',                     models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'28', partNo:'7735.02.000', supplier:'M0901-6314',         qty:1,  desc:'Bearing',                     models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'29', partNo:'44079.02.000',supplier:'M0702083',           qty:2,  desc:'Oil Seal',                    models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'30', partNo:'4807.01.000', supplier:'3012551',            qty:1,  desc:'Connector',                   models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'31', partNo:'7624.03.000', supplier:'M0902-7314B',        qty:1,  desc:'Bearing',                     models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'32', partNo:'7624.04.000', supplier:'3012547',            qty:1,  desc:'Nilos Ring',                  models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'33', partNo:'6121.14.035', supplier:'M140-M14*35-25',     qty:5,  desc:'Cap Head Set M14x35',         models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'34', partNo:'6120.14.000', supplier:'M1605-M14',          qty:9,  desc:'Spring Washer M14',           models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'35', partNo:'6121.14.040', supplier:'M1401-M14*40-23',    qty:4,  desc:'Cap Head Set M14x40',         models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'36', partNo:'42346.00',    supplier:'3012526',            qty:4,  desc:'Hose Clamp',                  models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'37', partNo:'42475.00',    supplier:'3012525',            qty:1,  desc:'Hose Bracket',                models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'38', partNo:'C5009.06',    supplier:'M1321-M6',           qty:2,  desc:'Grease Nipple M6',            models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'39', partNo:'7735.04.000', supplier:'M0901-6008ZZ',       qty:1,  desc:'Bearing',                     models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'40', partNo:'42199.00',    supplier:'3012523',            qty:1,  desc:'Steer Pinion',                models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'41', partNo:'44000.03.000',supplier:'3012549',            qty:1,  desc:'Hydraulic Steer Motor',       models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'42', partNo:'6121.12.035', supplier:'M1401-M12*35-25',    qty:4,  desc:'Cap Head Set M12x35',         models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'43', partNo:'6120.12.000', supplier:'M1605-M12',          qty:4,  desc:'Spring Washer M12',           models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'44', partNo:'4914.02.000', supplier:'35464',              qty:1,  desc:'Connector',                   models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'45', partNo:'4520.01.000', supplier:'M1613004',           qty:1,  desc:'Dowty Seal',                  models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'46', partNo:'4443.01.000', supplier:'35455',              qty:1,  desc:'Connector',                   models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'47', partNo:'42198.01',    supplier:'3012532A',           qty:1,  desc:'Steer Gear',                  models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'48', partNo:'42267.00',    supplier:'3012531',            qty:1,  desc:'Spacer',                      models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'49', partNo:'3169.45.000', supplier:'3012533',            qty:1,  desc:'Spacer',                      models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'50', partNo:'6110.06.000', supplier:'M1602-M6',           qty:12, desc:'Washer M6',                   models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'51', partNo:'42342.21',    supplier:'E0107170',           qty:1,  desc:'(W) Traction Cable',          models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'52', partNo:'42342.20',    supplier:'E0107170',           qty:1,  desc:'(V) Traction Cable',          models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'53', partNo:'42342.19',    supplier:'E0107167',           qty:1,  desc:'(U) Traction Cable',          models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'54', partNo:'55492.08.000',supplier:'E2102028',           qty:1,  desc:'AC Traction Motor',           models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'55', partNo:'55492.08.001',supplier:'',                   qty:1,  desc:'Encoder Sensor',              models:[1,0,0,0,0,0,0,0,0]},
+  ]
+},
+
+'A351-2A': {
+  title:'A351', subtitle:'Axle & Transmission Assembly (A351-2A)',
+  parts:[
+    {ref:'00', partNo:'4978.15.000', supplier:'B3506303',       qty:1,  desc:'Drive Axle',                  models:[0,1,1,1,1,1,1,1,1]},
+    {ref:'00', partNo:'42201.03',    supplier:'B352911A',       qty:1,  desc:'Drive Axle (VNA)',             models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'01', partNo:'B350605',     supplier:'B350605',        qty:1,  desc:'Differential Assembly',       models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'02', partNo:'B350568',     supplier:'B350568',        qty:1,  desc:'Differential Case',           models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'1',  partNo:'30095B',      supplier:'30095B',         qty:1,  desc:'Front Tyre Base Axle',        models:[0,1,1,1,1,1,1,1,1]},
+    {ref:'1',  partNo:'35678',       supplier:'35678',          qty:1,  desc:'Front Tyre Base Axle',        models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'2',  partNo:'30092G',      supplier:'30092G',         qty:1,  desc:'Gear Casing',                 models:[0,1,1,1,1,1,1,1,1]},
+    {ref:'2',  partNo:'35682A',      supplier:'35682A',         qty:1,  desc:'Gear Casing',                 models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'3',  partNo:'30088A',      supplier:'30088A',         qty:2,  desc:'Spacer',                      models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'4',  partNo:'M1328-10*32', supplier:'M1328-10*32',    qty:1,  desc:'Key',                         models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'5',  partNo:'30091B',      supplier:'30091B',         qty:1,  desc:'Cover Plate',                 models:[0,1,1,1,1,1,1,1,0]},
+    {ref:'5',  partNo:'3004072',     supplier:'3004072',        qty:1,  desc:'Cover Plate (Alt)',            models:[0,0,0,0,0,0,0,0,1]},
+    {ref:'6',  partNo:'M1424-M8*20', supplier:'M1424-M8*20',    qty:6,  desc:'Bolt M8x20',                  models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'7',  partNo:'4978.15.002', supplier:'M0909-30307',    qty:3,  desc:'Taper Bearing',               models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'8',  partNo:'30074A',      supplier:'30074A',         qty:1,  desc:'Intermediate Gear',           models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'9',  partNo:'30073A',      supplier:'30073A',         qty:1,  desc:'Wheel Helical',               models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'10', partNo:'7624.01.000', supplier:'M0904-32013',    qty:6,  desc:'Taper Bearing',               models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'11', partNo:'30093I',      supplier:'30093I',         qty:1,  desc:'Gear Casing',                 models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'12', partNo:'M1301-16*20', supplier:'M1301-16*20',    qty:2,  desc:'Pin',                         models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'13', partNo:'30090D',      supplier:'30090D',         qty:1,  desc:'Connecting Shaft',            models:[0,1,1,1,1,1,1,1,1]},
+    {ref:'13', partNo:'35677A',      supplier:'35677A',         qty:1,  desc:'Connecting Shaft',            models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'14', partNo:'M1301-16*40', supplier:'M1301-16*40',    qty:4,  desc:'Pin',                         models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'15', partNo:'30089A',      supplier:'30089A',         qty:1,  desc:'Front Tyre Base Axle',        models:[0,1,1,1,1,1,1,1,1]},
+    {ref:'15', partNo:'35680',       supplier:'35680',          qty:1,  desc:'Front Tyre Base Axle',        models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'16', partNo:'4978.15.001', supplier:'M0702053',       qty:2,  desc:'Front Hub Seal',              models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'17', partNo:'30085A',      supplier:'30085A',         qty:2,  desc:'Front Hub',                   models:[0,1,1,1,1,1,1,0,0]},
+    {ref:'18', partNo:'4978.15.006', supplier:'30086A',         qty:12, desc:'Wheel Stud',                  models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'19', partNo:'M0801-AS34',  supplier:'M0801-AS34',     qty:2,  desc:'O Ring',                      models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'20', partNo:'6121.10.030', supplier:'M1401069-65',    qty:16, desc:'Cap Head Screw M10x30',        models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'21', partNo:'M1422002',    supplier:'M1422002',       qty:6,  desc:'Cap Head Screw',               models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'22', partNo:'M1301-10*30', supplier:'M1301-10*30',    qty:4,  desc:'Pin',                         models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'23', partNo:'4978.15.013', supplier:'30083A',         qty:2,  desc:'Hub Split Locknut',           models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'24', partNo:'4978.15.014', supplier:'30084A',         qty:2,  desc:'Hub Split Locknut',           models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'25', partNo:'30079B',      supplier:'30079B',         qty:1,  desc:'Drive Shaft – Long',          models:[0,1,1,1,1,1,1,1,1]},
+    {ref:'25', partNo:'35681',       supplier:'35681',          qty:1,  desc:'Drive Shaft – Long',          models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'26', partNo:'6111.10.030', supplier:'M1424004',       qty:12, desc:'Hex Head Bolt M10x30',        models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'27', partNo:'32098A',      supplier:'32098A',         qty:1,  desc:'Differential Gear',           models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'28', partNo:'30082B',      supplier:'30082B',         qty:1,  desc:'Differential Case',           models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'29', partNo:'30081B',      supplier:'30081B',         qty:1,  desc:'Differential Case',           models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'30', partNo:'32096',       supplier:'32096',          qty:2,  desc:'Washer',                      models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'31', partNo:'6211.08.065', supplier:'M1424-M8*65',    qty:12, desc:'Hex Head Bolt M8x65',         models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'32', partNo:'30078B',      supplier:'30078B',         qty:1,  desc:'Drive Shaft – Short',         models:[0,1,1,1,1,1,1,1,1]},
+    {ref:'32', partNo:'35679',       supplier:'35679',          qty:1,  desc:'Drive Shaft – Short',         models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'33', partNo:'4978.15.004', supplier:'M0909-32009',    qty:1,  desc:'Taper Bearing',               models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'34', partNo:'4978.15.010', supplier:'30076A',         qty:1,  desc:'Helical Input Pinion',        models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'35', partNo:'30071',       supplier:'30071',          qty:1,  desc:'Spacer',                      models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'36', partNo:'55492.08.001',supplier:'',               qty:1,  desc:'Encoder Sensor',              models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'37', partNo:'30075A',      supplier:'30075A',         qty:1,  desc:'Wheel Helical',               models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'38', partNo:'4978.15.031', supplier:'31594A',         qty:1,  desc:'Breather Bolt',               models:[0,1,1,1,1,1,0,0,0]},
+    {ref:'38', partNo:'4978.15.031', supplier:'31594A',         qty:2,  desc:'Breather Bolt',               models:[0,0,0,0,0,0,1,1,1]},
+    {ref:'39', partNo:'32104',       supplier:'32104',          qty:4,  desc:'Differential Gear',           models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'40', partNo:'32102',       supplier:'32102A',         qty:4,  desc:'Washer Differential Gear',    models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'41', partNo:'30080',       supplier:'32100',          qty:1,  desc:'Differential Spider',         models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'42', partNo:'M1424007',    supplier:'M1424007',       qty:6,  desc:'Bolt',                        models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'43', partNo:'M0604008',    supplier:'M0604008',       qty:1,  desc:'Screw Plug',                  models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'44', partNo:'30296',       supplier:'30296',          qty:1,  desc:'Washer',                      models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'45', partNo:'30297',       supplier:'30297',          qty:1,  desc:'Washer',                      models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'46', partNo:'6111.10.025', supplier:'M1402-M10*25',   qty:1,  desc:'Hex Head Bolt M10x25',        models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'47', partNo:'4978.12.014', supplier:'M0702052',       qty:1,  desc:'Oil Seal 42x72x8mm',          models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'48', partNo:'M0604005',    supplier:'M0604005',       qty:2,  desc:'Screw Plug',                  models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'49', partNo:'M1424009',    supplier:'M1424009',       qty:5,  desc:'Bolt',                        models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'50', partNo:'4978.15.005', supplier:'30087B',         qty:12, desc:'Wheel Nut',                   models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'51', partNo:'55492.08.000',supplier:'E2102028',       qty:1,  desc:'Traction Motor',              models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'52', partNo:'30094',       supplier:'30094',          qty:2,  desc:'Washer',                      models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'53', partNo:'6110.10.000', supplier:'M1602-M10',      qty:8,  desc:'Washer M10',                  models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'54', partNo:'6120.10.000', supplier:'M1605-M10',      qty:23, desc:'Spring Washer M10',           models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'55', partNo:'6120.08.000', supplier:'M1605-M8',       qty:18, desc:'Spring Washer M8',            models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'56', partNo:'3004628',     supplier:'6004628',        qty:1,  desc:'Line Cover Assembly (VNA)',   models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'57', partNo:'6120.12.000', supplier:'M1606-M12',      qty:1,  desc:'Spring Washer M12 (VNA)',     models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'58', partNo:'6111.12.030', supplier:'M1402-M12*30',   qty:1,  desc:'Hex Head Bolt M12x30 (VNA)',  models:[1,0,0,0,0,0,0,0,0]},
+  ]
+},
+
+'A352-1': {
+  title:'A352', subtitle:'Chassis Kit (A352-1)',
+  parts:[
+    {ref:'1',   partNo:'7738.08.000', supplier:'30315A',          qty:2,  desc:'Brake Cable',                 models:[0,1,1,1,1,1,1,1,1]},
+    {ref:'2',   partNo:'7668.01.000', supplier:'30316A',          qty:1,  desc:'Hand Brake Cable',            models:[0,1,1,1,1,1,1,1,1]},
+    {ref:'2',   partNo:'7668.02.000', supplier:'3004347',         qty:1,  desc:'Hand Brake Cable',            models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'3',   partNo:'4980.01.000', supplier:'M0305006',        qty:1,  desc:'Hydraulic Steer Motor',       models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'4',   partNo:'41536.01',    supplier:'30419B',          qty:1,  desc:'Steer Housing',               models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'9',   partNo:'41318.02',    supplier:'3013555',         qty:1,  desc:'Panel Mounting Bracket',      models:[0,1,1,1,1,1,1,1,1]},
+    {ref:'10',  partNo:'41302.30',    supplier:'',                qty:1,  desc:'Brake Linkage Set',           models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'11',  partNo:'7763.01.000', supplier:'',                qty:2,  desc:'Spring',                      models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'13',  partNo:'6121.12.040', supplier:'M1424-M12*40',    qty:8,  desc:'Hex Head Bolt M12x40',        models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'14',  partNo:'6120.12.000', supplier:'M1606-M12',       qty:4,  desc:'Spring Washer M12',           models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'15',  partNo:'55131.14.000',supplier:'E3805003',        qty:2,  desc:'48v Fan',                     models:[0,1,1,1,1,1,1,1,1]},
+    {ref:'15',  partNo:'55131.21.000',supplier:'E3805028',        qty:2,  desc:'48v Fan',                     models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'15A', partNo:'42543.00',    supplier:'3013992',         qty:1,  desc:'Fan Bracket',                 models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'18',  partNo:'30372',       supplier:'30372',           qty:1,  desc:'Brass Tee Block',             models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'23',  partNo:'6517.02.000', supplier:'3005090',         qty:6,  desc:'Hole Insert',                 models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'24',  partNo:'6453.01.000', supplier:'34898',           qty:2,  desc:'Pin',                         models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'25',  partNo:'30374B',      supplier:'30374B',          qty:1,  desc:'Brake Pipe R/H',              models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'25',  partNo:'3000147B',    supplier:'3000147B',        qty:1,  desc:'Brake Pipe R/H',              models:[0,1,0,0,0,0,0,0,0]},
+    {ref:'25',  partNo:'42091.01',    supplier:'35892B',          qty:1,  desc:'Brake Pipe R/H',              models:[0,0,1,1,0,0,0,0,0]},
+    {ref:'26',  partNo:'30373C',      supplier:'30373C',          qty:1,  desc:'Brake Pipe L/H',              models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'26',  partNo:'3000146B',    supplier:'3000146B',        qty:1,  desc:'Brake Pipe L/H',              models:[0,1,0,0,0,0,0,0,0]},
+    {ref:'26',  partNo:'42091.02',    supplier:'35893C',          qty:1,  desc:'Brake Pipe L/H',              models:[0,0,1,1,0,0,0,0,0]},
+    {ref:'27',  partNo:'6581.05.000', supplier:'30375A',          qty:1,  desc:'Brake Pipe',                  models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'28',  partNo:'4976.02.000', supplier:'M0511001',        qty:1,  desc:'Nylon Pipe M10',              models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'29',  partNo:'3013345P06',  supplier:'3013345P06',      qty:1,  desc:'Floor Plate',                 models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'33',  partNo:'35894',       supplier:'35894',           qty:1,  desc:'Connector',                   models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'34',  partNo:'35943',       supplier:'35943',           qty:1,  desc:'Connector',                   models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'35',  partNo:'41535.00',    supplier:'30077F',          qty:1,  desc:'Steer Pinion',                models:[1,1,1,1,1,1,1,0,0]},
+    {ref:'36',  partNo:'6588.01.000', supplier:'M1312-S50',       qty:1,  desc:'Circlip M50 External',        models:[1,1,1,1,1,1,1,0,0]},
+    {ref:'37',  partNo:'7735.01.000', supplier:'M0907-6210ZZ',    qty:2,  desc:'Bearing',                     models:[1,1,1,1,1,1,1,0,0]},
+    {ref:'38',  partNo:'C177',        supplier:'3001163',         qty:1,  desc:'Anti Slip (Cut to order)',     models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'40',  partNo:'E0107113',    supplier:'E0107113',        qty:1,  desc:'Cable Sub-Assembly',          models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'44',  partNo:'42643.00',    supplier:'3013558C',        qty:1,  desc:'Battery Plug Support (VNA/1000)', models:[1,1,0,0,0,0,0,0,0]},
+    {ref:'44',  partNo:'42643.01',    supplier:'3013559',         qty:1,  desc:'Battery Plug Support (1200/1250)', models:[0,0,1,1,0,0,0,0,0]},
+    {ref:'44',  partNo:'42643.02',    supplier:'3013560',         qty:1,  desc:'Battery Plug Support (1350/1400/1500)', models:[0,0,0,0,1,1,1,1,1]},
+    {ref:'48',  partNo:'42644.00',    supplier:'3013554',         qty:1,  desc:'Battery Cable Support',       models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'50',  partNo:'6121.20.030', supplier:'M1401-M20*30',    qty:1,  desc:'Cap Head Bolt M20x30 (HiMAX)', models:[0,0,0,0,0,0,1,1,1]},
+    {ref:'51',  partNo:'41896.02',    supplier:'36867',           qty:1,  desc:'Seal Cap Plate (HiMAX)',      models:[0,0,0,0,0,0,1,1,1]},
+    {ref:'52',  partNo:'44079.01.000',supplier:'M0713002',        qty:1,  desc:'Oil Seal (HiMAX)',            models:[0,0,0,0,0,0,1,1,1]},
+    {ref:'53',  partNo:'44078.01.000',supplier:'M0901-615ZZ',     qty:1,  desc:'Roller Bearing (HiMAX)',      models:[0,0,0,0,0,0,1,1,1]},
+    {ref:'54',  partNo:'41896.03',    supplier:'36868C',          qty:1,  desc:'Seal Retainer Plate (HiMAX)', models:[0,0,0,0,0,0,1,1,1]},
+    {ref:'55',  partNo:'6121.16.040', supplier:'M1401-16*40',     qty:1,  desc:'Cap Head Bolt M16x40 (HiMAX)', models:[0,0,0,0,0,0,1,1,1]},
+    {ref:'56',  partNo:'3000248A',    supplier:'3000248A',        qty:1,  desc:'Plate (HiMAX)',               models:[0,0,0,0,0,0,1,1,1]},
+  ]
+},
+
+'A352-2': {
+  title:'A352', subtitle:'Seat & Covers (A352-2)',
+  parts:[
+    {ref:'1',  partNo:'41339.06',    supplier:'35723AR044',      qty:1,  desc:'Battery Lid (VNA/17N)',        models:[1,1,0,0,0,0,0,0,0]},
+    {ref:'1',  partNo:'41339.07',    supplier:'34944BR044',      qty:1,  desc:'Battery Lid (20S/22S+)',       models:[0,0,1,1,0,0,0,0,0]},
+    {ref:'1',  partNo:'41339.08',    supplier:'3000112R044',     qty:1,  desc:'Battery Lid (25W+/HiMAX)',     models:[0,0,0,0,1,1,1,1,1]},
+    {ref:'2',  partNo:'41337.13',    supplier:'3013606BR043',    qty:1,  desc:'Front Electrical Cover (VNA/17N)', models:[1,1,0,0,0,0,0,0,0]},
+    {ref:'2',  partNo:'41337.14',    supplier:'3013604AR043',    qty:1,  desc:'Front Electrical Cover (20S/22S+)', models:[0,0,1,1,0,0,0,0,0]},
+    {ref:'2',  partNo:'41337.15',    supplier:'3013605A',        qty:1,  desc:'Front Electrical Cover (25W+/HiMAX)', models:[0,0,0,0,1,1,1,1,1]},
+    {ref:'3',  partNo:'41390.00',    supplier:'3010896',         qty:1,  desc:'Arm Rest',                     models:[0,1,1,1,1,1,1,1,1]},
+    {ref:'4',  partNo:'41385.00',    supplier:'30264F',          qty:1,  desc:'Seat Pan',                     models:[1,1,0,0,0,0,0,0,0]},
+    {ref:'4',  partNo:'41385.02',    supplier:'3013646',         qty:1,  desc:'Seat Pan',                     models:[0,0,1,1,0,0,0,0,0]},
+    {ref:'4',  partNo:'41385.01',    supplier:'3017464',         qty:1,  desc:'Seat Pan',                     models:[0,0,0,0,1,1,1,1,1]},
+    {ref:'5',  partNo:'41336.04',    supplier:'3000113',         qty:1,  desc:'Nose Cone',                    models:[0,1,1,1,0,0,0,0,0]},
+    {ref:'5',  partNo:'41336.05',    supplier:'35726',           qty:1,  desc:'Nose Cone',                    models:[0,0,0,0,1,1,1,1,1]},
+    {ref:'6',  partNo:'7659.01.000', supplier:'30618A',          qty:1,  desc:'Gas Strut',                    models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'7',  partNo:'41342.00',    supplier:'30281',           qty:1,  desc:'Direction Lever Cover',        models:[0,1,1,1,1,1,0,0,0]},
+    {ref:'8',  partNo:'55497.01.000',supplier:'30389A',          qty:1,  desc:'Document Holder',              models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'9',  partNo:'7633.27.000', supplier:'M1323040',        qty:1,  desc:'Seat',                         models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'10', partNo:'41321.09',    supplier:'35653B',          qty:1,  desc:'Floor Plate',                  models:[1,1,0,0,0,0,0,0,0]},
+    {ref:'10', partNo:'41321.10',    supplier:'3006520',         qty:1,  desc:'Floor Plate',                  models:[0,0,1,1,1,1,0,0,0]},
+    {ref:'10', partNo:'41321.12',    supplier:'3009565A',        qty:1,  desc:'Floor Plate',                  models:[0,0,0,0,0,0,1,1,1]},
+    {ref:'16', partNo:'41372.00',    supplier:'307890',          qty:1,  desc:'Seat Frame',                   models:[1,1,0,0,0,0,0,0,0]},
+    {ref:'16', partNo:'41372.10',    supplier:'36862H',          qty:1,  desc:'Seat Frame',                   models:[0,0,1,1,0,0,0,0,0]},
+    {ref:'16', partNo:'41372.11',    supplier:'356575',          qty:1,  desc:'Seat Frame',                   models:[0,0,0,0,1,1,1,1,1]},
+    {ref:'20', partNo:'41394.00',    supplier:'30171A',          qty:1,  desc:'Seat Retaining Stop',          models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'27', partNo:'D180416',     supplier:'E3804015',        qty:1,  desc:'Front Horn Switch',            models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'30', partNo:'7633.23.000', supplier:'',                qty:1,  desc:'Seat Belt',                    models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'31', partNo:'7703.03.000', supplier:'31446',           qty:2,  desc:'Rubber Buffer',                models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'34', partNo:'7633.27.005', supplier:'32750',           qty:1,  desc:'Seat Runners',                 models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'36', partNo:'41944.00',    supplier:'33904',           qty:1,  desc:'Hose Protector',               models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'37', partNo:'7633.19.001', supplier:'E0901017',        qty:1,  desc:'Seat Switch',                  models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'45', partNo:'42417.01',    supplier:'3010591A',        qty:2,  desc:'Battery Lid Bracket',          models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'47', partNo:'7772.07.000', supplier:'M1323213',        qty:1,  desc:'Rubber Seal',                  models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'50', partNo:'42350.01',    supplier:'',                qty:1,  desc:'Seat Latch',                   models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'52', partNo:'42465.00',    supplier:'3007155C',        qty:1,  desc:'Seat Latch Plate',             models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'54', partNo:'7620.02.001', supplier:'3013063',         qty:1,  desc:'Handbrake Gaiter',             models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'55', partNo:'41372.02',    supplier:'30789P08A',       qty:2,  desc:'Seat Frame Support',           models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'56', partNo:'55385.12.000',supplier:'',                qty:1,  desc:'Female Battery Plug',          models:[0,1,1,1,1,1,0,0,0]},
+    {ref:'56', partNo:'55385.22.000',supplier:'',                qty:1,  desc:'Female Battery Plug (VNA)',    models:[1,0,0,0,0,0,0,0,0]},
+  ]
+},
+
+'A352-3': {
+  title:'A352', subtitle:'Overhead Guard (A352-3)',
+  parts:[
+    {ref:'1',  partNo:'',            supplier:'',                qty:1,  desc:'Overhead Guard',               models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'2',  partNo:'6171.14.045', supplier:'M1423039',        qty:8,  desc:'Durlock Bolt M14x45',          models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'3',  partNo:'6120.14.000', supplier:'M1606-M14',       qty:8,  desc:'Spring Washer M14',            models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'4',  partNo:'55421.15.000',supplier:'E1703004A',       qty:3,  desc:'White LED Headlight',          models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'5',  partNo:'5676.10.000', supplier:'E2302073',        qty:1,  desc:'Beacon',                       models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'5A', partNo:'5676.11.000', supplier:'',                qty:1,  desc:'Beacon Guard',                 models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'6',  partNo:'7404.02.000', supplier:'M1323039',        qty:1,  desc:'Mirror',                       models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'8',  partNo:'M1315034',    supplier:'M1315034',        qty:9,  desc:'Tube Clamp',                   models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'10', partNo:'E3703007',    supplier:'E3703007',        qty:4,  desc:'Buckle',                       models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'12', partNo:'55421.19.000',supplier:'',                qty:1,  desc:'Blue LED Spotlight',           models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'14', partNo:'3008168A',    supplier:'3008168A',        qty:1,  desc:'Cable Cover',                  models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'17', partNo:'3006419',     supplier:'3006419',         qty:1,  desc:'Wiring Duct',                  models:[1,1,1,1,1,1,1,1,1]},
+  ]
+},
+
+'A352-5': {
+  title:'A352', subtitle:'Linkage Lever Assembly (A352-5)',
+  parts:[
+    {ref:'1',  partNo:'5202.08.000', supplier:'B356831C',        qty:1,  desc:'Direction Lever',              models:[0,1,1,1,1,1,0,0,0]},
+    {ref:'2',  partNo:'55523.01.005',supplier:'B356833',         qty:1,  desc:'Key Switch',                   models:[0,1,1,1,1,1,0,0,0]},
+    {ref:'3',  partNo:'55498.01.000',supplier:'E0107106',        qty:1,  desc:'Horn Button',                  models:[0,1,1,1,1,1,0,0,0]},
+    {ref:'4',  partNo:'55525.02.000',supplier:'E1608007',        qty:1,  desc:'Head Light Switch',            models:[0,1,1,1,1,1,0,0,0]},
+    {ref:'4',  partNo:'55520.06.000',supplier:'',                qty:1,  desc:'Head Light Base',              models:[0,1,1,1,1,1,0,0,0]},
+    {ref:'5',  partNo:'7633.19.001', supplier:'E0901017',        qty:1,  desc:'Seat Switch',                  models:[0,1,1,1,1,1,0,0,0]},
+    {ref:'6',  partNo:'41340.26',    supplier:'3009172A',        qty:1,  desc:'Spool Lever Cover',            models:[0,1,1,1,1,1,0,0,0]},
+    {ref:'7',  partNo:'6549.02.000', supplier:'M1329-M6',        qty:4,  desc:'Jack Nut M6',                  models:[0,1,1,1,1,1,0,0,0]},
+    {ref:'8',  partNo:'6612.01.000', supplier:'M1410-M6*20',     qty:4,  desc:'Button Head Screw M6x20',      models:[0,1,1,1,1,1,0,0,0]},
+    {ref:'9',  partNo:'55503.05.000',supplier:'3008266',         qty:3,  desc:'Gaiter',                       models:[0,1,1,1,1,1,0,0,0]},
+  ]
+},
+
+'A353-1A': {
+  title:'A353', subtitle:'Oil Tank Module (A353-1A)',
+  parts:[
+    {ref:'1',  partNo:'41282.03',    supplier:'3010790A',        qty:1,  desc:'Oil Tank',                     models:[0,1,1,1,1,1,1,1,1]},
+    {ref:'1',  partNo:'3010793C',    supplier:'',                qty:1,  desc:'Oil Tank (VNA)',               models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'2',  partNo:'41282.01',    supplier:'3010791',         qty:1,  desc:'Oil Tank Lid',                 models:[0,1,1,1,1,1,1,1,1]},
+    {ref:'2',  partNo:'3010794A',    supplier:'3010794A',        qty:1,  desc:'Oil Tank Lid (VNA)',           models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'3',  partNo:'41282.04',    supplier:'3010792',         qty:1,  desc:'Oil Tank Lid (Alt)',           models:[0,1,1,1,1,1,1,1,1]},
+    {ref:'3',  partNo:'3010795',     supplier:'3010795',         qty:1,  desc:'Oil Tank Lid (Alt VNA)',       models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'4',  partNo:'41282.02',    supplier:'30206',           qty:2,  desc:'Gasket',                       models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'5',  partNo:'5454.06.000', supplier:'E2104006',        qty:1,  desc:'Lift Motor',                   models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'6',  partNo:'44047.03.000',supplier:'3000815',         qty:1,  desc:'Lift Pump',                    models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'7',  partNo:'55309.05.000',supplier:'E2103008',        qty:1,  desc:'Steer Motor',                  models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'8',  partNo:'4981.03.000', supplier:'3000816',         qty:1,  desc:'Steer Pump',                   models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'9',  partNo:'4004.01.000', supplier:'30623',           qty:2,  desc:'Serrated Drive',               models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'10', partNo:'4632.01.000', supplier:'3010789',         qty:1,  desc:'Lift Filter',                  models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'11', partNo:'4634.01.000', supplier:'M0303003',        qty:1,  desc:'Steer Filter',                 models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'12', partNo:'4959.01.000', supplier:'M0303057A',       qty:1,  desc:'Filter Breather Assembly',     models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'13', partNo:'4959.02.000', supplier:'M0303005',        qty:1,  desc:'Return Filter',                models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'14', partNo:'4959.03.000', supplier:'',                qty:1,  desc:'Breather Filter',              models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'15', partNo:'4959.15.000', supplier:'M0303058',        qty:1,  desc:'Filter Gasket',                models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'16', partNo:'4994.03.000', supplier:'30614',           qty:3,  desc:'Cast Elbow',                   models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'17', partNo:'4994.01.000', supplier:'30615',           qty:1,  desc:'Cast Elbow',                   models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'18', partNo:'4489.01.000', supplier:'35458',           qty:1,  desc:'Male Adaptor',                 models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'27', partNo:'4520.01.000', supplier:'M1613004',        qty:3,  desc:'Dowty Seal',                   models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'30', partNo:'42496.00',    supplier:'3009630',         qty:2,  desc:'Lift & Steer Pump Gasket',     models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'38', partNo:'LK0022-00',   supplier:'',                qty:1,  desc:'Steer Pump Pipe Kit',          models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'39', partNo:'LK0022-01',   supplier:'',                qty:1,  desc:'Lift Pump Pipe Kit',           models:[1,1,1,1,1,1,1,1,1]},
+  ]
+},
+
+'A353-2': {
+  title:'A353', subtitle:'Spool Valve Assembly (A353-2)',
+  parts:[
+    {ref:'1',  partNo:'41317.00',    supplier:'3013553B',        qty:1,  desc:'Spool Valve Mounting Bracket', models:[0,1,1,1,1,1,1,1,1]},
+    {ref:'1',  partNo:'41317.01',    supplier:'3013590A',        qty:1,  desc:'Spool Valve Mounting Bracket (VNA)', models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'2',  partNo:'41391.00',    supplier:'',                qty:1,  desc:'Retaining Strap',              models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'3',  partNo:'4977.18.000', supplier:'M0302134',        qty:1,  desc:'Spool Valve',                  models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'4',  partNo:'4667.01.000', supplier:'',                qty:1,  desc:'Hold Valve',                   models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'6',  partNo:'7620.02.000', supplier:'30620B',          qty:1,  desc:'Handbrake',                    models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'7',  partNo:'7668.01.000', supplier:'30316A',          qty:1,  desc:'Handbrake Cable',              models:[0,1,1,1,1,1,1,1,1]},
+    {ref:'7',  partNo:'7668.02.000', supplier:'3004347',         qty:1,  desc:'Handbrake Cable (VNA)',        models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'8',  partNo:'41348.06',    supplier:'30282B',          qty:1,  desc:'Lift Lever',                   models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'9',  partNo:'41348.07',    supplier:'30283B',          qty:1,  desc:'Tilt Lever',                   models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'10', partNo:'41348.08',    supplier:'30284B',          qty:1,  desc:'Side Shift Lever',             models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'11', partNo:'7638.05.000', supplier:'30570',           qty:1,  desc:'Lift Knob',                    models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'12', partNo:'7638.06.000', supplier:'30571',           qty:1,  desc:'Tilt Knob',                    models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'13', partNo:'7638.07.000', supplier:'30554',           qty:1,  desc:'Side Shift Knob',              models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'14', partNo:'55219.01.000',supplier:'E0901002',        qty:1,  desc:'Mast Limit Switch',            models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'15', partNo:'4977.08.016', supplier:'',                qty:3,  desc:'Lever Housing',                models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'16', partNo:'4977.18.001', supplier:'',                qty:1,  desc:'Lift/Lower Sensor',            models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'17', partNo:'4977.18.002', supplier:'',                qty:2,  desc:'Tilt/Side Shift Spool Switch', models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'18', partNo:'4977.03.000', supplier:'',                qty:3,  desc:'Spool Seal Kit',               models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'27', partNo:'3729.136',    supplier:'M0519581',        qty:1,  desc:'Pump – Spool Valve Hose',      models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'29', partNo:'4437.01.000', supplier:'M0605001',        qty:1,  desc:'Blanking Plug',                models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'30', partNo:'4471.01.000', supplier:'35461B',          qty:4,  desc:'Bulkhead Coupling 1/4" BSP',   models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'32', partNo:'4441.01.000', supplier:'35456',           qty:4,  desc:'Male Stud Coupling 1/2" BSP',  models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'35', partNo:'4520.01.000', supplier:'M1613004',        qty:4,  desc:'1/2" BSP Dowty Seal',          models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'36', partNo:'4522.01.000', supplier:'M1613003',        qty:4,  desc:'3/8" BSP Dowty Seal',          models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'37', partNo:'4521.01.000', supplier:'M1613002',        qty:6,  desc:'1/4" BSP Dowty Seal',          models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'51', partNo:'44082.01.000',supplier:'M0302048',        qty:2,  desc:'Shuttle Valve',                models:[0,0,0,0,0,0,1,1,1]},
+    {ref:'56', partNo:'41393.00',    supplier:'M1401-10*35',     qty:1,  desc:'Brake Cable Bolt',             models:[1,1,1,1,1,1,1,1,1]},
+  ]
+},
+
+'A353-3A': {
+  title:'A353', subtitle:'Steering Column Module (A353-3A)',
+  parts:[
+    {ref:'1',  partNo:'6138.14.000', supplier:'M1503001',        qty:1,  desc:'M14x1.5 Fine Pitch Nyloc Nut', models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'2',  partNo:'7647.11.000', supplier:'M3006527',        qty:1,  desc:'Steering Wheel',               models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'3',  partNo:'55481.10.000',supplier:'E3601114',        qty:1,  desc:'48v Eco Smart Display',        models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'4',  partNo:'41338.09',    supplier:'B356848A',        qty:1,  desc:'Upper Steering Cowl',          models:[0,1,1,1,1,1,1,1,1]},
+    {ref:'4',  partNo:'41338.10',    supplier:'B356849C',        qty:1,  desc:'Upper Steering Cowl (VNA)',    models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'6',  partNo:'7598.04.000', supplier:'M1317014',        qty:2,  desc:'Grab Handle',                  models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'9',  partNo:'41285.06',    supplier:'35665B',          qty:1,  desc:'Steering Column Support',      models:[0,0,0,0,0,0,1,1,1]},
+    {ref:'9',  partNo:'41285.02',    supplier:'30096B',          qty:1,  desc:'Steering Column Support',      models:[0,1,1,1,1,1,0,0,0]},
+    {ref:'12', partNo:'7646.06.000', supplier:'3005368',         qty:1,  desc:'Steering Column',              models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'13', partNo:'7804.01.001', supplier:'E3811136',        qty:1,  desc:'Steer Sensor',                 models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'14', partNo:'42646.02',    supplier:'E0107093',        qty:1,  desc:'Eco Smart Display Harness',    models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'15', partNo:'55498.01.000',supplier:'B356832',         qty:1,  desc:'Red Horn Button',              models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'17', partNo:'7601.01.000', supplier:'M1317017',        qty:1,  desc:'Locking Lever',                models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'18', partNo:'41242.09',    supplier:'35655D',          qty:1,  desc:'Steering Column Mount',        models:[0,0,0,0,0,0,1,1,1]},
+    {ref:'18', partNo:'41242.08',    supplier:'34979I',          qty:1,  desc:'Steering Column Mount',        models:[0,1,1,1,1,1,0,0,0]},
+    {ref:'21', partNo:'3729.100',    supplier:'M0521165',        qty:1,  desc:'Hose Orbital/Lock Valve',      models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'22', partNo:'3729.101',    supplier:'M0521164',        qty:1,  desc:'Hose Orbital/Lock Valve',      models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'25', partNo:'44001.09.000',supplier:'35693',           qty:1,  desc:'Steer Orbital',                models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'32', partNo:'4973.01.000', supplier:'M0302003',        qty:1,  desc:'Steer Lock Valve',             models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'34', partNo:'5300.02.000', supplier:'E3804016',        qty:1,  desc:'Horn',                         models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'40', partNo:'5280.05.000', supplier:'E3601069',        qty:1,  desc:'Hour Meter',                   models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'41', partNo:'3006475',     supplier:'3006475',         qty:1,  desc:'Fixed Plate',                  models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'42', partNo:'42459.00',    supplier:'',                qty:1,  desc:'Swivel Hose Bracket (VNA)',    models:[1,0,0,0,0,0,0,0,0]},
+  ]
+},
+
+'A353-3C': {
+  title:'A353', subtitle:'Steering Column Module – VNA (A353-3C)',
+  parts:[
+    {ref:'1',  partNo:'41285.06',    supplier:'35665B',          qty:1,  desc:'Steering Column Support',      models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'2',  partNo:'41338.11',    supplier:'B356851C',        qty:1,  desc:'Upper Steering Cowl',          models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'4',  partNo:'55481.10.000',supplier:'E3601114',        qty:1,  desc:'48v Eco Smart Display',        models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'5',  partNo:'5202.08.000', supplier:'',                qty:1,  desc:'Direction Lever',              models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'6',  partNo:'55498.01.000',supplier:'B356832',         qty:1,  desc:'Red Horn Button',              models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'7',  partNo:'7647.11.000', supplier:'3006527',         qty:1,  desc:'Steering Wheel',               models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'8',  partNo:'7598.04.000', supplier:'M1317014',        qty:2,  desc:'Grab Handle',                  models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'10', partNo:'42316.00',    supplier:'3012539',         qty:1,  desc:'Steer Lock Valve Bracket',     models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'15', partNo:'7646.06.000', supplier:'3005368',         qty:1,  desc:'Steering Column',              models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'17', partNo:'7601.01.000', supplier:'M1317017',        qty:1,  desc:'Locking Lever',                models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'19', partNo:'7804.01.001', supplier:'E3811136',        qty:1,  desc:'Steer Sensor',                 models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'22', partNo:'44001.10.000',supplier:'',                qty:1,  desc:'Steer Orbital',                models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'23', partNo:'4973.01.000', supplier:'M0302003',        qty:1,  desc:'Steer Lock Valve',             models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'37', partNo:'42347.00',    supplier:'3012538A',        qty:1,  desc:'Steering Column Cover',        models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'39', partNo:'42423.00',    supplier:'3012957',         qty:1,  desc:'Footwell Cover',               models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'45', partNo:'42646.02',    supplier:'E0107093',        qty:1,  desc:'Eco Smart Display Harness',    models:[1,0,0,0,0,0,0,0,0]},
+  ]
+},
+
+'A354-1A': {
+  title:'A354', subtitle:'Pedal Plate Module (A354-1A)',
+  parts:[
+    {ref:'1',  partNo:'41297.03',    supplier:'34953E',          qty:1,  desc:'Pedal Mounting Plate',         models:[1,1,1,1,0,0,0,0,0]},
+    {ref:'1',  partNo:'41297.04',    supplier:'35663B',          qty:1,  desc:'Pedal Mounting Plate',         models:[0,0,0,0,1,1,1,1,1]},
+    {ref:'2',  partNo:'55481.01.001',supplier:'E1601028',        qty:1,  desc:'Accelerator Pedal',            models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'3',  partNo:'41296.03',    supplier:'34952',           qty:1,  desc:'Brake Pedal',                  models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'4',  partNo:'55215.07.000',supplier:'34939',           qty:1,  desc:'Brake Pedal Rubber',           models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'5',  partNo:'41291.00',    supplier:'35000',           qty:1,  desc:'Brake Push Rod',               models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'6',  partNo:'7197.04.000', supplier:'34915',           qty:1,  desc:'Brake Master Cylinder',        models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'7',  partNo:'CA829802',    supplier:'B356422',         qty:1,  desc:'Brake Micro Switch',           models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'8',  partNo:'7081.01.000', supplier:'31631B',          qty:1,  desc:'Brake Spring',                 models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'9',  partNo:'41297.10',    supplier:'3012543',         qty:1,  desc:'Cable Guard',                  models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'11', partNo:'5280.05.000', supplier:'E3601069',        qty:1,  desc:'Hour Meter',                   models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'16', partNo:'7625.01.000', supplier:'M0920-LFBB1215',  qty:2,  desc:'Bush',                         models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'22', partNo:'6121.12.030', supplier:'M1401-M12*30',    qty:1,  desc:'Cap Head Screw M12x30',        models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'26', partNo:'6114.02.000', supplier:'M1501017',        qty:1,  desc:'Plain Nut 5/16" UNF',          models:[1,1,1,1,1,1,1,1,1]},
+  ]
+},
+
+'A354-2': {
+  title:'A354', subtitle:'Rear Wheel Assembly (A354-2)',
+  parts:[
+    {ref:'00', partNo:'7738.10.000', supplier:'B359764A',        qty:1,  desc:'RH Brake Assembly',            models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'00', partNo:'7738.11.000', supplier:'B359763A',        qty:1,  desc:'LH Brake Assembly',            models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'01', partNo:'LK0024-00',   supplier:'',                qty:2,  desc:'6" Black Treaded Wheel',       models:[1,1,0,0,0,0,0,0,0]},
+    {ref:'01', partNo:'LK0024-01',   supplier:'',                qty:2,  desc:'7" Black Treaded Wheel',       models:[0,0,1,1,1,1,0,0,0]},
+    {ref:'1',  partNo:'7738.08.000', supplier:'30315A',          qty:2,  desc:'Brake Cable',                  models:[1,1,1,1,1,1,0,0,0]},
+    {ref:'2',  partNo:'7738.08.002', supplier:'33884A',          qty:2,  desc:'Brake Clip',                   models:[1,1,1,1,1,1,0,0,0]},
+    {ref:'3',  partNo:'41277.05',    supplier:'34951P18B',       qty:1,  desc:'Rear Stub Axle',               models:[1,1,1,1,1,1,0,0,0]},
+    {ref:'5',  partNo:'4998.01.000', supplier:'M0706001',        qty:2,  desc:'Hub Seal',                     models:[1,1,1,1,1,1,0,0,0]},
+    {ref:'6',  partNo:'7624.01.000', supplier:'M0909-32013X',    qty:2,  desc:'Large Wheel Bearing',          models:[1,1,1,1,1,1,0,0,0]},
+    {ref:'7',  partNo:'41278.00',    supplier:'30237C',          qty:2,  desc:'6" Rear Hub',                  models:[1,1,0,0,0,0,0,0,0]},
+    {ref:'7',  partNo:'41278.02',    supplier:'36888B',          qty:2,  desc:'7" Rear Hub',                  models:[0,0,1,1,1,1,0,0,0]},
+    {ref:'7',  partNo:'42361.02',    supplier:'3010994A',        qty:2,  desc:'8" Rear Hub (HiMAX)',          models:[0,0,0,0,0,0,1,1,1]},
+    {ref:'8',  partNo:'7624.02.000', supplier:'M0909-32010X',    qty:2,  desc:'Small Wheel Bearing',          models:[1,1,1,1,1,1,0,0,0]},
+    {ref:'9',  partNo:'4998.06.000', supplier:'30227',           qty:2,  desc:'Lock Nut',                     models:[1,1,1,1,1,1,0,0,0]},
+    {ref:'10', partNo:'4998.07.000', supplier:'30240',           qty:2,  desc:'Lock Washer',                  models:[1,1,1,1,1,1,0,0,0]},
+    {ref:'11', partNo:'41293.00',    supplier:'30238C',          qty:2,  desc:'Rear Wheel Grease Cover',      models:[1,1,1,1,1,1,0,0,0]},
+    {ref:'15', partNo:'7635.16.000', supplier:'M1211116',        qty:2,  desc:'6" Black Treaded Tyre',        models:[1,1,0,0,0,0,0,0,0]},
+    {ref:'15', partNo:'7635.31.000', supplier:'M1211117',        qty:2,  desc:'7" Black Treaded Tyre',        models:[0,0,1,1,1,1,0,0,0]},
+    {ref:'15', partNo:'7635.41.000', supplier:'',                qty:2,  desc:'8" Black Treaded Tyre (HiMAX)', models:[0,0,0,0,0,0,1,1,1]},
+    {ref:'16', partNo:'7738.12.000', supplier:'B355037',         qty:2,  desc:'Manual Adjuster',              models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'17', partNo:'7738.07.001', supplier:'3012022',         qty:2,  desc:'Wheel Cylinder',               models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'18', partNo:'7738.07.009', supplier:'',                qty:1,  desc:'Brake Shoe Set',               models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'19', partNo:'7738.07.005', supplier:'3017663A',        qty:4,  desc:'Tension Spring LH/RH',         models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'20', partNo:'7738.07.006', supplier:'3017646A',        qty:2,  desc:'Tension Spring LH/RH',         models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'21', partNo:'7738.07.007', supplier:'3017645A',        qty:4,  desc:'Steady Spring LH/RH',          models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'22', partNo:'7738.07.010', supplier:'34509A',          qty:4,  desc:'Spring Clip',                  models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'23', partNo:'6566.06.000', supplier:'M1321-M6',        qty:2,  desc:'M6 Angled Grease Nipple',      models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'24', partNo:'7738.07.012', supplier:'M1614010',        qty:2,  desc:'Safety Lock Washer',           models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'25', partNo:'6111.12.025', supplier:'M1402133-20',     qty:2,  desc:'Hex Head Bolt M12x25',         models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'28', partNo:'7738.07.008', supplier:'',                qty:2,  desc:'Bleed Nipple',                 models:[1,1,1,1,1,1,1,1,1]},
+  ]
+},
+
+'A355': {
+  title:'A355', subtitle:'ACiON Control System – Specific Parts',
+  parts:[
+    {ref:'1',  partNo:'55522.06.000',supplier:'',                qty:1,  desc:'Complete ACiON Control Panel', models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'2',  partNo:'55522.06.001',supplier:'',                qty:1,  desc:'Traction Controller – ACe3',   models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'3',  partNo:'55522.06.002',supplier:'',                qty:1,  desc:'Pump Controller – ACe2',       models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'4',  partNo:'55522.06.003',supplier:'',                qty:1,  desc:'Steer Controller – AC0',       models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'5',  partNo:'55522.06.004',supplier:'',                qty:1,  desc:'Traction Controller Heatsink', models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'6',  partNo:'55522.06.005',supplier:'',                qty:1,  desc:'Pump Controller Heatsink',     models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'7',  partNo:'55492.08.000',supplier:'',                qty:1,  desc:'Traction Motor',               models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'8',  partNo:'5454.06.000', supplier:'',                qty:1,  desc:'Lift Pump Motor',              models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'9',  partNo:'55309.05.001',supplier:'',                qty:1,  desc:'Pump Motor – Encoder Sensor',  models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'10', partNo:'55309.05.000',supplier:'',                qty:1,  desc:'Steer Pump Motor',             models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'11', partNo:'41323-61',    supplier:'',                qty:1,  desc:'Traction Heavy Cable Set',     models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'12', partNo:'42646-00',    supplier:'',                qty:1,  desc:'Traction Encoder Harness',     models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'13', partNo:'42646-06',    supplier:'',                qty:1,  desc:'Traction Encoder Harness – Cold Store', models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'14', partNo:'41323-66',    supplier:'',                qty:1,  desc:'Lift Motor Heavy Cable Set',   models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'15', partNo:'41323-65',    supplier:'',                qty:1,  desc:'Steer Motor Heavy Cable Set',  models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'16', partNo:'55481.10.000',supplier:'',                qty:1,  desc:'ECO Smart Display',            models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'17', partNo:'55481.11.000',supplier:'',                qty:1,  desc:'ECO Smart Display – Cold Store', models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'18', partNo:'42646-02',    supplier:'',                qty:1,  desc:'ECO Smart Display Harness',    models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'19', partNo:'41323-60',    supplier:'',                qty:1,  desc:'Main Harness Loom',            models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'20', partNo:'55481.01.001',supplier:'',                qty:1,  desc:'Accelerator Pedal',            models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'21', partNo:'42646-04',    supplier:'',                qty:1,  desc:'Lower Solenoid Harness',       models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'22', partNo:'42646-05',    supplier:'',                qty:1,  desc:'E-Stop Switch inc Harness',    models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'24', partNo:'42646-03',    supplier:'',                qty:1,  desc:'Key Switch Harness',           models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'25', partNo:'42646-01',    supplier:'',                qty:1,  desc:'Direction Switch Harness',     models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'26', partNo:'55490.08.000',supplier:'',                qty:1,  desc:'Line Contactor K6',            models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'27', partNo:'55490.07.000',supplier:'',                qty:1,  desc:'Seat Switch Contactor K4',     models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'28', partNo:'5849.07.000', supplier:'',                qty:2,  desc:'Fan Relay K2 K3',              models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'29', partNo:'55096.02.000',supplier:'',                qty:1,  desc:'Traction Fuse – 400A',         models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'30', partNo:'55096.03.000',supplier:'',                qty:1,  desc:'Lift Fuse – 350A',             models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'31', partNo:'5367.01.000', supplier:'',                qty:1,  desc:'Steer Fuse – 100A',            models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'32', partNo:'55384.11.000',supplier:'',                qty:3,  desc:'Aux Fuse – 10A',               models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'33', partNo:'55444.13.000',supplier:'',                qty:1,  desc:'Steer Fuse Holder/Cover',      models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'36', partNo:'55514.01.000',supplier:'',                qty:1,  desc:'Diode Rectifier',              models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'37', partNo:'55131.22.000',supplier:'',                qty:3,  desc:'Panel Cooling Fan',            models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'39', partNo:'4977.18.000', supplier:'',                qty:1,  desc:'Spool Valve',                  models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'40', partNo:'4977.18.001', supplier:'',                qty:1,  desc:'Lift Spool Sensor – Hall Effect', models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'41', partNo:'4977.18.002', supplier:'',                qty:2,  desc:'Tilt / Sideshift Spool Switch', models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'42', partNo:'4977.18.003', supplier:'',                qty:1,  desc:'Deutsch Connector',            models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'43', partNo:'55531.04.000',supplier:'',                qty:1,  desc:'Height Select Key Pad',        models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'44', partNo:'55389.31.000',supplier:'',                qty:1,  desc:'DC:DC Converter 48:24v (Option)', models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'46', partNo:'42643-00',    supplier:'',                qty:1,  desc:'Battery Plug Support (VNA/1000)', models:[1,1,0,0,0,0,0,0,0]},
+    {ref:'47', partNo:'42643-01',    supplier:'',                qty:1,  desc:'Battery Plug Support (1200/1250)', models:[0,0,1,1,0,0,0,0,0]},
+    {ref:'48', partNo:'42643-02',    supplier:'',                qty:1,  desc:'Battery Plug Support (1350/1400/1500)', models:[0,0,0,0,1,1,1,1,1]},
+    {ref:'49', partNo:'42644-00',    supplier:'',                qty:1,  desc:'Battery Cable Support',        models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'51', partNo:'42645-00',    supplier:'',                qty:1,  desc:'Plug Handle',                  models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'53', partNo:'41318-02',    supplier:'',                qty:1,  desc:'Panel Mounting Bracket',       models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'54', partNo:'55444.11.000',supplier:'',                qty:1,  desc:'Aux Fuse Holder',              models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'55', partNo:'41323-63',    supplier:'',                qty:1,  desc:'Truck Connection Kit',         models:[1,1,1,1,1,1,1,1,1]},
+  ]
+},
+
+'A356-1': {
+  title:'A356', subtitle:'Mast Support Assembly (A356-1)',
+  parts:[
+    {ref:'1',  partNo:'41424.01',    supplier:'B350598',         qty:1,  desc:'Slewing Ring',                 models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'3',  partNo:'6310.12.000', supplier:'3007924',         qty:24, desc:'Hardened Washer M12',          models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'6',  partNo:'6566.04.000', supplier:'M1321001',        qty:3,  desc:'Grease Nipple M10',            models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'7',  partNo:'7626.01.000', supplier:'M0920-LFB5040',   qty:2,  desc:'Bush',                         models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'8',  partNo:'41343.01',    supplier:'30105A',          qty:2,  desc:'Mast Retaining Washer',        models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'12', partNo:'7629.03.000', supplier:'30338',           qty:2,  desc:'Rotation Buffer',              models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'13', partNo:'41249.21',    supplier:'3004917C',        qty:1,  desc:'Pivot Shaft',                  models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'14', partNo:'7627.01.000', supplier:'35002',           qty:2,  desc:'Thrust Washer',                models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'17', partNo:'44030.14.004',supplier:'',                qty:4,  desc:'Bearing',                      models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'18', partNo:'3526.03',     supplier:'30110E',          qty:4,  desc:'Tilt Pin',                     models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'19', partNo:'44012.04.000',supplier:'35465',           qty:6,  desc:'Male Stud Adaptor',            models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'22', partNo:'44130.10.001LH',supplier:'30155P01',      qty:1,  desc:'Rod End LH',                   models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'23', partNo:'44130.10.001RH',supplier:'3013980P01',    qty:1,  desc:'Rod End RH',                   models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'24', partNo:'44130.10.000LH',supplier:'30155F',        qty:1,  desc:'L/H Tilt Cylinder',            models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'25', partNo:'44130.10.000RH',supplier:'3013980',       qty:1,  desc:'R/H Tilt Cylinder',            models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'26', partNo:'44012.05.000',supplier:'35466',           qty:2,  desc:'Male Stud Adj Elbow',          models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'29', partNo:'41249.24',    supplier:'35276B',          qty:1,  desc:'Mounting Block',               models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'33', partNo:'41896.01',    supplier:'36866A',          qty:1,  desc:'Pivot Pin (HiMAX/HiLOAD)',    models:[0,0,0,0,0,0,1,1,1]},
+  ]
+},
+
+'A356-VNA': {
+  title:'A356', subtitle:'Mast Support Module – VNA',
+  parts:[
+    {ref:'1',  partNo:'42208.00',    supplier:'3012528F',        qty:1,  desc:'Mast Support Fabrication',     models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'2',  partNo:'42198.01',    supplier:'3012532A',        qty:1,  desc:'Steering Gear',                models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'3',  partNo:'42204.10',    supplier:'3012534',         qty:1,  desc:'Tilt Cylinder',                models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'4',  partNo:'42200.00',    supplier:'3012527A',        qty:1,  desc:'Rotation Shaft',               models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'5',  partNo:'42267.00',    supplier:'3012531',         qty:1,  desc:'Spacer',                       models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'6',  partNo:'3169.45.000', supplier:'3012533',         qty:1,  desc:'Spacer',                       models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'7',  partNo:'3735.04',     supplier:'3012535',         qty:1,  desc:'Pivot Pin',                    models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'8',  partNo:'41343.01',    supplier:'30105A',          qty:2,  desc:'Retaining Washer',             models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'9',  partNo:'3526.06',     supplier:'3012536',         qty:2,  desc:'Mounting Shaft',               models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'10', partNo:'42343.00',    supplier:'3012537',         qty:1,  desc:'Hose Anchor Bracket',          models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'12', partNo:'7629.03.000', supplier:'30338',           qty:2,  desc:'Rotation Buffer',              models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'13', partNo:'7626.01.000', supplier:'M0920-LFB5040',   qty:2,  desc:'Bush',                         models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'14', partNo:'7627.01.000', supplier:'35002',           qty:2,  desc:'Thrust Washer',                models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'35', partNo:'C5009.06',    supplier:'M1321-M6',        qty:2,  desc:'Grease Nipple M6',             models:[1,0,0,0,0,0,0,0,0]},
+  ]
+},
+
+'A357': {
+  title:'A357', subtitle:'Accessory System – Labels (A357)',
+  parts:[
+    {ref:'1',  partNo:'40084.03',    supplier:'30405A',          qty:1,  desc:'Tip Over Label',               models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'2',  partNo:'7207.01.000', supplier:'30396',           qty:4,  desc:'Lifting Point Label',          models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'3',  partNo:'40113.03',    supplier:'34960',           qty:1,  desc:'Pedal Layout Label',           models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'4',  partNo:'40084.02',    supplier:'30402',           qty:1,  desc:'Warning Sign Label',           models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'5',  partNo:'40129.01',    supplier:'30397',           qty:1,  desc:'Hydraulic Oil Fill Label',     models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'6',  partNo:'40129.00',    supplier:'30398',           qty:1,  desc:'Transmission Oil Fill Label',  models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'7',  partNo:'40084.01',    supplier:'30399',           qty:2,  desc:'Foot Crush Label',             models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'8',  partNo:'40084.04',    supplier:'30401',           qty:2,  desc:'Overhead Load Label',          models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'9',  partNo:'40084.12',    supplier:'30404',           qty:1,  desc:'Lifting Instruction Label',    models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'10', partNo:'41579.01',    supplier:'3007035',         qty:1,  desc:'Foot Switch Horn Label',       models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'11', partNo:'41431.03',    supplier:'3006737',         qty:1,  desc:'Qualified Personnel Warning Label', models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'12', partNo:'41431.00',    supplier:'30400A',          qty:1,  desc:'Battery Retainer Warning Label', models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'13', partNo:'40084.62',    supplier:'36084',           qty:1,  desc:'Battery Charge Label',         models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'14', partNo:'7618.16.000', supplier:'34956B',          qty:1,  desc:'Website Logo Label',           models:[0,1,1,1,1,1,1,1,1]},
+    {ref:'14', partNo:'7618.17.000', supplier:'3009154',         qty:1,  desc:'Website Logo Label (VNA)',     models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'15', partNo:'42452.00',    supplier:'3007601',         qty:1,  desc:'Seat Latch Release Label',     models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'16', partNo:'7618.18.000', supplier:'3009337',         qty:2,  desc:'Round Flexi Badge',            models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'17', partNo:'42661.00',    supplier:'',                qty:1,  desc:'Big/Small ACiON Labels',       models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'18', partNo:'7618.14.000', supplier:'3013832',         qty:2,  desc:'Big Flexi Label',              models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'19', partNo:'7618.15.000', supplier:'3013833',         qty:2,  desc:'Small Flexi Label',            models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'20', partNo:'41541.06',    supplier:'31880B',          qty:1,  desc:'Light Switch Label',           models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'21', partNo:'41579.00',    supplier:'30757',           qty:1,  desc:'Horn Label',                   models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'22', partNo:'7647.13.000', supplier:'34959A',          qty:1,  desc:'Steering Wheel Label',         models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'23', partNo:'41541.14',    supplier:'3014299',         qty:1,  desc:'Emergency Stop Switch Label',  models:[0,1,1,1,1,1,0,0,0]},
+    {ref:'24', partNo:'42545.00',    supplier:'3011047',         qty:1,  desc:'Dipstick Label',               models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'25', partNo:'40084.00',    supplier:'',                qty:2,  desc:'Hand Crush Label',             models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'26', partNo:'41541.12',    supplier:'3014298',         qty:1,  desc:'Emergency Stop Switch Label (VNA)', models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'27', partNo:'40155.00',    supplier:'',                qty:1,  desc:'Charge Label',                 models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'28', partNo:'41930.00',    supplier:'',                qty:1,  desc:'Light Label',                  models:[1,1,1,1,1,1,1,1,1]},
+  ]
+},
+
+'A358': {
+  title:'A358', subtitle:'Repair Kit System (A358)',
+  parts:[
+    {ref:'1',  partNo:'41404.300',   supplier:'B350738',         qty:2,  desc:'Main Lift Seal Kit',           models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'2',  partNo:'41405.300',   supplier:'B350739',         qty:2,  desc:'Free Lift Seal Kit',           models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'3',  partNo:'44030.14.001',supplier:'B350740A',        qty:2,  desc:'Tilt Cylinder Seal Kit',       models:[0,1,1,1,1,1,1,1,1]},
+    {ref:'4',  partNo:'42204.11',    supplier:'B358198',         qty:1,  desc:'VNA Tilt Cylinder Seal Kit',   models:[1,0,0,0,0,0,0,0,0]},
+    {ref:'5',  partNo:'4997.44.017', supplier:'B359606',         qty:2,  desc:'Kaup Sideshift Seal Kit',      models:[1,1,1,1,1,1,1,1,1]},
+    {ref:'6',  partNo:'4977.03.000', supplier:'',                qty:3,  desc:'Spool Valve Seal Kit',         models:[1,1,1,1,1,1,1,1,1]},
+  ]
+},
+
+};
+
+// ═══ PDF Diagram page map ═══
+const DIAGRAMS = {
+  'A351-1A': 2,  'A351-1B': 4,  'A351-2A': 7,
+  'A352-1':  10, 'A352-2':  13, 'A352-3':  16, 'A352-5': 20,
+  'A353-1A': 18, 'A353-2':  22, 'A353-3A': 25, 'A353-3C': 27,
+  'A354-1A': 31, 'A354-2':  35,
+  'A355':    38,
+  'A356-1':  41, 'A356-VNA': 44,
+  'A357':    45, 'A358':    null
+};
+
+const PDF_URL = 'https://narrowaisleservice.github.io/Flexi-Parts-System/images/Flexi%20Parts%20Manual%20NEW%202023.pdf';
+
+// ═══ CART ═══
+const CART_KEY = 'flexiPartsCart';
+function getCart(){ try{ return JSON.parse(localStorage.getItem(CART_KEY)||'[]'); }catch(e){ return []; } }
+function saveCart(c){ localStorage.setItem(CART_KEY, JSON.stringify(c)); }
+
+function addToMainCart(partNo, desc, supplierCode, section){
+  if(!partNo||partNo==='—'){ showToast('No part number for this item'); return; }
+  const cart = getCart();
+  const ex = cart.find(i=>(i['Part Number']||'')===partNo);
+  if(ex){ ex.qty=(ex.qty||1)+1; showToast('Qty updated: '+partNo+' (x'+ex.qty+')'); }
+  else{ cart.push({'Part Number':partNo,'Description':desc,'Supplier Code':supplierCode||'','System':section||'','qty':1}); showToast('Added to cart: '+partNo); }
+  saveCart(cart); updateCartBadge(); renderAll();
+}
+
+function updateCartBadge(){
+  const c = getCart().length;
+  document.getElementById('basket-count').textContent = c;
+  document.getElementById('basket-count').classList.toggle('zero', c===0);
+  document.getElementById('basket-btn').classList.toggle('has-items', c>0);
+}
+
+function isInCart(p){ if(!p||p==='—') return false; return getCart().some(i=>(i['Part Number']||'')===p); }
+
+// ═══ RENDER ═══
+function buildModelDots(models){
+  return MODEL_COLS.map((m,i)=>'<span class="model-dot '+(models[i]?'':'off')+'" title="'+m+'"></span>').join('');
+}
+
+function highlight(text, term){
+  if(!term||!text) return text||'';
+  const re = new RegExp('('+term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi');
+  return String(text).replace(re,'<mark>$1</mark>');
+}
+
+function renderSection(id, data){
+  const rows = data.parts.map((p,idx)=>{
+    const inCart = isInCart(p.partNo);
+    const safeDesc = (p.desc||'').replace(/'/g,"\'").replace(/"/g,'&quot;');
+    const safeSupplier = (p.supplier||'').replace(/'/g,"\'");
+    return `<tr data-idx="${idx}" data-section="${id}" data-partno="${p.partNo||''}" data-desc="${(p.desc||'').replace(/"/g,'&quot;')}" data-models='${JSON.stringify(p.models)}'>
+      <td class="td-ref">${highlight(p.ref,searchTerm)}</td>
+      <td class="td-partno">${highlight(p.partNo||'—',searchTerm)}</td>
+      <td class="td-supplier">${highlight(p.supplier||'—',searchTerm)}</td>
+      <td class="td-desc">${highlight(p.desc,searchTerm)}</td>
+      <td class="td-qty">${p.qty}</td>
+      <td class="td-models">${buildModelDots(p.models)}</td>
+      <td class="td-actions"><button class="add-btn ${inCart?'added':''}" onclick="addToMainCart('${p.partNo||''}','${safeDesc}','${safeSupplier}','${id}')" title="Add to order">${inCart?'✓':'+'}</button></td>
+    </tr>`;
+  }).join('');
+  const hasDiag = !!DIAGRAMS[id];
+  return `<div class="subsection" id="sub-${id}">
+    <div class="subsection-title" onclick="toggleSubsection('${id}')">
+      <span class="ss-text"><span class="ss-code">${data.title}</span>&nbsp;·&nbsp;${data.subtitle}</span>
+      ${hasDiag ? `<button class="ss-diag-btn" onclick="event.stopPropagation(); openDiagramFor('${id}')" title="View diagram">⛶</button>` : ''}
+      <span class="ss-toggle">▼</span>
+    </div>
+    <div class="parts-table-wrap" id="wrap-${id}">
+      <table class="parts-table">
+        <thead><tr><th>REF</th><th>FLEXI PART NO.</th><th>SUPPLIER REF</th><th>DESCRIPTION</th><th>QTY</th><th title="VNA · 17N · 17N+ · 20S · 22S+ · 25W+ · MAX22 · MAX25 · MAXEW">MODELS ▸</th><th></th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function renderAll(){
+  const main = document.getElementById('main-content');
+  const ids = currentSection==='all' ? Object.keys(SECTIONS) : [currentSection];
+  main.innerHTML = ids.map(id=>renderSection(id,SECTIONS[id])).join('') || '<div class="empty-state"><div class="big">—</div><p>No sections to display.</p></div>';
+  applyFilters();
+}
+
+function applyFilters(){
+  let total=0;
+  const ids = currentSection==='all' ? Object.keys(SECTIONS) : [currentSection];
+  for(const id of ids){
+    const sub = document.getElementById('sub-'+id);
+    if(!sub) continue;
+    let vis=0;
+    sub.querySelectorAll('tbody tr').forEach(row=>{
+      const pn = row.dataset.partno||'';
+      const desc = row.dataset.desc||'';
+      const ref = row.cells[0]?.textContent||'';
+      const sup = row.cells[2]?.textContent||'';
+      const models = JSON.parse(row.dataset.models||'[]');
+      const ms = !searchTerm || [pn,desc,ref,sup].some(s=>s.toLowerCase().includes(searchTerm));
+      const mm = currentModel==='all' || matchesModel(models,currentModel);
+      if(ms&&mm){ row.classList.remove('hidden'); vis++; total++; }
+      else row.classList.add('hidden');
+    });
+    sub.classList.toggle('section-hidden', vis===0);
+  }
+  document.getElementById('visible-count').textContent = total;
+}
+
+function matchesModel(models, filter){
+  const map={'VNA':0,'17N':1,'17N+':2,'20S':3,'22S':4,'25W':5,'MAX22':6,'MAX25':7,'MAXEW':8};
+  const idx = map[filter];
+  return idx!==undefined ? models[idx]===1 : models.some(m=>m===1);
+}
+
+// ═══ INTERACTIONS ═══
+let currentSection='all', currentModel='all', searchTerm='';
+
+function showSection(id, el){
+  currentSection = id;
+  document.querySelectorAll('.drawer-item').forEach(i=>i.classList.remove('active'));
+  el.classList.add('active');
+  renderAll();
+  window.scrollTo({top:0, behavior:'instant'});
+  closeDrawer();
+}
+
+function setModel(model, el){
+  currentModel = model;
+  document.querySelectorAll('.model-chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  applyFilters();
+}
+
+function doSearch(){
+  searchTerm = document.getElementById('search-input').value.trim().toLowerCase();
+  renderAll();
+}
+
+function toggleSubsection(id){
+  const w=document.getElementById('wrap-'+id);
+  const t=w.previousElementSibling;
+  w.classList.toggle('collapsed');
+  t.classList.toggle('collapsed');
+}
+
+let toastTimer;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+// ═══ DRAWER ═══
+function openDrawer(){
+  document.getElementById('drawer').classList.add('open');
+  document.getElementById('drawerBackdrop').classList.add('open');
+}
+function closeDrawer(){
+  document.getElementById('drawer').classList.remove('open');
+  document.getElementById('drawerBackdrop').classList.remove('open');
+}
+document.getElementById('menuBtn').addEventListener('click', openDrawer);
+
+// ═══ DIAGRAM (fullscreen modal only — tablet-friendly) ═══
+let _pdfDoc = null;
+let _pdfLoading = false;
+
+const _zs = { modal: { scale:1, ox:0, oy:0, dragging:false, startX:0, startY:0, startOX:0, startOY:0, baseScale:1 } };
+const _canvSize = { modal:{w:0,h:0} };
+
+function _applyTransform(ctx){
+  const s = _zs[ctx];
+  const wrap = document.getElementById('diagModalWrap');
+  if(!wrap) return;
+  wrap.style.transform = `translate(${s.ox}px,${s.oy}px) scale(${s.scale})`;
+  const lvl = document.getElementById('diagModalZoomLevel');
+  if(lvl) lvl.textContent = Math.round(s.scale/s.baseScale*100)+'%';
+}
+
+function _clampOffset(ctx){
+  const s = _zs[ctx];
+  const c = _canvSize[ctx];
+  const vp = document.getElementById('diagModalViewport');
+  if(!vp||!c.w) return;
+  const vw=vp.clientWidth, vh=vp.clientHeight;
+  const scaledW=c.w*s.scale, scaledH=c.h*s.scale;
+  const minX = scaledW>vw ? -(scaledW-vw) : (vw-scaledW)/2;
+  const maxX = scaledW>vw ? 0 : (vw-scaledW)/2;
+  const minY = scaledH>vh ? -(scaledH-vh) : 0;
+  const maxY = 0;
+  s.ox = Math.max(minX, Math.min(maxX, s.ox));
+  s.oy = Math.max(minY, Math.min(maxY, s.oy));
+}
+
+function _setupPanZoom(ctx, vpEl, wrapEl){
+  vpEl.addEventListener('wheel', e=>{
+    e.preventDefault();
+    const s = _zs[ctx];
+    const rect = vpEl.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    const delta = e.deltaY < 0 ? 0.12 : -0.12;
+    const newScale = Math.max(s.baseScale*0.5, Math.min(s.baseScale*8, s.scale*(1+delta)));
+    const ratio = newScale/s.scale;
+    s.ox = mx - ratio*(mx - s.ox);
+    s.oy = my - ratio*(my - s.oy);
+    s.scale = newScale;
+    _clampOffset(ctx);
+    _applyTransform(ctx);
+  }, {passive:false});
+
+  vpEl.addEventListener('mousedown', e=>{
+    if(e.button!==0) return;
+    const s = _zs[ctx];
+    s.dragging=true; s.startX=e.clientX; s.startY=e.clientY; s.startOX=s.ox; s.startOY=s.oy;
+    vpEl.classList.add('panning');
+  });
+  window.addEventListener('mousemove', e=>{
+    const s = _zs[ctx];
+    if(!s.dragging) return;
+    s.ox = s.startOX + (e.clientX - s.startX);
+    s.oy = s.startOY + (e.clientY - s.startY);
+    _clampOffset(ctx);
+    _applyTransform(ctx);
+  });
+  window.addEventListener('mouseup', ()=>{
+    _zs[ctx].dragging=false;
+    vpEl.classList.remove('panning');
+  });
+
+  let lastTouchDist=0;
+  vpEl.addEventListener('touchstart', e=>{
+    if(e.touches.length===1){
+      const s=_zs[ctx]; const t=e.touches[0];
+      s.dragging=true; s.startX=t.clientX; s.startY=t.clientY; s.startOX=s.ox; s.startOY=s.oy;
+    } else if(e.touches.length===2){
+      lastTouchDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
+    }
+  },{passive:true});
+  vpEl.addEventListener('touchmove', e=>{
+    e.preventDefault();
+    const s=_zs[ctx];
+    if(e.touches.length===1 && s.dragging){
+      const t=e.touches[0];
+      s.ox=s.startOX+(t.clientX-s.startX); s.oy=s.startOY+(t.clientY-s.startY);
+      _clampOffset(ctx); _applyTransform(ctx);
+    } else if(e.touches.length===2){
+      const dist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
+      const mid={x:(e.touches[0].clientX+e.touches[1].clientX)/2, y:(e.touches[0].clientY+e.touches[1].clientY)/2};
+      const ratio=dist/lastTouchDist;
+      const rect=vpEl.getBoundingClientRect();
+      const mx=mid.x-rect.left, my=mid.y-rect.top;
+      const newScale=Math.max(s.baseScale*0.5, Math.min(s.baseScale*8, s.scale*ratio));
+      const r2=newScale/s.scale;
+      s.ox=mx-r2*(mx-s.ox); s.oy=my-r2*(my-s.oy);
+      s.scale=newScale; lastTouchDist=dist;
+      _clampOffset(ctx); _applyTransform(ctx);
+    }
+  },{passive:false});
+  vpEl.addEventListener('touchend', ()=>{ _zs[ctx].dragging=false; },{passive:true});
+}
+
+function diagModalZoom(delta){
+  const s=_zs.modal;
+  s.scale=Math.max(s.baseScale*0.5, Math.min(s.baseScale*8, s.scale*(1+delta)));
+  _clampOffset('modal'); _applyTransform('modal');
+}
+function diagModalFit(){
+  const s=_zs.modal; s.scale=s.baseScale; s.ox=0; s.oy=0; _applyTransform('modal');
+}
+
+function openDiagramFor(sectionId){
+  const sec = SECTIONS[sectionId];
+  document.getElementById('diagModalTitle').textContent = sectionId + (sec ? ' · ' + sec.subtitle.replace(/\s*\(.*\)/,'') : '');
+  document.getElementById('diagModal').classList.add('open');
+  _diagRender(sectionId);
+}
+function diagModalClose(){
+  document.getElementById('diagModal').classList.remove('open');
+}
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') diagModalClose(); });
+
+function _loadPdf(callback){
+  if(_pdfDoc){ callback(_pdfDoc); return; }
+  if(_pdfLoading){ setTimeout(()=>_loadPdf(callback), 300); return; }
+  _pdfLoading = true;
+  if(!window.pdfjsLib){
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+    s.onload = ()=>{
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      pdfjsLib.getDocument(PDF_URL).promise.then(doc=>{
+        _pdfDoc=doc; _pdfLoading=false; callback(doc);
+      }).catch(err=>{ _pdfLoading=false; console.error('PDF load error:',err); });
+    };
+    s.onerror = ()=>{ _pdfLoading=false; console.error('Could not load PDF.js'); };
+    document.head.appendChild(s);
+  } else {
+    pdfjsLib.getDocument(PDF_URL).promise.then(doc=>{
+      _pdfDoc=doc; _pdfLoading=false; callback(doc);
+    }).catch(err=>{ _pdfLoading=false; console.error('PDF load error:',err); });
+  }
+}
+
+function _diagRender(sectionId){
+  const pageNum = DIAGRAMS[sectionId];
+  const body = document.getElementById('diagModalBody');
+  const wrapEl0 = document.getElementById('diagModalWrap');
+
+  if(!pageNum){
+    wrapEl0.innerHTML='';
+    let none = body.querySelector('.diag-none'); if(none) none.remove();
+    const d=document.createElement('div'); d.className='diag-none'; d.innerHTML='<div class="icon">📋</div><p>No diagram available for this section</p>';
+    body.appendChild(d);
+    return;
+  }
+
+  wrapEl0.innerHTML='';
+  let sp=body.querySelector('.diag-none');
+  if(!sp){ sp=document.createElement('div'); sp.className='diag-none'; body.appendChild(sp); }
+  sp.innerHTML='<div class="icon">⏳</div><p>Loading diagram…</p>';
+  sp.style.display='flex';
+
+  const renderScale = (window.devicePixelRatio||1)*2;
+
+  _loadPdf(doc=>{
+    doc.getPage(pageNum).then(page=>{
+      const vp0 = page.getViewport({scale:1});
+      const vpEl = document.getElementById('diagModalViewport');
+      const wrapEl = document.getElementById('diagModalWrap');
+      wrapEl.innerHTML='';
+      sp.style.display='none';
+
+      const scale = renderScale;
+      const vp2 = page.getViewport({scale});
+      const canvas = document.createElement('canvas');
+      canvas.width=vp2.width; canvas.height=vp2.height;
+      const displayW = Math.min(window.innerWidth-24, vp0.width*(window.innerHeight-150)/vp0.height);
+      canvas.style.cssText=`display:block;width:${displayW}px;height:auto;`;
+      wrapEl.appendChild(canvas);
+
+      const displayH = displayW * (vp0.height/vp0.width);
+      _canvSize.modal = {w: displayW, h: displayH};
+
+      const cs = _zs.modal;
+      cs.scale = 1; cs.ox = 0; cs.oy = 0; cs.baseScale = 1;
+      wrapEl.style.transform='translate(0,0) scale(1)';
+      const lvl = document.getElementById('diagModalZoomLevel');
+      if(lvl) lvl.textContent='100%';
+
+      page.render({canvasContext:canvas.getContext('2d'), viewport:vp2}).promise.then(()=>{
+        vpEl._panZoomReady = vpEl._panZoomReady || false;
+        if(!vpEl._panZoomReady){
+          _setupPanZoom('modal', vpEl, wrapEl);
+          vpEl._panZoomReady=true;
+        }
+      });
+    }).catch(()=>{
+      sp.style.display='flex';
+      sp.innerHTML='<div class="icon">⚠️</div><p>Could not render page.</p>';
+    });
+  });
+}
+
+document.addEventListener('DOMContentLoaded',()=>{ updateCartBadge(); renderAll(); });
+</script>
+</body>
+</html>
