@@ -1,0 +1,1411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flexi Mast System – Parts Manual</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=DM+Sans:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #f7f7f6; --black2: #ffffff; --black3: #f5f4f2; --black4: #efeeec; --black5: #d9d7d3;
+    --red: #DC143C; --red-bright: #ff375f; --red-dim: #b91039;
+    --white: #1a1a1a; --grey: #79766f; --grey-light: #3d3b37; --border: #e6e4e1;
+    --font-head: 'IBM Plex Sans', sans-serif; --font-body: 'DM Sans', sans-serif; --font-mono: 'DM Mono', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--black); color: var(--white); font-family: var(--font-body); font-size: 13px; min-height: 100vh; overflow-x: hidden; }
+
+  /* ── HEADER ── */
+  header { background: #0a0a0a; border-bottom: 3px solid var(--red); padding: 0 20px; display: flex; align-items: center; gap: 20px; height: 56px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,.12); }
+  .logo { font-family: var(--font-head); font-weight: 900; font-size: 22px; color: var(--red); letter-spacing: 2px; }
+  .header-title { font-family: var(--font-head); font-weight: 600; font-size: 14px; color: var(--grey); letter-spacing: 3px; text-transform: uppercase; border-left: 1px solid var(--border); padding-left: 20px; }
+  .header-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+  #basket-btn { background: var(--black4); border: 1px solid var(--border); color: var(--white); font-family: var(--font-head); font-weight: 700; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; padding: 8px 16px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s; text-decoration: none; }
+  #basket-btn:hover { border-color: var(--red); color: var(--red); }
+  #basket-btn.has-items { border-color: var(--red); }
+  .basket-count { background: var(--red); color: #fff; font-size: 10px; font-weight: 900; min-width: 18px; height: 18px; border-radius: 9px; display: flex; align-items: center; justify-content: center; padding: 0 4px; }
+  .basket-count.zero { display: none; }
+
+  /* ── LAYOUT ── */
+  .app { display: grid; grid-template-columns: 220px 1fr; height: calc(100vh - 56px); }
+
+  /* ── SIDEBAR ── */
+  .sidebar { background: var(--black2); border-right: 1px solid var(--border); overflow-y: auto; }
+  .sidebar-section { border-bottom: 1px solid var(--border); }
+  .sidebar-section-title { font-family: var(--font-head); font-weight: 700; font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--red); padding: 12px 16px 8px; }
+  .sidebar-item { display: flex; align-items: center; gap: 10px; padding: 9px 16px; cursor: pointer; border-left: 3px solid transparent; transition: all 0.15s; font-size: 12px; color: var(--grey-light); }
+  .sidebar-item:hover { background: var(--black3); color: var(--white); }
+  .sidebar-item.active { background: var(--black3); border-left-color: var(--red); color: var(--white); }
+  .sidebar-code { font-family: var(--font-head); font-weight: 700; font-size: 12px; color: var(--grey); min-width: 52px; }
+  .sidebar-item.active .sidebar-code { color: var(--red); }
+
+  /* ── MAIN ── */
+  .main-wrap { display: flex; flex-direction: column; overflow: hidden; }
+  .toolbar { background: var(--black3); border-bottom: 1px solid var(--border); padding: 10px 20px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .search-wrap { position: relative; flex: 1; min-width: 200px; max-width: 400px; }
+  .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--grey); font-size: 13px; }
+  #search-input { width: 100%; background: #ffffff; border: 1px solid var(--border); color: var(--white); font-family: var(--font-body); font-size: 13px; padding: 8px 12px 8px 32px; outline: none; transition: border-color 0.2s; }
+  #search-input:focus { border-color: var(--red); }
+  #search-input::placeholder { color: var(--grey); }
+  .results-count { font-size: 11px; color: var(--grey); margin-left: auto; white-space: nowrap; }
+  .results-count span { color: var(--red); font-weight: 600; }
+  .main { overflow-y: auto; padding: 0; background: var(--black); }
+
+  /* ── SECTION HEADER (shown in main content) ── */
+  .section-banner { padding: 20px 24px 16px; background: var(--black2); border-bottom: 2px solid var(--red); }
+  .section-banner .sec-code { font-family: var(--font-head); font-weight: 900; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--red); margin-bottom: 4px; }
+  .section-banner .sec-title { font-family: var(--font-head); font-weight: 700; font-size: 22px; letter-spacing: 1px; text-transform: uppercase; color: var(--white); }
+  .section-banner .sec-sub { font-family: var(--font-head); font-size: 14px; color: var(--grey); letter-spacing: 2px; text-transform: uppercase; margin-top: 2px; }
+  .section-hidden { display: none; }
+
+  /* ── GENERATION COMPAT BADGE ── */
+  .gen-grid { display: flex; flex-wrap: wrap; gap: 4px; }
+  .gen-badge { font-family: var(--font-head); font-size: 9px; font-weight: 700; letter-spacing: 0.5px; padding: 2px 5px; border: 1px solid; text-transform: uppercase; }
+  .gen-badge.on  { color: #fff; background: var(--red-dim); border-color: var(--red); }
+  .gen-badge.off { color: var(--black5); background: transparent; border-color: var(--black5); }
+
+  /* ── SUBSECTION ── */
+  .subsection { border-bottom: 1px solid var(--border); }
+  .subsection-title { font-family: var(--font-head); font-weight: 700; font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: var(--grey); padding: 10px 20px; background: var(--black3); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
+  .subsection-title:hover { color: var(--white); }
+  .subsection-title .ss-ref { color: var(--red); font-size: 16px; font-weight: 900; min-width: 32px; }
+  .subsection-title .ss-toggle { margin-left: auto; font-size: 10px; color: var(--grey); transition: transform 0.2s; }
+  .subsection-title.collapsed .ss-toggle { transform: rotate(-90deg); }
+  .parts-table-wrap { overflow-x: auto; }
+  .parts-table-wrap.collapsed { display: none; }
+
+  /* ── TABLE ── */
+  table.parts-table { width: 100%; border-collapse: collapse; }
+  table.parts-table thead tr { background: var(--black4); }
+  table.parts-table thead th { font-family: var(--font-head); font-weight: 700; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--grey); padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  table.parts-table tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+  table.parts-table tbody tr:hover { background: var(--black3); }
+  table.parts-table tbody tr.hidden-row { display: none; }
+  table.parts-table tbody td { padding: 7px 12px; vertical-align: middle; font-size: 12px; }
+
+  .td-ref { font-family: var(--font-head); font-weight: 700; font-size: 14px; color: var(--red); width: 44px; }
+  .td-partno { font-family: var(--font-mono); font-weight: 500; font-size: 12px; color: var(--grey-light); white-space: nowrap; }
+  .td-desc { color: var(--white); min-width: 180px; }
+  .td-qty { color: var(--grey-light); text-align: center; width: 36px; }
+  .td-compat { min-width: 140px; }
+  .td-remark { color: var(--grey); font-size: 11px; font-family: var(--font-head); }
+  .td-actions { width: 40px; text-align: center; }
+  .add-btn { background: transparent; border: 1px solid var(--border); color: var(--grey); width: 28px; height: 28px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; margin: auto; }
+  .add-btn:hover { border-color: var(--red); color: var(--red); background: rgba(220,20,60,0.08); }
+  .add-btn.added { border-color: var(--red); background: var(--red); color: #fff; }
+
+  /* ── HEIGHT VARIANTS (expandable rows) ── */
+  /* Trigger row — the "parent" shown in the table */
+  .height-trigger { cursor: pointer; }
+  .height-trigger td { position: relative; }
+  .height-expand-icon { font-size: 10px; color: var(--red); margin-left: 6px; display: inline-block; transition: transform 0.2s; vertical-align: middle; }
+  .height-trigger.open .height-expand-icon { transform: rotate(90deg); }
+
+  /* Height variants drawer */
+  .height-drawer { display: none; background: var(--black3); }
+  .height-drawer.open { display: table-row-group; }
+  .height-drawer-inner { padding: 0; }
+  .height-drawer table.hv-table { width: 100%; border-collapse: collapse; }
+  .height-drawer table.hv-table tr { border-bottom: 1px solid var(--border); }
+  .height-drawer table.hv-table tr:last-child { border-bottom: none; }
+  .height-drawer table.hv-table td { padding: 5px 12px 5px 56px; font-size: 11px; color: var(--grey-light); }
+  .hv-partno { font-family: var(--font-mono); font-weight: 500; font-size: 11px; color: var(--grey-light); white-space: nowrap; }
+  .hv-height { font-family: var(--font-head); font-weight: 700; font-size: 11px; color: var(--grey); min-width: 80px; }
+  .hv-na { color: var(--grey); font-style: italic; font-size: 11px; }
+  .hv-add-btn { background: transparent; border: 1px solid var(--border); color: var(--grey); width: 24px; height: 24px; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+  .hv-add-btn:hover { border-color: var(--red); color: var(--red); background: rgba(220,20,60,0.08); }
+  .hv-add-btn.added { border-color: var(--red); background: var(--red); color: #fff; }
+
+  /* ── NOT AVAILABLE ── */
+  .na-badge { font-family: var(--font-head); font-size: 10px; color: var(--grey); background: var(--black4); border: 1px solid var(--border); padding: 2px 6px; letter-spacing: 1px; }
+
+  /* ── DIAGRAM PANEL ── */
+  body.diag-open .app { grid-template-columns: 200px 1fr 360px; }
+  .diag-panel { background: #ffffff; border-left: 1px solid var(--border); display: none; flex-direction: column; overflow: hidden; }
+  body.diag-open .diag-panel { display: flex; }
+  .diag-header { padding: 9px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; background: var(--black3); flex-shrink: 0; }
+  .diag-label { font-family: var(--font-head); font-weight: 700; font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--grey); }
+  .diag-title { font-family: var(--font-head); font-weight: 700; font-size: 13px; color: var(--red); flex: 1; }
+  .diag-close { background: transparent; border: none; color: var(--grey); cursor: pointer; font-size: 18px; line-height: 1; padding: 0; transition: color .15s; }
+  .diag-close:hover { color: var(--white); }
+  .diag-hint { padding: 6px 14px; font-size: 10px; color: var(--grey); border-bottom: 1px solid var(--border); font-family: var(--font-head); letter-spacing: 1px; flex-shrink: 0; }
+  .diag-body { flex: 1; overflow: hidden; position: relative; cursor: grab; background: var(--black3); }
+  .diag-body.panning { cursor: grabbing; }
+  .diag-viewport { width: 100%; height: 100%; overflow: hidden; position: relative; }
+  .diag-wrap { position: absolute; top: 0; left: 0; transform-origin: 0 0; will-change: transform; }
+  .diag-wrap canvas { display: block; box-shadow: 0 1px 6px rgba(0,0,0,.15); }
+  .diag-none { padding: 50px 20px; text-align: center; color: var(--grey); position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .diag-none .icon { font-size: 48px; opacity: .3; }
+  .diag-none p { font-size: 12px; margin-top: 8px; }
+  .diag-zoom-bar { position: absolute; bottom: 10px; right: 10px; display: flex; gap: 4px; z-index: 20; }
+  .diag-zoom-bar button { background: #ffffff; border: 1px solid var(--border); color: var(--grey); width: 28px; height: 28px; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; transition: all .15s; font-family: var(--font-head); font-weight: 700; }
+  .diag-zoom-bar button:hover { border-color: var(--red); color: var(--red); background: rgba(220,20,60,.06); }
+  .diag-zoom-level { background: #ffffff; border: 1px solid var(--border); color: var(--grey); height: 28px; padding: 0 8px; font-family: var(--font-head); font-size: 11px; display: flex; align-items: center; min-width: 44px; justify-content: center; }
+  .diag-expand-btn { background: transparent; border: 1px solid var(--border); color: var(--grey); width: 26px; height: 26px; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; transition: all .15s; flex-shrink: 0; }
+  .diag-expand-btn:hover { border-color: var(--grey); color: var(--white); }
+  .diag-toggle-btn { background: transparent; border: 1px solid var(--border); color: var(--grey); font-family: var(--font-head); font-weight: 700; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; padding: 6px 14px; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 6px; }
+  .diag-toggle-btn:hover { border-color: var(--grey); color: var(--white); }
+  .diag-toggle-btn.on { border-color: var(--red); color: var(--red); background: rgba(220,20,60,.08); }
+
+  /* ── FULLSCREEN MODAL ── */
+  .diag-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.92); z-index: 500; flex-direction: column; }
+  .diag-modal.open { display: flex; }
+  .diag-modal-header { background: #111; border-bottom: 1px solid #222; padding: 10px 16px; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+  .diag-modal-title { font-family: var(--font-head); font-weight: 700; font-size: 14px; color: var(--red); flex: 1; }
+  .diag-modal-close { background: transparent; border: none; color: #777; font-size: 22px; cursor: pointer; padding: 0; line-height: 1; transition: color .15s; }
+  .diag-modal-close:hover { color: #fff; }
+  .diag-modal-body { flex: 1; overflow: hidden; position: relative; cursor: grab; }
+  .diag-modal-body.panning { cursor: grabbing; }
+  .diag-modal-viewport { width: 100%; height: 100%; overflow: hidden; position: relative; }
+  .diag-modal-wrap { position: absolute; top: 0; left: 0; transform-origin: 0 0; will-change: transform; }
+  .diag-modal-wrap canvas { display: block; }
+  .diag-modal-zoom-bar { position: absolute; bottom: 14px; right: 14px; display: flex; gap: 4px; z-index: 20; }
+  .diag-modal-zoom-bar button, .diag-modal-zoom-bar .diag-zoom-level { background: #1a1a1a; border: 1px solid #333; color: #aaa; height: 32px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: all .15s; font-family: var(--font-head); font-weight: 700; }
+  .diag-modal-zoom-bar button { width: 32px; }
+  .diag-modal-zoom-bar button:hover { border-color: var(--red); color: #fff; background: #2a2a2a; }
+  /* Fullscreen viewer intentionally stays dark (lightbox) for best contrast against line diagrams */
+  .diag-modal-zoom-bar .diag-zoom-level { padding: 0 10px; font-size: 12px; min-width: 50px; color: #888; }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: var(--black2); }
+  ::-webkit-scrollbar-thumb { background: var(--black5); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--red-dim); }
+
+  /* ── TOAST ── */
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--black3); border: 1px solid var(--red); color: var(--white); font-family: var(--font-head); font-weight: 600; font-size: 13px; letter-spacing: 1px; padding: 10px 20px; z-index: 300; transition: transform 0.3s; white-space: nowrap; }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  mark { background: rgba(220,20,60,0.18); color: inherit; padding: 0 2px; border-radius: 2px; }
+
+  @media (max-width: 700px) { .app { grid-template-columns: 1fr; } .sidebar { display: none; } }
+</style>
+</head>
+<body>
+
+<header>
+  <img src="https://narrowaisleservice.github.io/Flexi-Parts-System/flexi-logo-white.svg" alt="Flexi" style="height:32px;width:auto;">
+  <div class="header-title">Mast System · Parts Manual</div>
+  <div class="header-right">
+    <a id="basket-btn" href="index.html" title="Go to Parts Order System">
+      🛒 Order Parts
+      <span class="basket-count zero" id="basket-count">0</span>
+    </a>
+  </div>
+</header>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">A356 Mast System</div>
+      <div class="sidebar-item active" onclick="showSection('a356-5',this)">
+        <span class="sidebar-code">A356-5</span>Fixed Stage Hyd.
+      </div>
+      <div class="sidebar-item" onclick="showSection('a356-4a',this)">
+        <span class="sidebar-code">A356-4A</span>Fork Carriage
+      </div>
+      <div class="sidebar-item" onclick="showSection('a356-6',this)">
+        <span class="sidebar-code">A356-6</span>Third Stage Hyd.
+      </div>
+      <div class="sidebar-item" onclick="showSection('a356-6b',this)">
+        <span class="sidebar-code">A356-6B</span>Third Stage Fittings
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <div class="main-wrap">
+    <div class="toolbar">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input id="search-input" type="text" placeholder="Search part number or description…" oninput="applySearch()">
+      </div>
+      <div class="results-count" id="results-count"></div>
+      <button class="diag-toggle-btn" id="diagToggleBtn" onclick="diagToggle()">📐 Diagram</button>
+    </div>
+    <div class="main" id="main-content">
+
+      <!-- ════════════════════════════════════════════════
+           A356-5  NARROW AISLE HYD. COMPONENTS – FIXED STAGE
+           ════════════════════════════════════════════════ -->
+      <div id="sec-a356-5">
+        <div class="section-banner">
+          <div class="sec-code">A356 · Mast System</div>
+          <div class="sec-title">A356-5</div>
+          <div class="sec-sub">Narrow Aisle Hyd. Components – Fixed Stage</div>
+        </div>
+
+        <!-- Generation key -->
+        <div style="padding:10px 24px;background:var(--black2);border-bottom:1px solid var(--border);font-family:var(--font-head);font-size:11px;color:var(--grey);letter-spacing:1px;">
+          COMPAT KEY: &nbsp;
+          <span class="gen-badge on">NA2.0</span>
+          <span class="gen-badge on">G3</span>
+          <span class="gen-badge on">G4</span>
+          <span class="gen-badge on">ACE</span>
+          <span class="gen-badge on">VNA</span>
+          <span class="gen-badge on">ACiON</span>
+          <span class="gen-badge on">1200</span>
+          &nbsp;— columns shown in height-variant rows
+        </div>
+
+        <!-- REF 1: FREE LIFT FEED PIPE (height variants) -->
+        <div class="subsection">
+          <div class="subsection-title collapsed" onclick="toggleSub(this)">
+            <span class="ss-ref">1</span>
+            Free Lift Feed Pipe
+            <span class="ss-toggle">▼</span>
+          </div>
+          <div class="parts-table-wrap collapsed">
+            <table class="parts-table">
+              <thead><tr>
+                <th>Ref</th><th>Part Number</th><th>Description</th><th>Qty</th><th>Compat</th><th>Height</th><th></th>
+              </tr></thead>
+              <tbody id="ref1-body">
+                <tr class="height-trigger" onclick="toggleHeights('hd-1')">
+                  <td class="td-ref">1</td>
+                  <td class="td-partno">Various <span class="height-expand-icon">▶</span></td>
+                  <td class="td-desc">Free Lift Feed Pipe</td>
+                  <td class="td-qty">1</td>
+                  <td class="td-compat"><div class="gen-grid">
+                    <span class="gen-badge on">NA2.0</span><span class="gen-badge on">G3</span><span class="gen-badge on">G4</span><span class="gen-badge on">ACE</span><span class="gen-badge on">VNA</span><span class="gen-badge on">ACiON</span>
+                  </div></td>
+                  <td class="td-remark">Click to show height variants</td>
+                  <td class="td-actions"></td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="height-drawer" id="hd-1">
+              <table class="hv-table">
+                <thead><tr style="background:var(--black4);">
+                  <th style="padding:6px 12px 6px 56px;font-family:var(--font-head);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--grey);text-align:left;width:160px;">Part No.</th>
+                  <th style="padding:6px 12px;font-family:var(--font-head);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--grey);text-align:left;">Height</th>
+                  <th style="width:40px;"></th>
+                </tr></thead>
+                <tbody>
+                  <tr><td class="hv-partno">35121</td><td class="hv-height">4050mm</td><td><button class="hv-add-btn" onclick="hvAdd('35121','Free Lift Feed Pipe 4050mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">34893</td><td class="hv-height">4200mm</td><td><button class="hv-add-btn" onclick="hvAdd('34893','Free Lift Feed Pipe 4200mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">34884</td><td class="hv-height">4620mm</td><td><button class="hv-add-btn" onclick="hvAdd('34884','Free Lift Feed Pipe 4620mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">35038</td><td class="hv-height">4800mm</td><td><button class="hv-add-btn" onclick="hvAdd('35038','Free Lift Feed Pipe 4800mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">34890</td><td class="hv-height">5010mm</td><td><button class="hv-add-btn" onclick="hvAdd('34890','Free Lift Feed Pipe 5010mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">35102</td><td class="hv-height">5400mm</td><td><button class="hv-add-btn" onclick="hvAdd('35102','Free Lift Feed Pipe 5400mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">30350</td><td class="hv-height">5550mm</td><td><button class="hv-add-btn" onclick="hvAdd('30350','Free Lift Feed Pipe 5550mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">34887</td><td class="hv-height">6000mm</td><td><button class="hv-add-btn" onclick="hvAdd('34887','Free Lift Feed Pipe 6000mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">35069</td><td class="hv-height">6210mm</td><td><button class="hv-add-btn" onclick="hvAdd('35069','Free Lift Feed Pipe 6210mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">30355</td><td class="hv-height">6600mm</td><td><button class="hv-add-btn" onclick="hvAdd('30355','Free Lift Feed Pipe 6600mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">34881</td><td class="hv-height">7020mm</td><td><button class="hv-add-btn" onclick="hvAdd('34881','Free Lift Feed Pipe 7020mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">34878</td><td class="hv-height">7200mm</td><td><button class="hv-add-btn" onclick="hvAdd('34878','Free Lift Feed Pipe 7200mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">30358</td><td class="hv-height">7410mm</td><td><button class="hv-add-btn" onclick="hvAdd('30358','Free Lift Feed Pipe 7410mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">34977</td><td class="hv-height">7620mm</td><td><button class="hv-add-btn" onclick="hvAdd('34977','Free Lift Feed Pipe 7620mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">34870</td><td class="hv-height">8010mm</td><td><button class="hv-add-btn" onclick="hvAdd('34870','Free Lift Feed Pipe 8010mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">35066</td><td class="hv-height">8220mm</td><td><button class="hv-add-btn" onclick="hvAdd('35066','Free Lift Feed Pipe 8220mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">30364</td><td class="hv-height">8400mm</td><td><button class="hv-add-btn" onclick="hvAdd('30364','Free Lift Feed Pipe 8400mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">34992</td><td class="hv-height">8610mm</td><td><button class="hv-add-btn" onclick="hvAdd('34992','Free Lift Feed Pipe 8610mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">35118</td><td class="hv-height">8820mm</td><td><button class="hv-add-btn" onclick="hvAdd('35118','Free Lift Feed Pipe 8820mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">35035</td><td class="hv-height">9000mm</td><td><button class="hv-add-btn" onclick="hvAdd('35035','Free Lift Feed Pipe 9000mm',1,this)">+</button></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- REF 2+3: MAIN LIFT FEED PIPE (height variants, two part ranges) -->
+        <div class="subsection">
+          <div class="subsection-title collapsed" onclick="toggleSub(this)">
+            <span class="ss-ref">2</span>
+            Main Lift Feed Pipe
+            <span class="ss-toggle">▼</span>
+          </div>
+          <div class="parts-table-wrap collapsed">
+            <table class="parts-table">
+              <thead><tr><th>Ref</th><th>Part Number</th><th>Description</th><th>Qty</th><th>Compat</th><th>Height</th><th></th></tr></thead>
+              <tbody>
+                <tr class="height-trigger" onclick="toggleHeights('hd-2')">
+                  <td class="td-ref">2</td>
+                  <td class="td-partno">30308 / 30310 / 35209 <span class="height-expand-icon">▶</span></td>
+                  <td class="td-desc">Main Lift Feed Pipe</td>
+                  <td class="td-qty">1</td>
+                  <td class="td-compat"><div class="gen-grid"><span class="gen-badge on">NA2.0</span><span class="gen-badge on">G3</span><span class="gen-badge on">G4</span><span class="gen-badge on">ACE</span><span class="gen-badge on">VNA</span><span class="gen-badge on">ACiON</span></div></td>
+                  <td class="td-remark">Click to show height variants</td>
+                  <td class="td-actions"></td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="height-drawer" id="hd-2">
+              <table class="hv-table">
+                <thead><tr style="background:var(--black4);"><th style="padding:6px 12px 6px 56px;font-family:var(--font-head);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--grey);text-align:left;width:60px;">Ref</th><th style="padding:6px 12px;font-family:var(--font-head);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--grey);text-align:left;width:160px;">Part No.</th><th style="padding:6px 12px;font-family:var(--font-head);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--grey);text-align:left;">Height</th><th style="width:40px;"></th></tr></thead>
+                <tbody>
+                  <tr><td class="td-remark" style="padding-left:56px;">2</td><td class="hv-partno">30308</td><td class="hv-height">4050 – 6210mm</td><td><button class="hv-add-btn" onclick="hvAdd('30308','Main Lift Feed Pipe (4050-6210mm)',1,this)">+</button></td></tr>
+                  <tr><td class="td-remark" style="padding-left:56px;">2</td><td class="hv-partno">30308</td><td class="hv-height">7200mm</td><td><button class="hv-add-btn" onclick="hvAdd('30308','Main Lift Feed Pipe 7200mm',1,this)">+</button></td></tr>
+                  <tr><td class="td-remark" style="padding-left:56px;">2</td><td class="hv-partno">30308</td><td class="hv-height">7410mm</td><td><button class="hv-add-btn" onclick="hvAdd('30308','Main Lift Feed Pipe 7410mm',1,this)">+</button></td></tr>
+                  <tr><td class="td-remark" style="padding-left:56px;">2</td><td class="hv-partno">30310</td><td class="hv-height">6600mm</td><td><button class="hv-add-btn" onclick="hvAdd('30310','Main Lift Feed Pipe 6600mm',1,this)">+</button></td></tr>
+                  <tr><td class="td-remark" style="padding-left:56px;">2</td><td class="hv-partno">30310</td><td class="hv-height">7020mm</td><td><button class="hv-add-btn" onclick="hvAdd('30310','Main Lift Feed Pipe 7020mm',1,this)">+</button></td></tr>
+                  <tr><td class="td-remark" style="padding-left:56px;">2</td><td class="hv-partno">30310</td><td class="hv-height">7620 – 8010mm</td><td><button class="hv-add-btn" onclick="hvAdd('30310','Main Lift Feed Pipe (7620-8010mm)',1,this)">+</button></td></tr>
+                  <tr><td class="td-remark" style="padding-left:56px;">2</td><td class="hv-partno">35209</td><td class="hv-height">8220 – 9000mm</td><td><button class="hv-add-btn" onclick="hvAdd('35209','Main Lift Feed Pipe (8220-9000mm)',1,this)">+</button></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- REF 4: SIDE-SHIFT FEED PIPE -->
+        <div class="subsection">
+          <div class="subsection-title collapsed" onclick="toggleSub(this)">
+            <span class="ss-ref">4/5</span>
+            Side-Shift Feed Pipe
+            <span class="ss-toggle">▼</span>
+          </div>
+          <div class="parts-table-wrap collapsed">
+            <table class="parts-table">
+              <thead><tr><th>Ref</th><th>Part Number</th><th>Description</th><th>Qty</th><th>Compat</th><th>Height</th><th></th></tr></thead>
+              <tbody>
+                <tr class="height-trigger" onclick="toggleHeights('hd-4')">
+                  <td class="td-ref">4</td>
+                  <td class="td-partno">Various <span class="height-expand-icon">▶</span></td>
+                  <td class="td-desc">Side-Shift Feed Pipe (Ref 4)</td>
+                  <td class="td-qty">1</td>
+                  <td class="td-compat"><div class="gen-grid"><span class="gen-badge on">NA2.0</span><span class="gen-badge on">G3</span><span class="gen-badge on">G4</span><span class="gen-badge on">ACE</span><span class="gen-badge on">VNA</span><span class="gen-badge on">ACiON</span></div></td>
+                  <td class="td-remark">Click to show height variants</td>
+                  <td class="td-actions"></td>
+                </tr>
+                <tr class="height-trigger" onclick="toggleHeights('hd-5')">
+                  <td class="td-ref">5</td>
+                  <td class="td-partno">Various <span class="height-expand-icon">▶</span></td>
+                  <td class="td-desc">Side-Shift Feed Pipe (Ref 5)</td>
+                  <td class="td-qty">1</td>
+                  <td class="td-compat"><div class="gen-grid"><span class="gen-badge on">NA2.0</span><span class="gen-badge on">G3</span><span class="gen-badge on">G4</span><span class="gen-badge on">ACE</span><span class="gen-badge on">VNA</span><span class="gen-badge on">ACiON</span></div></td>
+                  <td class="td-remark">Click to show height variants</td>
+                  <td class="td-actions"></td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="height-drawer" id="hd-4">
+              <table class="hv-table">
+                <thead><tr style="background:var(--black4);"><th style="padding:6px 12px 6px 56px;font-family:var(--font-head);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--grey);text-align:left;width:160px;">Part No.</th><th style="padding:6px 12px;font-family:var(--font-head);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--grey);text-align:left;">Height</th><th style="width:40px;"></th></tr></thead>
+                <tbody>
+                  <tr><td class="hv-partno">35119</td><td class="hv-height">4050mm</td><td><button class="hv-add-btn" onclick="hvAdd('35119','Side-Shift Feed Pipe Ref4 4050mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">34891</td><td class="hv-height">4200mm</td><td><button class="hv-add-btn" onclick="hvAdd('34891','Side-Shift Feed Pipe Ref4 4200mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">34882</td><td class="hv-height">4620mm</td><td><button class="hv-add-btn" onclick="hvAdd('34882','Side-Shift Feed Pipe Ref4 4620mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">35132</td><td class="hv-height">4800mm</td><td><button class="hv-add-btn" onclick="hvAdd('35132','Side-Shift Feed Pipe Ref4 4800mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">34888</td><td class="hv-height">5010mm</td><td><button class="hv-add-btn" onclick="hvAdd('34888','Side-Shift Feed Pipe Ref4 5010mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">35100</td><td class="hv-height">5400mm</td><td><button class="hv-add-btn" onclick="hvAdd('35100','Side-Shift Feed Pipe Ref4 5400mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">30353</td><td class="hv-height">5550mm</td><td><button class="hv-add-btn" onclick="hvAdd('30353','Side-Shift Feed Pipe Ref4 5550mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">34885</td><td class="hv-height">6000mm</td><td><button class="hv-add-btn" onclick="hvAdd('34885','Side-Shift Feed Pipe Ref4 6000mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">35067</td><td class="hv-height">6210mm</td><td><button class="hv-add-btn" onclick="hvAdd('35067','Side-Shift Feed Pipe Ref4 6210mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">30356</td><td class="hv-height">6600mm</td><td><button class="hv-add-btn" onclick="hvAdd('30356','Side-Shift Feed Pipe Ref4 6600mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">34879</td><td class="hv-height">7020mm</td><td><button class="hv-add-btn" onclick="hvAdd('34879','Side-Shift Feed Pipe Ref4 7020mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">34874</td><td class="hv-height">7200mm</td><td><button class="hv-add-btn" onclick="hvAdd('34874','Side-Shift Feed Pipe Ref4 7200mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">30362</td><td class="hv-height">7410mm</td><td><button class="hv-add-btn" onclick="hvAdd('30362','Side-Shift Feed Pipe Ref4 7410mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">34975</td><td class="hv-height">7620mm</td><td><button class="hv-add-btn" onclick="hvAdd('34975','Side-Shift Feed Pipe Ref4 7620mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">34868</td><td class="hv-height">8010mm</td><td><button class="hv-add-btn" onclick="hvAdd('34868','Side-Shift Feed Pipe Ref4 8010mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">35064</td><td class="hv-height">8220mm</td><td><button class="hv-add-btn" onclick="hvAdd('35064','Side-Shift Feed Pipe Ref4 8220mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">30367</td><td class="hv-height">8400mm</td><td><button class="hv-add-btn" onclick="hvAdd('30367','Side-Shift Feed Pipe Ref4 8400mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">35097</td><td class="hv-height">8610mm</td><td><button class="hv-add-btn" onclick="hvAdd('35097','Side-Shift Feed Pipe Ref4 8610mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">35116</td><td class="hv-height">8820mm</td><td><button class="hv-add-btn" onclick="hvAdd('35116','Side-Shift Feed Pipe Ref4 8820mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">35033</td><td class="hv-height">9000mm</td><td><button class="hv-add-btn" onclick="hvAdd('35033','Side-Shift Feed Pipe Ref4 9000mm',1,this)">+</button></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="height-drawer" id="hd-5">
+              <table class="hv-table">
+                <thead><tr style="background:var(--black4);"><th style="padding:6px 12px 6px 56px;font-family:var(--font-head);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--grey);text-align:left;width:160px;">Part No.</th><th style="padding:6px 12px;font-family:var(--font-head);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--grey);text-align:left;">Height</th><th style="width:40px;"></th></tr></thead>
+                <tbody>
+                  <tr><td class="hv-partno">35420</td><td class="hv-height">4050mm</td><td><button class="hv-add-btn" onclick="hvAdd('35420','Side-Shift Feed Pipe Ref5 4050mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">34892</td><td class="hv-height">4200mm</td><td><button class="hv-add-btn" onclick="hvAdd('34892','Side-Shift Feed Pipe Ref5 4200mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">34883</td><td class="hv-height">4620mm</td><td><button class="hv-add-btn" onclick="hvAdd('34883','Side-Shift Feed Pipe Ref5 4620mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">35133</td><td class="hv-height">4800mm</td><td><button class="hv-add-btn" onclick="hvAdd('35133','Side-Shift Feed Pipe Ref5 4800mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">34889</td><td class="hv-height">5010mm</td><td><button class="hv-add-btn" onclick="hvAdd('34889','Side-Shift Feed Pipe Ref5 5010mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">35101</td><td class="hv-height">5400mm</td><td><button class="hv-add-btn" onclick="hvAdd('35101','Side-Shift Feed Pipe Ref5 5400mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">30354</td><td class="hv-height">5550mm</td><td><button class="hv-add-btn" onclick="hvAdd('30354','Side-Shift Feed Pipe Ref5 5550mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">34886</td><td class="hv-height">6000mm</td><td><button class="hv-add-btn" onclick="hvAdd('34886','Side-Shift Feed Pipe Ref5 6000mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">35068</td><td class="hv-height">6210mm</td><td><button class="hv-add-btn" onclick="hvAdd('35068','Side-Shift Feed Pipe Ref5 6210mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">30357</td><td class="hv-height">6600mm</td><td><button class="hv-add-btn" onclick="hvAdd('30357','Side-Shift Feed Pipe Ref5 6600mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">34880</td><td class="hv-height">7020mm</td><td><button class="hv-add-btn" onclick="hvAdd('34880','Side-Shift Feed Pipe Ref5 7020mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">34877</td><td class="hv-height">7200mm</td><td><button class="hv-add-btn" onclick="hvAdd('34877','Side-Shift Feed Pipe Ref5 7200mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">30363</td><td class="hv-height">7410mm</td><td><button class="hv-add-btn" onclick="hvAdd('30363','Side-Shift Feed Pipe Ref5 7410mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">34976</td><td class="hv-height">7620mm</td><td><button class="hv-add-btn" onclick="hvAdd('34976','Side-Shift Feed Pipe Ref5 7620mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">34869</td><td class="hv-height">8010mm</td><td><button class="hv-add-btn" onclick="hvAdd('34869','Side-Shift Feed Pipe Ref5 8010mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">35065</td><td class="hv-height">8220mm</td><td><button class="hv-add-btn" onclick="hvAdd('35065','Side-Shift Feed Pipe Ref5 8220mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">30368</td><td class="hv-height">8400mm</td><td><button class="hv-add-btn" onclick="hvAdd('30368','Side-Shift Feed Pipe Ref5 8400mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">35098</td><td class="hv-height">8610mm</td><td><button class="hv-add-btn" onclick="hvAdd('35098','Side-Shift Feed Pipe Ref5 8610mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">35117</td><td class="hv-height">8820mm</td><td><button class="hv-add-btn" onclick="hvAdd('35117','Side-Shift Feed Pipe Ref5 8820mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">35034</td><td class="hv-height">9000mm</td><td><button class="hv-add-btn" onclick="hvAdd('35034','Side-Shift Feed Pipe Ref5 9000mm',1,this)">+</button></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- FIXED FITTINGS (refs 6-13, 16-32) -->
+        <div class="subsection">
+          <div class="subsection-title collapsed" onclick="toggleSub(this)">
+            <span class="ss-ref">6–32</span>
+            Fittings, Valves &amp; Hardware
+            <span class="ss-toggle">▼</span>
+          </div>
+          <div class="parts-table-wrap collapsed">
+            <table class="parts-table">
+              <thead><tr><th>Ref</th><th>Part Number</th><th>Description</th><th>Qty</th><th>Compat</th><th>Remark</th><th></th></tr></thead>
+              <tbody id="fittings-body">
+                <!-- Ref 6: Manifold -->
+                <tr data-search="manifold not available">
+                  <td class="td-ref">6</td>
+                  <td class="td-partno"><span class="na-badge">N/A</span></td>
+                  <td class="td-desc">Manifold</td>
+                  <td class="td-qty">1</td>
+                  <td class="td-compat"><div class="gen-grid"><span class="gen-badge on">NA2.0</span><span class="gen-badge on">G3</span><span class="gen-badge on">G4</span><span class="gen-badge on">ACE</span><span class="gen-badge on">G3</span><span class="gen-badge on">G4</span><span class="gen-badge on">ACiON</span></div></td>
+                  <td class="td-remark">See ref 7, no 27</td>
+                  <td class="td-actions"></td>
+                </tr>
+                <!-- Ref 7: Flow Control Valve -->
+                <tr data-search="4971.05.000 flow control valve">
+                  <td class="td-ref">7</td>
+                  <td class="td-partno">4971.05.000</td>
+                  <td class="td-desc">Flow Control Valve</td>
+                  <td class="td-qty">1</td>
+                  <td class="td-compat"><div class="gen-grid"><span class="gen-badge on">NA2.0</span><span class="gen-badge on">G3</span><span class="gen-badge on">G4</span><span class="gen-badge on">ACE</span><span class="gen-badge on">G3</span><span class="gen-badge on">G4</span><span class="gen-badge on">ACiON</span></div></td>
+                  <td class="td-remark"></td>
+                  <td class="td-actions"><button class="add-btn" onclick="addToCart('4971.05.000','Flow Control Valve',1,this)">+</button></td>
+                </tr>
+                <!-- Ref 8: Blanking Plug -->
+                <tr data-search="44057.17.000 blanking plug">
+                  <td class="td-ref">8</td>
+                  <td class="td-partno">44057.17.000</td>
+                  <td class="td-desc">Blanking Plug</td>
+                  <td class="td-qty">1</td>
+                  <td class="td-compat"><div class="gen-grid"><span class="gen-badge on">NA2.0</span><span class="gen-badge on">G3</span><span class="gen-badge on">G4</span><span class="gen-badge on">ACE</span><span class="gen-badge on">G3</span><span class="gen-badge on">G4</span><span class="gen-badge on">ACiON</span></div></td>
+                  <td class="td-remark"></td>
+                  <td class="td-actions"><button class="add-btn" onclick="addToCart('44057.17.000','Blanking Plug',1,this)">+</button></td>
+                </tr>
+                <!-- Ref 9: 8mm Pipe Clamp -->
+                <tr data-search="4627-04-000 pipe clamp 8mm">
+                  <td class="td-ref">9</td>
+                  <td class="td-partno">4627-04-000</td>
+                  <td class="td-desc">8mm Pipe Clamp</td>
+                  <td class="td-qty">2</td>
+                  <td class="td-compat"><div class="gen-grid"><span class="gen-badge on">NA2.0</span><span class="gen-badge on">G3</span><span class="gen-badge on">G4</span><span class="gen-badge on">ACE</span><span class="gen-badge on">G3</span><span class="gen-badge on">G4</span><span class="gen-badge on">ACiON</span><span class="gen-badge on">1200</span></div></td>
+                  <td class="td-remark"></td>
+                  <td class="td-actions"><button class="add-btn" onclick="addToCart('4627-04-000','8mm Pipe Clamp',2,this)">+</button></td>
+                </tr>
+                <!-- Ref 10: Connector Dual Pipe -->
+                <tr data-search="33828A connector dual pipe">
+                  <td class="td-ref">10</td>
+                  <td class="td-partno">33828A</td>
+                  <td class="td-desc">Connector (Dual Pipe)</td>
+                  <td class="td-qty">1</td>
+                  <td class="td-compat"><div class="gen-grid"><span class="gen-badge on">NA2.0</span><span class="gen-badge on">G3</span><span class="gen-badge on">G4</span><span class="gen-badge on">ACE</span><span class="gen-badge on">G3</span><span class="gen-badge on">G4</span><span class="gen-badge on">ACiON</span><span class="gen-badge on">1200</span></div></td>
+                  <td class="td-remark"></td>
+                  <td class="td-actions"><button class="add-btn" onclick="addToCart('33828A','Connector (Dual Pipe)',1,this)">+</button></td>
+                </tr>
+                <!-- Ref 11: Connector Dual Pipe -->
+                <tr data-search="35477 connector dual pipe">
+                  <td class="td-ref">11</td>
+                  <td class="td-partno">35477</td>
+                  <td class="td-desc">Connector (Dual Pipe)</td>
+                  <td class="td-qty">1</td>
+                  <td class="td-compat"><div class="gen-grid"><span class="gen-badge on">NA2.0</span><span class="gen-badge on">G3</span><span class="gen-badge on">G4</span><span class="gen-badge on">ACiON</span><span class="gen-badge on">1200</span></div></td>
+                  <td class="td-remark"></td>
+                  <td class="td-actions"><button class="add-btn" onclick="addToCart('35477','Connector (Dual Pipe)',1,this)">+</button></td>
+                </tr>
+                <!-- Ref 12: Connector Dual Pipe -->
+                <tr data-search="M0601022 connector dual pipe">
+                  <td class="td-ref">12</td>
+                  <td class="td-partno">M0601022</td>
+                  <td class="td-desc">Connector (Dual Pipe)</td>
+                  <td class="td-qty">2</td>
+                  <td class="td-compat"><div class="gen-grid"><span class="gen-badge on">NA2.0</span><span class="gen-badge on">G3</span><span class="gen-badge on">G4</span><span class="gen-badge on">ACE</span><span class="gen-badge on">G3</span><span class="gen-badge on">G4</span><span class="gen-badge on">ACiON</span><span class="gen-badge on">1200</span></div></td>
+                  <td class="td-remark"></td>
+                  <td class="td-actions"><button class="add-btn" onclick="addToCart('M0601022','Connector (Dual Pipe)',2,this)">+</button></td>
+                </tr>
+                <!-- Ref 13: Connector Dual Pipe -->
+                <tr data-search="35481 connector dual pipe">
+                  <td class="td-ref">13</td>
+                  <td class="td-partno">35481</td>
+                  <td class="td-desc">Connector (Dual Pipe)</td>
+                  <td class="td-qty">4</td>
+                  <td class="td-compat"><div class="gen-grid"><span class="gen-badge on">NA2.0</span><span class="gen-badge on">G3</span><span class="gen-badge on">G4</span><span class="gen-badge on">ACiON</span><span class="gen-badge on">1200</span></div></td>
+                  <td class="td-remark"></td>
+                  <td class="td-actions"><button class="add-btn" onclick="addToCart('35481','Connector (Dual Pipe)',4,this)">+</button></td>
+                </tr>
+
+                <!-- REF 14: FREE LIFT HOSE (height variants – shown as trigger row) -->
+                <tr class="height-trigger" onclick="toggleHeights('hd-14')">
+                  <td class="td-ref">14</td>
+                  <td class="td-partno">42393.xx <span class="height-expand-icon">▶</span></td>
+                  <td class="td-desc">Free Lift Hose</td>
+                  <td class="td-qty">1</td>
+                  <td class="td-compat"><div class="gen-grid"><span class="gen-badge on">NA2.0</span><span class="gen-badge on">G3</span><span class="gen-badge on">G4</span><span class="gen-badge on">ACE</span><span class="gen-badge on">ACiON</span><span class="gen-badge on">1200</span></div></td>
+                  <td class="td-remark">Click to show height variants</td>
+                  <td class="td-actions"></td>
+                </tr>
+
+                <!-- REF 15: SIDESHIFT HOSE (height variants) -->
+                <tr class="height-trigger" onclick="toggleHeights('hd-15')">
+                  <td class="td-ref">15</td>
+                  <td class="td-partno">42398.xx <span class="height-expand-icon">▶</span></td>
+                  <td class="td-desc">Sideshift Hose</td>
+                  <td class="td-qty">2</td>
+                  <td class="td-compat"><div class="gen-grid"><span class="gen-badge on">NA2.0</span><span class="gen-badge on">G3</span><span class="gen-badge on">G4</span><span class="gen-badge on">ACE</span><span class="gen-badge on">ACiON</span><span class="gen-badge on">1200</span></div></td>
+                  <td class="td-remark">Click to show height variants</td>
+                  <td class="td-actions"></td>
+                </tr>
+
+                <!-- Ref 16: Bulkhead Bracket -->
+                <tr data-search="41451.00 bulkhead bracket">
+                  <td class="td-ref">16</td>
+                  <td class="td-partno">41451.00</td>
+                  <td class="td-desc">Bulkhead Bracket</td>
+                  <td class="td-qty">1</td>
+                  <td class="td-compat"><div class="gen-grid"><span class="gen-badge on">NA2.0</span><span class="gen-badge on">G3</span><span class="gen-badge on">G4</span><span class="gen-badge on">ACE</span><span class="gen-badge on">ACiON</span><span class="gen-badge on">1200</span></div></td>
+                  <td class="td-remark"></td>
+                  <td class="td-actions"><button class="add-btn" onclick="addToCart('41451.00','Bulkhead Bracket',1,this)">+</button></td>
+                </tr>
+                <!-- Ref 17: Pipe Clamp -->
+                <tr data-search="4627.05.000 pipe clamp">
+                  <td class="td-ref">17</td>
+                  <td class="td-partno">4627.05.000</td>
+                  <td class="td-desc">Pipe Clamp</td>
+                  <td class="td-qty">4</td>
+                  <td class="td-compat"><div class="gen-grid"><span class="gen-badge on">NA2.0</span><span class="gen-badge on">G3</span><span class="gen-badge on">G4</span><span class="gen-badge on">ACiON</span></div></td>
+                  <td class="td-remark"></td>
+                  <td class="td-actions"><button class="add-btn" onclick="addToCart('4627.05.000','Pipe Clamp',4,this)">+</button></td>
+                </tr>
+                <!-- Ref 18: Bolt -->
+                <tr data-search="6111.08.020 bolt">
+                  <td class="td-ref">18</td>
+                  <td class="td-partno">6111.08.020</td>
+                  <td class="td-desc">Bolt</td>
+                  <td class="td-qty">2</td>
+                  <td class="td-compat"><div class="gen-grid"><span class="gen-badge on">NA2.0</span><span class="gen-badge on">G3</span><span class="gen-badge on">G4</span><span class="gen-badge on">ACE</span><span class="gen-badge on">ACiON</span><span class="gen-badge on">1200</span></div></td>
+                  <td class="td-remark"></td>
+                  <td class="td-actions"><button class="add-btn" onclick="addToCart('6111.08.020','Bolt',2,this)">+</button></td>
+                </tr>
+                <!-- Ref 19: Button Head Screw -->
+                <tr data-search="6610.01.000 button head screw">
+                  <td class="td-ref">19</td>
+                  <td class="td-partno">6610.01.000</td>
+                  <td class="td-desc">Button Head Screw</td>
+                  <td class="td-qty">3</td>
+                  <td class="td-compat"><div class="gen-grid"><span class="gen-badge on">NA2.0</span><span class="gen-badge on">G3</span><span class="gen-badge on">G4</span><span class="gen-badge on">ACE</span><span class="gen-badge on">ACiON</span><span class="gen-badge on">1200</span></div></td>
+                  <td class="td-remark"></td>
+                  <td class="td-actions"><button class="add-btn" onclick="addToCart('6610.01.000','Button Head Screw',3,this)">+</button></td>
+                </tr>
+                <!-- Ref 20: Bolt -->
+                <tr data-search="6111.06.016 bolt">
+                  <td class="td-ref">20</td>
+                  <td class="td-partno">6111.06.016</td>
+                  <td class="td-desc">Bolt</td>
+                  <td class="td-qty">2</td>
+                  <td class="td-compat"><div class="gen-grid"><span class="gen-badge on">NA2.0</span><span class="gen-badge on">G3</span><span class="gen-badge on">G4</span><span class="gen-badge on">ACE</span><span class="gen-badge on">ACiON</span><span class="gen-badge on">1200</span></div></td>
+                  <td class="td-remark"></td>
+                  <td class="td-actions"><button class="add-btn" onclick="addToCart('6111.06.016','Bolt',2,this)">+</button></td>
+                </tr>
+                <!-- Ref 21: Spring Washer -->
+                <tr data-search="6120.08.000 spring washer">
+                  <td class="td-ref">21</td>
+                  <td class="td-partno">6120.08.000</td>
+                  <td class="td-desc">Spring Washer</td>
+                  <td class="td-qty">2</td>
+                  <td class="td-compat"><div class="gen-grid"><span class="gen-badge on">NA2.0</span><span class="gen-badge on">G3</span><span class="gen-badge on">G4</span><span class="gen-badge on">ACE</span><span class="gen-badge on">ACiON</span><span class="gen-badge on">1200</span></div></td>
+                  <td class="td-remark"></td>
+                  <td class="td-actions"><button class="add-btn" onclick="addToCart('6120.08.000','Spring Washer',2,this)">+</button></td>
+                </tr>
+                <!-- Ref 22: Connector -->
+                <tr data-search="33639 connector">
+                  <td class="td-ref">22</td>
+                  <td class="td-partno">33639</td>
+                  <td class="td-desc">Connector</td>
+                  <td class="td-qty">1</td>
+                  <td class="td-compat"><div class="gen-grid"><span class="gen-badge on">NA2.0</span><span class="gen-badge on">G3</span><span class="gen-badge on">G4</span><span class="gen-badge on">ACiON</span></div></td>
+                  <td class="td-remark"></td>
+                  <td class="td-actions"><button class="add-btn" onclick="addToCart('33639','Connector',1,this)">+</button></td>
+                </tr>
+                <!-- Ref 23: Spring Washer (NOT USED) -->
+                <tr data-search="6120.06.000 spring washer">
+                  <td class="td-ref">23</td>
+                  <td class="td-partno">6120.06.000</td>
+                  <td class="td-desc">Spring Washer</td>
+                  <td class="td-qty">2</td>
+                  <td class="td-compat"><div class="gen-grid"><span class="gen-badge on">NA2.0</span><span class="gen-badge on">G3</span><span class="gen-badge on">G4</span><span class="gen-badge on">ACiON</span></div></td>
+                  <td class="td-remark">停用 (NOT USED)</td>
+                  <td class="td-actions"><button class="add-btn" onclick="addToCart('6120.06.000','Spring Washer',2,this)">+</button></td>
+                </tr>
+                <!-- Ref 24: Spring (N/A) -->
+                <tr><td class="td-ref">24</td><td class="td-partno"><span class="na-badge">N/A</span></td><td class="td-desc">Spring</td><td class="td-qty">1</td><td class="td-compat"><div class="gen-grid"><span class="gen-badge on">NA2.0</span><span class="gen-badge on">G3</span><span class="gen-badge on">G4</span><span class="gen-badge on">ACiON</span></div></td><td class="td-remark">See ref 7</td><td class="td-actions"></td></tr>
+                <!-- Ref 25: O Ring (N/A) -->
+                <tr><td class="td-ref">25</td><td class="td-partno"><span class="na-badge">N/A</span></td><td class="td-desc">O Ring</td><td class="td-qty">1</td><td class="td-compat"><div class="gen-grid"><span class="gen-badge on">NA2.0</span><span class="gen-badge on">G3</span><span class="gen-badge on">G4</span><span class="gen-badge on">ACE</span><span class="gen-badge on">ACiON</span><span class="gen-badge on">1200</span></div></td><td class="td-remark">See ref 7</td><td class="td-actions"></td></tr>
+                <!-- Ref 26: Snap Ring (N/A) -->
+                <tr><td class="td-ref">26</td><td class="td-partno"><span class="na-badge">N/A</span></td><td class="td-desc">Snap Ring</td><td class="td-qty">1</td><td class="td-compat"><div class="gen-grid"><span class="gen-badge on">G4</span><span class="gen-badge on">ACE</span><span class="gen-badge on">1200</span></div></td><td class="td-remark">See ref 7</td><td class="td-actions"></td></tr>
+                <!-- Ref 27: Manifold -->
+                <tr data-search="41437.00 manifold">
+                  <td class="td-ref">27</td>
+                  <td class="td-partno">41437.00</td>
+                  <td class="td-desc">Manifold</td>
+                  <td class="td-qty">1</td>
+                  <td class="td-compat"><div class="gen-grid"><span class="gen-badge on">ACE</span><span class="gen-badge on">G4</span><span class="gen-badge on">1200</span></div></td>
+                  <td class="td-remark"></td>
+                  <td class="td-actions"><button class="add-btn" onclick="addToCart('41437.00','Manifold',1,this)">+</button></td>
+                </tr>
+                <!-- Ref 28: Connector -->
+                <tr data-search="35475 connector">
+                  <td class="td-ref">28</td>
+                  <td class="td-partno">35475</td>
+                  <td class="td-desc">Connector</td>
+                  <td class="td-qty">1</td>
+                  <td class="td-compat"><div class="gen-grid"><span class="gen-badge on">ACE</span><span class="gen-badge on">G4</span><span class="gen-badge on">1200</span></div></td>
+                  <td class="td-remark"></td>
+                  <td class="td-actions"><button class="add-btn" onclick="addToCart('35475','Connector',1,this)">+</button></td>
+                </tr>
+                <!-- Ref 29: Connector -->
+                <tr data-search="35473 connector">
+                  <td class="td-ref">29</td>
+                  <td class="td-partno">35473</td>
+                  <td class="td-desc">Connector</td>
+                  <td class="td-qty">2</td>
+                  <td class="td-compat"><div class="gen-grid"><span class="gen-badge on">NA2.0</span><span class="gen-badge on">G3</span><span class="gen-badge on">G4</span><span class="gen-badge on">ACE</span><span class="gen-badge on">ACiON</span><span class="gen-badge on">1200</span></div></td>
+                  <td class="td-remark"></td>
+                  <td class="td-actions"><button class="add-btn" onclick="addToCart('35473','Connector',2,this)">+</button></td>
+                </tr>
+                <!-- Ref 30: Connector -->
+                <tr data-search="35456 connector">
+                  <td class="td-ref">30</td>
+                  <td class="td-partno">35456</td>
+                  <td class="td-desc">Connector</td>
+                  <td class="td-qty">1</td>
+                  <td class="td-compat"><div class="gen-grid"><span class="gen-badge on">NA2.0</span><span class="gen-badge on">G3</span><span class="gen-badge on">G4</span><span class="gen-badge on">ACiON</span></div></td>
+                  <td class="td-remark"></td>
+                  <td class="td-actions"><button class="add-btn" onclick="addToCart('35456','Connector',1,this)">+</button></td>
+                </tr>
+                <!-- Ref 31: Plug (N/A) -->
+                <tr><td class="td-ref">31</td><td class="td-partno"><span class="na-badge">N/A</span></td><td class="td-desc">Plug</td><td class="td-qty">1</td><td class="td-compat"><div class="gen-grid"><span class="gen-badge on">NA2.0</span><span class="gen-badge on">G3</span><span class="gen-badge on">G4</span><span class="gen-badge on">ACiON</span></div></td><td class="td-remark">See ref 7</td><td class="td-actions"></td></tr>
+                <!-- Ref 32: Ring (N/A) -->
+                <tr><td class="td-ref">32</td><td class="td-partno"><span class="na-badge">N/A</span></td><td class="td-desc">Ring</td><td class="td-qty">1</td><td class="td-compat"><div class="gen-grid"><span class="gen-badge on">NA2.0</span><span class="gen-badge on">G3</span><span class="gen-badge on">G4</span><span class="gen-badge on">ACiON</span></div></td><td class="td-remark">See ref 7</td><td class="td-actions"></td></tr>
+              </tbody>
+            </table>
+
+            <!-- Free Lift Hose variants drawer -->
+            <div class="height-drawer" id="hd-14">
+              <table class="hv-table">
+                <thead><tr style="background:var(--black4);"><th style="padding:6px 12px 6px 56px;font-family:var(--font-head);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--grey);text-align:left;width:160px;">Part No.</th><th style="padding:6px 12px;font-family:var(--font-head);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--grey);text-align:left;">Height</th><th style="width:40px;"></th></tr></thead>
+                <tbody>
+                  <tr><td class="hv-partno">42393.34</td><td class="hv-height">4050mm</td><td><button class="hv-add-btn" onclick="hvAdd('42393.34','Free Lift Hose 4050mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42393.04</td><td class="hv-height">4200mm</td><td><button class="hv-add-btn" onclick="hvAdd('42393.04','Free Lift Hose 4200mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42393.06</td><td class="hv-height">4620mm</td><td><button class="hv-add-btn" onclick="hvAdd('42393.06','Free Lift Hose 4620mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42393.45</td><td class="hv-height">4800mm</td><td><button class="hv-add-btn" onclick="hvAdd('42393.45','Free Lift Hose 4800mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42393.08</td><td class="hv-height">5010mm</td><td><button class="hv-add-btn" onclick="hvAdd('42393.08','Free Lift Hose 5010mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42393.10</td><td class="hv-height">5400mm</td><td><button class="hv-add-btn" onclick="hvAdd('42393.10','Free Lift Hose 5400mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42393.01</td><td class="hv-height">5550mm</td><td><button class="hv-add-btn" onclick="hvAdd('42393.01','Free Lift Hose 5550mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42393.13</td><td class="hv-height">6000mm</td><td><button class="hv-add-btn" onclick="hvAdd('42393.13','Free Lift Hose 6000mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42393.14</td><td class="hv-height">6210mm</td><td><button class="hv-add-btn" onclick="hvAdd('42393.14','Free Lift Hose 6210mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42393.16</td><td class="hv-height">6600mm</td><td><button class="hv-add-btn" onclick="hvAdd('42393.16','Free Lift Hose 6600mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42393.18</td><td class="hv-height">7020mm</td><td><button class="hv-add-btn" onclick="hvAdd('42393.18','Free Lift Hose 7020mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42393.19</td><td class="hv-height">7200mm</td><td><button class="hv-add-btn" onclick="hvAdd('42393.19','Free Lift Hose 7200mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42393.20</td><td class="hv-height">7410mm</td><td><button class="hv-add-btn" onclick="hvAdd('42393.20','Free Lift Hose 7410mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42393.21</td><td class="hv-height">7620mm</td><td><button class="hv-add-btn" onclick="hvAdd('42393.21','Free Lift Hose 7620mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42393.23</td><td class="hv-height">8010mm</td><td><button class="hv-add-btn" onclick="hvAdd('42393.23','Free Lift Hose 8010mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42393.24</td><td class="hv-height">8220mm</td><td><button class="hv-add-btn" onclick="hvAdd('42393.24','Free Lift Hose 8220mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42393.25</td><td class="hv-height">8400mm</td><td><button class="hv-add-btn" onclick="hvAdd('42393.25','Free Lift Hose 8400mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42393.26</td><td class="hv-height">8610mm</td><td><button class="hv-add-btn" onclick="hvAdd('42393.26','Free Lift Hose 8610mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42393.27</td><td class="hv-height">8820mm</td><td><button class="hv-add-btn" onclick="hvAdd('42393.27','Free Lift Hose 8820mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42393.28</td><td class="hv-height">9000mm</td><td><button class="hv-add-btn" onclick="hvAdd('42393.28','Free Lift Hose 9000mm',1,this)">+</button></td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Sideshift Hose variants drawer -->
+            <div class="height-drawer" id="hd-15">
+              <table class="hv-table">
+                <thead><tr style="background:var(--black4);"><th style="padding:6px 12px 6px 56px;font-family:var(--font-head);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--grey);text-align:left;width:160px;">Part No.</th><th style="padding:6px 12px;font-family:var(--font-head);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--grey);text-align:left;">Height</th><th style="width:40px;"></th></tr></thead>
+                <tbody>
+                  <tr><td class="hv-partno">42398.34</td><td class="hv-height">4050mm</td><td><button class="hv-add-btn" onclick="hvAdd('42398.34','Sideshift Hose 4050mm',2,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42398.04</td><td class="hv-height">4200mm</td><td><button class="hv-add-btn" onclick="hvAdd('42398.04','Sideshift Hose 4200mm',2,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42398.06</td><td class="hv-height">4620mm</td><td><button class="hv-add-btn" onclick="hvAdd('42398.06','Sideshift Hose 4620mm',2,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42398.45</td><td class="hv-height">4800mm</td><td><button class="hv-add-btn" onclick="hvAdd('42398.45','Sideshift Hose 4800mm',2,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42398.08</td><td class="hv-height">5010mm</td><td><button class="hv-add-btn" onclick="hvAdd('42398.08','Sideshift Hose 5010mm',2,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42398.10</td><td class="hv-height">5400mm</td><td><button class="hv-add-btn" onclick="hvAdd('42398.10','Sideshift Hose 5400mm',2,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42398.01</td><td class="hv-height">5550mm</td><td><button class="hv-add-btn" onclick="hvAdd('42398.01','Sideshift Hose 5550mm',2,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42398.13</td><td class="hv-height">6000mm</td><td><button class="hv-add-btn" onclick="hvAdd('42398.13','Sideshift Hose 6000mm',2,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42398.14</td><td class="hv-height">6210mm</td><td><button class="hv-add-btn" onclick="hvAdd('42398.14','Sideshift Hose 6210mm',2,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42398.16</td><td class="hv-height">6600mm</td><td><button class="hv-add-btn" onclick="hvAdd('42398.16','Sideshift Hose 6600mm',2,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42398.18</td><td class="hv-height">7020mm</td><td><button class="hv-add-btn" onclick="hvAdd('42398.18','Sideshift Hose 7020mm',2,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42398.19</td><td class="hv-height">7200mm</td><td><button class="hv-add-btn" onclick="hvAdd('42398.19','Sideshift Hose 7200mm',2,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42398.20</td><td class="hv-height">7410mm</td><td><button class="hv-add-btn" onclick="hvAdd('42398.20','Sideshift Hose 7410mm',2,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42398.21</td><td class="hv-height">7620mm</td><td><button class="hv-add-btn" onclick="hvAdd('42398.21','Sideshift Hose 7620mm',2,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42398.23</td><td class="hv-height">8010mm</td><td><button class="hv-add-btn" onclick="hvAdd('42398.23','Sideshift Hose 8010mm',2,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42398.24</td><td class="hv-height">8220mm</td><td><button class="hv-add-btn" onclick="hvAdd('42398.24','Sideshift Hose 8220mm',2,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42398.25</td><td class="hv-height">8400mm</td><td><button class="hv-add-btn" onclick="hvAdd('42398.25','Sideshift Hose 8400mm',2,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42398.26</td><td class="hv-height">8610mm</td><td><button class="hv-add-btn" onclick="hvAdd('42398.26','Sideshift Hose 8610mm',2,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42398.27</td><td class="hv-height">8820mm</td><td><button class="hv-add-btn" onclick="hvAdd('42398.27','Sideshift Hose 8820mm',2,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42398.28</td><td class="hv-height">9000mm</td><td><button class="hv-add-btn" onclick="hvAdd('42398.28','Sideshift Hose 9000mm',2,this)">+</button></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div><!-- /sec-a356-5 -->
+
+
+      <!-- ════════════════════════════════════════════════
+           A356-4A  FORK CARRIAGE ASSEMBLY
+           ════════════════════════════════════════════════ -->
+      <div id="sec-a356-4a" class="section-hidden">
+        <div class="section-banner">
+          <div class="sec-code">A356 · Mast System</div>
+          <div class="sec-title">A356-4A</div>
+          <div class="sec-sub">Alternative Fork Carriage Assembly (860 Kaup Standard Mast)</div>
+        </div>
+        <div class="subsection">
+          <div class="subsection-title" onclick="toggleSub(this)">
+            <span class="ss-ref">1–23</span>
+            Fork Carriage Components
+            <span class="ss-toggle">▼</span>
+          </div>
+          <div class="parts-table-wrap">
+            <table class="parts-table">
+              <thead><tr><th>Ref</th><th>Part Number</th><th>Description</th><th>Qty</th><th>Notes</th><th></th></tr></thead>
+              <tbody>
+                <tr><td class="td-ref">1</td><td class="td-partno">41411.29</td><td class="td-desc">Mast Carriage Assembly</td><td class="td-qty">1</td><td class="td-remark">860 Kaup Standard Mast</td><td class="td-actions"><button class="add-btn" onclick="addToCart('41411.29','Mast Carriage Assembly',1,this)">+</button></td></tr>
+                <tr><td class="td-ref">2</td><td class="td-partno">4997.79.002</td><td class="td-desc">Fork Carriage</td><td class="td-qty">1</td><td class="td-remark">860</td><td class="td-actions"><button class="add-btn" onclick="addToCart('4997.79.002','Fork Carriage',1,this)">+</button></td></tr>
+                <tr><td class="td-ref">3</td><td class="td-partno">4997.44.023</td><td class="td-desc">Bush – Glacier</td><td class="td-qty">2</td><td class="td-remark"></td><td class="td-actions"><button class="add-btn" onclick="addToCart('4997.44.023','Bush Glacier',2,this)">+</button></td></tr>
+                <tr><td class="td-ref">4</td><td class="td-partno">4997.44.025</td><td class="td-desc">Groove Ring</td><td class="td-qty">2</td><td class="td-remark"></td><td class="td-actions"><button class="add-btn" onclick="addToCart('4997.44.025','Groove Ring',2,this)">+</button></td></tr>
+                <tr><td class="td-ref">5</td><td class="td-partno">4997.44.022</td><td class="td-desc">Washer (Seal Housing)</td><td class="td-qty">2</td><td class="td-remark">Seal Housing</td><td class="td-actions"><button class="add-btn" onclick="addToCart('4997.44.022','Washer Seal Housing',2,this)">+</button></td></tr>
+                <tr><td class="td-ref">6</td><td class="td-partno">4997.44.024</td><td class="td-desc">Stripper (Scraper Seal)</td><td class="td-qty">2</td><td class="td-remark">Scraper Seal</td><td class="td-actions"><button class="add-btn" onclick="addToCart('4997.44.024','Stripper Scraper Seal',2,this)">+</button></td></tr>
+                <tr><td class="td-ref">7</td><td class="td-partno">4997.44.004</td><td class="td-desc">Piston Rod</td><td class="td-qty">2</td><td class="td-remark"></td><td class="td-actions"><button class="add-btn" onclick="addToCart('4997.44.004','Piston Rod',2,this)">+</button></td></tr>
+                <tr><td class="td-ref">8</td><td class="td-partno">4997.79.001</td><td class="td-desc">Holder</td><td class="td-qty">2</td><td class="td-remark"></td><td class="td-actions"><button class="add-btn" onclick="addToCart('4997.79.001','Holder',2,this)">+</button></td></tr>
+                <tr><td class="td-ref">9</td><td class="td-partno">6121.16.060</td><td class="td-desc">Screw M16 × 60</td><td class="td-qty">2</td><td class="td-remark">M16 × 60</td><td class="td-actions"><button class="add-btn" onclick="addToCart('6121.16.060','Screw M16x60',2,this)">+</button></td></tr>
+                <tr><td class="td-ref">10</td><td class="td-partno">4997.44.019</td><td class="td-desc">Guide Roller</td><td class="td-qty">2</td><td class="td-remark"></td><td class="td-actions"><button class="add-btn" onclick="addToCart('4997.44.019','Guide Roller',2,this)">+</button></td></tr>
+                <tr><td class="td-ref">11</td><td class="td-partno">4997.44.035</td><td class="td-desc">Nut M30</td><td class="td-qty">4</td><td class="td-remark">M30</td><td class="td-actions"><button class="add-btn" onclick="addToCart('4997.44.035','Nut M30',4,this)">+</button></td></tr>
+                <tr><td class="td-ref">12</td><td class="td-partno">4997.44.033</td><td class="td-desc">Grease Nipple M8</td><td class="td-qty">2</td><td class="td-remark">M8</td><td class="td-actions"><button class="add-btn" onclick="addToCart('4997.44.033','Grease Nipple M8',2,this)">+</button></td></tr>
+                <tr><td class="td-ref">13</td><td class="td-partno">4997.44.005</td><td class="td-desc">Sliding Piece</td><td class="td-qty">4</td><td class="td-remark">13 or 13a</td><td class="td-actions"><button class="add-btn" onclick="addToCart('4997.44.005','Sliding Piece',4,this)">+</button></td></tr>
+                <tr><td class="td-ref">13a</td><td class="td-partno">4997.44.006</td><td class="td-desc">Sliding Piece (alt)</td><td class="td-qty">4</td><td class="td-remark">Alt to 13</td><td class="td-actions"><button class="add-btn" onclick="addToCart('4997.44.006','Sliding Piece alt',4,this)">+</button></td></tr>
+                <tr><td class="td-ref">14</td><td class="td-partno">4997.44.032</td><td class="td-desc">Grease Nipple M8</td><td class="td-qty">2</td><td class="td-remark">M8</td><td class="td-actions"><button class="add-btn" onclick="addToCart('4997.44.032','Grease Nipple M8',2,this)">+</button></td></tr>
+                <tr><td class="td-ref">15</td><td class="td-partno">6121.12.030</td><td class="td-desc">Stop Bolt</td><td class="td-qty">2</td><td class="td-remark"></td><td class="td-actions"><button class="add-btn" onclick="addToCart('6121.12.030','Stop Bolt',2,this)">+</button></td></tr>
+                <tr><td class="td-ref">16</td><td class="td-partno">6120.16.000</td><td class="td-desc">Washer – Spring M16</td><td class="td-qty">1</td><td class="td-remark">M16</td><td class="td-actions"><button class="add-btn" onclick="addToCart('6120.16.000','Washer Spring M16',1,this)">+</button></td></tr>
+                <tr><td class="td-ref">17</td><td class="td-partno">6121.16.025</td><td class="td-desc">Screw – Cap Head M16 × 25</td><td class="td-qty">1</td><td class="td-remark">M16 × 25</td><td class="td-actions"><button class="add-btn" onclick="addToCart('6121.16.025','Screw Cap Head M16x25',1,this)">+</button></td></tr>
+                <tr><td class="td-ref">18</td><td class="td-partno">41936.02</td><td class="td-desc">Fork 950 × 100 × 40</td><td class="td-qty">2</td><td class="td-remark">950 × 100 × 40</td><td class="td-actions"><button class="add-btn" onclick="addToCart('41936.02','Fork 950x100x40',2,this)">+</button></td></tr>
+                <tr><td class="td-ref">18a</td><td class="td-partno">41936.03</td><td class="td-desc">Fork 1150 × 100 × 40</td><td class="td-qty">2</td><td class="td-remark">1150 × 100 × 40</td><td class="td-actions"><button class="add-btn" onclick="addToCart('41936.03','Fork 1150x100x40',2,this)">+</button></td></tr>
+                <tr><td class="td-ref">19</td><td class="td-partno">7671.01.000</td><td class="td-desc">Roller Assembly</td><td class="td-qty">4</td><td class="td-remark">Standard</td><td class="td-actions"><button class="add-btn" onclick="addToCart('7671.01.000','Roller Assembly',4,this)">+</button></td></tr>
+                <tr><td class="td-ref">20</td><td class="td-partno">7694.01.000</td><td class="td-desc">Chain Anchor Assembly</td><td class="td-qty">2</td><td class="td-remark"></td><td class="td-actions"><button class="add-btn" onclick="addToCart('7694.01.000','Chain Anchor Assembly',2,this)">+</button></td></tr>
+                <tr><td class="td-ref">21</td><td class="td-partno">6596.01.000</td><td class="td-desc">Shim</td><td class="td-qty">n</td><td class="td-remark">Standard 40ID × 0-5</td><td class="td-actions"><button class="add-btn" onclick="addToCart('6596.01.000','Shim',1,this)">+</button></td></tr>
+                <tr><td class="td-ref">22</td><td class="td-partno">6566.06.000</td><td class="td-desc">Grease Nipple – Angled M6 45°</td><td class="td-qty">1</td><td class="td-remark">M6 45°</td><td class="td-actions"><button class="add-btn" onclick="addToCart('6566.06.000','Grease Nipple Angled M6 45deg',1,this)">+</button></td></tr>
+                <tr><td class="td-ref">23</td><td class="td-partno">4997.79.003</td><td class="td-desc">Fork Stop Spacer</td><td class="td-qty">1</td><td class="td-remark"></td><td class="td-actions"><button class="add-btn" onclick="addToCart('4997.79.003','Fork Stop Spacer',1,this)">+</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div><!-- /sec-a356-4a -->
+
+
+      <!-- ════════════════════════════════════════════════
+           A356-6  NARROW AISLE HYD. COMPONENTS – THIRD STAGE (Hoses)
+           ════════════════════════════════════════════════ -->
+      <div id="sec-a356-6" class="section-hidden">
+        <div class="section-banner">
+          <div class="sec-code">A356 · Mast System</div>
+          <div class="sec-title">A356-6</div>
+          <div class="sec-sub">Narrow Aisle Hyd. Components – Third Stage (Hoses)</div>
+        </div>
+
+        <!-- Ref 1: Sideshift Hose 3rd Stage -->
+        <div class="subsection">
+          <div class="subsection-title collapsed" onclick="toggleSub(this)">
+            <span class="ss-ref">1</span>Sideshift Hose – 3rd Stage<span class="ss-toggle">▼</span>
+          </div>
+          <div class="parts-table-wrap collapsed">
+            <table class="parts-table">
+              <thead><tr><th>Ref</th><th>Part Number</th><th>Description</th><th>Qty</th><th>Compat</th><th>Height</th><th></th></tr></thead>
+              <tbody>
+                <tr class="height-trigger" onclick="toggleHeights('hd-6-1')">
+                  <td class="td-ref">1</td>
+                  <td class="td-partno">42495.xx <span class="height-expand-icon">▶</span></td>
+                  <td class="td-desc">Sideshift Hose – 3rd Stage</td>
+                  <td class="td-qty">1</td>
+                  <td class="td-compat"><div class="gen-grid"><span class="gen-badge on">NA2.0</span><span class="gen-badge on">G3</span><span class="gen-badge on">G4</span><span class="gen-badge on">ACE</span><span class="gen-badge on">ACiON</span><span class="gen-badge on">1200</span></div></td>
+                  <td class="td-remark">Click to show height variants</td>
+                  <td class="td-actions"></td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="height-drawer" id="hd-6-1">
+              <table class="hv-table">
+                <thead><tr style="background:var(--black4);"><th style="padding:6px 12px 6px 56px;font-family:var(--font-head);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--grey);text-align:left;width:160px;">Part No.</th><th style="padding:6px 12px;font-family:var(--font-head);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--grey);text-align:left;">Height</th><th style="width:40px;"></th></tr></thead>
+                <tbody>
+                  <tr><td class="hv-partno">42495.34</td><td class="hv-height">4050mm</td><td><button class="hv-add-btn" onclick="hvAdd('42495.34','Sideshift Hose 3rd Stage 4050mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42495.04</td><td class="hv-height">4200mm</td><td><button class="hv-add-btn" onclick="hvAdd('42495.04','Sideshift Hose 3rd Stage 4200mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42495.06</td><td class="hv-height">4620mm</td><td><button class="hv-add-btn" onclick="hvAdd('42495.06','Sideshift Hose 3rd Stage 4620mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42495.45</td><td class="hv-height">4800mm</td><td><button class="hv-add-btn" onclick="hvAdd('42495.45','Sideshift Hose 3rd Stage 4800mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42495.08</td><td class="hv-height">5010mm</td><td><button class="hv-add-btn" onclick="hvAdd('42495.08','Sideshift Hose 3rd Stage 5010mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42495.10</td><td class="hv-height">5400mm</td><td><button class="hv-add-btn" onclick="hvAdd('42495.10','Sideshift Hose 3rd Stage 5400mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42495.01</td><td class="hv-height">5550mm</td><td><button class="hv-add-btn" onclick="hvAdd('42495.01','Sideshift Hose 3rd Stage 5550mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42495.13</td><td class="hv-height">6000mm</td><td><button class="hv-add-btn" onclick="hvAdd('42495.13','Sideshift Hose 3rd Stage 6000mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42495.14</td><td class="hv-height">6210mm</td><td><button class="hv-add-btn" onclick="hvAdd('42495.14','Sideshift Hose 3rd Stage 6210mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42495.16</td><td class="hv-height">6600mm</td><td><button class="hv-add-btn" onclick="hvAdd('42495.16','Sideshift Hose 3rd Stage 6600mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42495.18</td><td class="hv-height">7020mm</td><td><button class="hv-add-btn" onclick="hvAdd('42495.18','Sideshift Hose 3rd Stage 7020mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42495.19</td><td class="hv-height">7200mm</td><td><button class="hv-add-btn" onclick="hvAdd('42495.19','Sideshift Hose 3rd Stage 7200mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42495.20</td><td class="hv-height">7410mm</td><td><button class="hv-add-btn" onclick="hvAdd('42495.20','Sideshift Hose 3rd Stage 7410mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42495.21</td><td class="hv-height">7620mm</td><td><button class="hv-add-btn" onclick="hvAdd('42495.21','Sideshift Hose 3rd Stage 7620mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42495.23</td><td class="hv-height">8010mm</td><td><button class="hv-add-btn" onclick="hvAdd('42495.23','Sideshift Hose 3rd Stage 8010mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42495.24</td><td class="hv-height">8220mm</td><td><button class="hv-add-btn" onclick="hvAdd('42495.24','Sideshift Hose 3rd Stage 8220mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42495.25</td><td class="hv-height">8400mm</td><td><button class="hv-add-btn" onclick="hvAdd('42495.25','Sideshift Hose 3rd Stage 8400mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42495.26</td><td class="hv-height">8610mm</td><td><button class="hv-add-btn" onclick="hvAdd('42495.26','Sideshift Hose 3rd Stage 8610mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42495.27</td><td class="hv-height">8820mm</td><td><button class="hv-add-btn" onclick="hvAdd('42495.27','Sideshift Hose 3rd Stage 8820mm',1,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42495.28</td><td class="hv-height">9000mm</td><td><button class="hv-add-btn" onclick="hvAdd('42495.28','Sideshift Hose 3rd Stage 9000mm',1,this)">+</button></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ref 2: Sideshift Hose 3rd Stage (2nd set) -->
+        <div class="subsection">
+          <div class="subsection-title collapsed" onclick="toggleSub(this)">
+            <span class="ss-ref">2</span>Sideshift Hose – 3rd Stage (Qty 2)<span class="ss-toggle">▼</span>
+          </div>
+          <div class="parts-table-wrap collapsed">
+            <table class="parts-table">
+              <thead><tr><th>Ref</th><th>Part Number</th><th>Description</th><th>Qty</th><th>Compat</th><th>Height</th><th></th></tr></thead>
+              <tbody>
+                <tr class="height-trigger" onclick="toggleHeights('hd-6-2')">
+                  <td class="td-ref">2</td>
+                  <td class="td-partno">42494.xx <span class="height-expand-icon">▶</span></td>
+                  <td class="td-desc">Sideshift Hose – 3rd Stage (×2)</td>
+                  <td class="td-qty">2</td>
+                  <td class="td-compat"><div class="gen-grid"><span class="gen-badge on">NA2.0</span><span class="gen-badge on">G3</span><span class="gen-badge on">G4</span><span class="gen-badge on">ACE</span><span class="gen-badge on">ACiON</span><span class="gen-badge on">1200</span></div></td>
+                  <td class="td-remark">Click to show height variants</td>
+                  <td class="td-actions"></td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="height-drawer" id="hd-6-2">
+              <table class="hv-table">
+                <thead><tr style="background:var(--black4);"><th style="padding:6px 12px 6px 56px;font-family:var(--font-head);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--grey);text-align:left;width:160px;">Part No.</th><th style="padding:6px 12px;font-family:var(--font-head);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--grey);text-align:left;">Height</th><th style="width:40px;"></th></tr></thead>
+                <tbody>
+                  <tr><td class="hv-partno">42494.34</td><td class="hv-height">4050mm</td><td><button class="hv-add-btn" onclick="hvAdd('42494.34','Sideshift Hose 3rd Stage x2 4050mm',2,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42494.04</td><td class="hv-height">4200mm</td><td><button class="hv-add-btn" onclick="hvAdd('42494.04','Sideshift Hose 3rd Stage x2 4200mm',2,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42494.06</td><td class="hv-height">4620mm</td><td><button class="hv-add-btn" onclick="hvAdd('42494.06','Sideshift Hose 3rd Stage x2 4620mm',2,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42494.45</td><td class="hv-height">4800mm</td><td><button class="hv-add-btn" onclick="hvAdd('42494.45','Sideshift Hose 3rd Stage x2 4800mm',2,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42494.08</td><td class="hv-height">5010mm</td><td><button class="hv-add-btn" onclick="hvAdd('42494.08','Sideshift Hose 3rd Stage x2 5010mm',2,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42494.10</td><td class="hv-height">5400mm</td><td><button class="hv-add-btn" onclick="hvAdd('42494.10','Sideshift Hose 3rd Stage x2 5400mm',2,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42494.01</td><td class="hv-height">5550mm</td><td><button class="hv-add-btn" onclick="hvAdd('42494.01','Sideshift Hose 3rd Stage x2 5550mm',2,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42494.13</td><td class="hv-height">6000mm</td><td><button class="hv-add-btn" onclick="hvAdd('42494.13','Sideshift Hose 3rd Stage x2 6000mm',2,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42494.14</td><td class="hv-height">6210mm</td><td><button class="hv-add-btn" onclick="hvAdd('42494.14','Sideshift Hose 3rd Stage x2 6210mm',2,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42494.16</td><td class="hv-height">7200mm</td><td><button class="hv-add-btn" onclick="hvAdd('42494.16','Sideshift Hose 3rd Stage x2 7200mm',2,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42494.18</td><td class="hv-height">7410mm</td><td><button class="hv-add-btn" onclick="hvAdd('42494.18','Sideshift Hose 3rd Stage x2 7410mm',2,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42494.19</td><td class="hv-height">6600mm</td><td><button class="hv-add-btn" onclick="hvAdd('42494.19','Sideshift Hose 3rd Stage x2 6600mm',2,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42494.20</td><td class="hv-height">7020mm</td><td><button class="hv-add-btn" onclick="hvAdd('42494.20','Sideshift Hose 3rd Stage x2 7020mm',2,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42494.21</td><td class="hv-height">7620mm</td><td><button class="hv-add-btn" onclick="hvAdd('42494.21','Sideshift Hose 3rd Stage x2 7620mm',2,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42494.23</td><td class="hv-height">8010mm</td><td><button class="hv-add-btn" onclick="hvAdd('42494.23','Sideshift Hose 3rd Stage x2 8010mm',2,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42494.24</td><td class="hv-height">8220mm</td><td><button class="hv-add-btn" onclick="hvAdd('42494.24','Sideshift Hose 3rd Stage x2 8220mm',2,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42494.25</td><td class="hv-height">8400mm</td><td><button class="hv-add-btn" onclick="hvAdd('42494.25','Sideshift Hose 3rd Stage x2 8400mm',2,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42494.26</td><td class="hv-height">8610mm</td><td><button class="hv-add-btn" onclick="hvAdd('42494.26','Sideshift Hose 3rd Stage x2 8610mm',2,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42494.27</td><td class="hv-height">8820mm</td><td><button class="hv-add-btn" onclick="hvAdd('42494.27','Sideshift Hose 3rd Stage x2 8820mm',2,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42494.28</td><td class="hv-height">9000mm</td><td><button class="hv-add-btn" onclick="hvAdd('42494.28','Sideshift Hose 3rd Stage x2 9000mm',2,this)">+</button></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ref 3: Sideshift Free Lift Hose 3rd Stage -->
+        <div class="subsection">
+          <div class="subsection-title collapsed" onclick="toggleSub(this)">
+            <span class="ss-ref">3</span>Sideshift Free Lift Hose – 3rd Stage<span class="ss-toggle">▼</span>
+          </div>
+          <div class="parts-table-wrap collapsed">
+            <table class="parts-table">
+              <thead><tr><th>Ref</th><th>Part Number</th><th>Description</th><th>Qty</th><th>Compat</th><th>Height</th><th></th></tr></thead>
+              <tbody>
+                <tr class="height-trigger" onclick="toggleHeights('hd-6-3')">
+                  <td class="td-ref">3</td>
+                  <td class="td-partno">42395.xx <span class="height-expand-icon">▶</span></td>
+                  <td class="td-desc">Sideshift Free Lift Hose – 3rd Stage</td>
+                  <td class="td-qty">2</td>
+                  <td class="td-compat"><div class="gen-grid"><span class="gen-badge on">NA2.0</span><span class="gen-badge on">G3</span><span class="gen-badge on">G4</span><span class="gen-badge on">ACE</span><span class="gen-badge on">ACiON</span><span class="gen-badge on">1200</span></div></td>
+                  <td class="td-remark">Click to show height variants (note: 6600mm+ N/A)</td>
+                  <td class="td-actions"></td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="height-drawer" id="hd-6-3">
+              <table class="hv-table">
+                <thead><tr style="background:var(--black4);"><th style="padding:6px 12px 6px 56px;font-family:var(--font-head);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--grey);text-align:left;width:160px;">Part No.</th><th style="padding:6px 12px;font-family:var(--font-head);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--grey);text-align:left;">Height</th><th style="width:40px;"></th></tr></thead>
+                <tbody>
+                  <tr><td class="hv-partno">42395.34</td><td class="hv-height">4050mm</td><td><button class="hv-add-btn" onclick="hvAdd('42395.34','Sideshift Free Lift Hose 3rd 4050mm',2,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42395.04</td><td class="hv-height">4200mm</td><td><button class="hv-add-btn" onclick="hvAdd('42395.04','Sideshift Free Lift Hose 3rd 4200mm',2,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42395.06</td><td class="hv-height">4620mm</td><td><button class="hv-add-btn" onclick="hvAdd('42395.06','Sideshift Free Lift Hose 3rd 4620mm',2,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42395.45</td><td class="hv-height">4800mm</td><td><button class="hv-add-btn" onclick="hvAdd('42395.45','Sideshift Free Lift Hose 3rd 4800mm',2,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42395.08</td><td class="hv-height">5010mm</td><td><button class="hv-add-btn" onclick="hvAdd('42395.08','Sideshift Free Lift Hose 3rd 5010mm',2,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42395.10</td><td class="hv-height">5400mm</td><td><button class="hv-add-btn" onclick="hvAdd('42395.10','Sideshift Free Lift Hose 3rd 5400mm',2,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42395.01</td><td class="hv-height">5550mm</td><td><button class="hv-add-btn" onclick="hvAdd('42395.01','Sideshift Free Lift Hose 3rd 5550mm',2,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42395.13</td><td class="hv-height">6000mm</td><td><button class="hv-add-btn" onclick="hvAdd('42395.13','Sideshift Free Lift Hose 3rd 6000mm',2,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42395.14</td><td class="hv-height">6210mm</td><td><button class="hv-add-btn" onclick="hvAdd('42395.14','Sideshift Free Lift Hose 3rd 6210mm',2,this)">+</button></td></tr>
+                  <tr><td class="hv-partno">42395.16</td><td class="hv-height">6600mm</td><td><button class="hv-add-btn" onclick="hvAdd('42395.16','Sideshift Free Lift Hose 3rd 6600mm',2,this)">+</button></td></tr>
+                  <tr><td class="hv-partno hv-na">42395.18–28</td><td class="hv-height" style="color:var(--text-dim)">7020–9000mm</td><td><span class="na-badge">N/A</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div><!-- /sec-a356-6 -->
+
+
+      <!-- ════════════════════════════════════════════════
+           A356-6B  NARROW AISLE HYD. COMPONENTS – THIRD STAGE (Fittings)
+           ════════════════════════════════════════════════ -->
+      <div id="sec-a356-6b" class="section-hidden">
+        <div class="section-banner">
+          <div class="sec-code">A356 · Mast System</div>
+          <div class="sec-title">A356-6B</div>
+          <div class="sec-sub">Narrow Aisle Hyd. Components – Third Stage Fittings (VNA / ACiON 1200)</div>
+        </div>
+        <div class="subsection">
+          <div class="subsection-title" onclick="toggleSub(this)">
+            <span class="ss-ref">4–14</span>
+            Third Stage Connectors &amp; Fittings
+            <span class="ss-toggle">▼</span>
+          </div>
+          <div class="parts-table-wrap">
+            <table class="parts-table">
+              <thead><tr><th>Ref</th><th>Part Number</th><th>Description</th><th>Qty</th><th>Compat</th><th></th></tr></thead>
+              <tbody>
+                <tr><td class="td-ref">4</td><td class="td-partno">35480</td><td class="td-desc">Connector</td><td class="td-qty">3</td><td class="td-compat"><div class="gen-grid"><span class="gen-badge on">VNA</span></div></td><td class="td-actions"><button class="add-btn" onclick="addToCart('35480','Connector 3rd Stage',3,this)">+</button></td></tr>
+                <tr><td class="td-ref">5</td><td class="td-partno">M1501010</td><td class="td-desc">Nut</td><td class="td-qty">4</td><td class="td-compat"><div class="gen-grid"><span class="gen-badge on">VNA</span></div></td><td class="td-actions"><button class="add-btn" onclick="addToCart('M1501010','Nut 3rd Stage',4,this)">+</button></td></tr>
+                <tr><td class="td-ref">6</td><td class="td-partno">35476</td><td class="td-desc">Mast Fitting</td><td class="td-qty">1</td><td class="td-compat"><div class="gen-grid"><span class="gen-badge on">VNA</span></div></td><td class="td-actions"><button class="add-btn" onclick="addToCart('35476','Mast Fitting',1,this)">+</button></td></tr>
+                <tr><td class="td-ref">7</td><td class="td-partno">42567.01</td><td class="td-desc">Free Lift Cylinder Hose</td><td class="td-qty">1</td><td class="td-compat"><div class="gen-grid"><span class="gen-badge on">VNA</span><span class="gen-badge on">ACiON 1200</span></div></td><td class="td-actions"><button class="add-btn" onclick="addToCart('42567.01','Free Lift Cylinder Hose',1,this)">+</button></td></tr>
+                <tr><td class="td-ref">8</td><td class="td-partno">42567.00</td><td class="td-desc">Free Lift Cylinder Hose</td><td class="td-qty">1</td><td class="td-compat"><div class="gen-grid"><span class="gen-badge on">VNA</span><span class="gen-badge on">ACiON 1200</span></div></td><td class="td-actions"><button class="add-btn" onclick="addToCart('42567.00','Free Lift Cylinder Hose',1,this)">+</button></td></tr>
+                <tr><td class="td-ref">9</td><td class="td-partno">35477</td><td class="td-desc">Connector</td><td class="td-qty">2</td><td class="td-compat"><div class="gen-grid"><span class="gen-badge on">VNA</span><span class="gen-badge on">ACiON 1200</span></div></td><td class="td-actions"><button class="add-btn" onclick="addToCart('35477','Connector 3rd Stage',2,this)">+</button></td></tr>
+                <tr><td class="td-ref">10</td><td class="td-partno">M0601017</td><td class="td-desc">Connector</td><td class="td-qty">1</td><td class="td-compat"><div class="gen-grid"><span class="gen-badge on">VNA</span><span class="gen-badge on">ACiON 1200</span></div></td><td class="td-actions"><button class="add-btn" onclick="addToCart('M0601017','Connector 3rd Stage',1,this)">+</button></td></tr>
+                <tr><td class="td-ref">11</td><td class="td-partno">30379</td><td class="td-desc">Connector</td><td class="td-qty">1</td><td class="td-compat"><div class="gen-grid"><span class="gen-badge on">VNA</span><span class="gen-badge on">ACiON 1200</span></div></td><td class="td-actions"><button class="add-btn" onclick="addToCart('30379','Connector 3rd Stage',1,this)">+</button></td></tr>
+                <tr><td class="td-ref">12</td><td class="td-partno">30370</td><td class="td-desc">Steel Tube</td><td class="td-qty">1</td><td class="td-compat"><div class="gen-grid"><span class="gen-badge on">VNA</span><span class="gen-badge on">ACiON 1200</span></div></td><td class="td-actions"><button class="add-btn" onclick="addToCart('30370','Steel Tube 3rd Stage',1,this)">+</button></td></tr>
+                <tr><td class="td-ref">13</td><td class="td-partno">35478A</td><td class="td-desc">Connector</td><td class="td-qty">1</td><td class="td-compat"><div class="gen-grid"><span class="gen-badge on">VNA</span><span class="gen-badge on">ACiON 1200</span></div></td><td class="td-actions"><button class="add-btn" onclick="addToCart('35478A','Connector 3rd Stage',1,this)">+</button></td></tr>
+                <tr><td class="td-ref">14</td><td class="td-partno">M1501009</td><td class="td-desc">Nut</td><td class="td-qty">1</td><td class="td-compat"><div class="gen-grid"><span class="gen-badge on">VNA</span><span class="gen-badge on">ACiON 1200</span></div></td><td class="td-actions"><button class="add-btn" onclick="addToCart('M1501009','Nut 3rd Stage',1,this)">+</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div><!-- /sec-a356-6b -->
+
+    </div><!-- /main-content -->
+  </div><!-- /main-wrap -->
+  <!-- DIAGRAM PANEL -->
+  <div class="diag-panel" id="diagPanel">
+    <div class="diag-header">
+      <span class="diag-label">Diagram</span>
+      <span class="diag-title" id="diagTitle">—</span>
+      <button class="diag-expand-btn" onclick="diagExpand()" title="Fullscreen">⛶</button>
+      <button class="diag-close" onclick="diagClose()" title="Close">✕</button>
+    </div>
+    <div class="diag-hint">Scroll to zoom · Drag to pan · ⛶ fullscreen</div>
+    <div class="diag-body" id="diagBody">
+      <div class="diag-none"><div class="icon">📐</div><p>Select a section to view its diagram</p></div>
+    </div>
+  </div>
+</div><!-- /app -->
+
+<!-- Fullscreen diagram modal -->
+<div class="diag-modal" id="diagModal">
+  <div class="diag-modal-header">
+    <span class="diag-label">Diagram</span>
+    <span class="diag-modal-title" id="diagModalTitle">—</span>
+    <button class="diag-modal-close" onclick="diagModalClose()" title="Close fullscreen">✕</button>
+  </div>
+  <div class="diag-modal-body" id="diagModalBody">
+    <div class="diag-modal-viewport" id="diagModalViewport">
+      <div class="diag-modal-wrap" id="diagModalWrap"></div>
+    </div>
+    <div class="diag-modal-zoom-bar">
+      <button onclick="diagModalZoom(-0.25)" title="Zoom out">−</button>
+      <span class="diag-zoom-level" id="diagModalZoomLevel">100%</span>
+      <button onclick="diagModalZoom(+0.25)" title="Zoom in">+</button>
+      <button onclick="diagModalFit()" title="Fit to screen" style="font-size:11px;width:auto;padding:0 8px;">FIT</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── SECTION NAV ──────────────────────────────────────────
+const SECTIONS = ['a356-5','a356-4a','a356-6','a356-6b'];
+
+function showSection(id, el) {
+  SECTIONS.forEach(s => {
+    document.getElementById('sec-' + s).classList.toggle('section-hidden', s !== id);
+  });
+  document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+  if (el) el.classList.add('active');
+  document.getElementById('search-input').value = '';
+  updateCount();
+  // Update diagram panel if open
+  if (diagIsOpen) { _diagSection = id; _diagRender(id, 'panel'); }
+  else { _diagSection = id; }
+}
+
+// ── SUBSECTION TOGGLE ────────────────────────────────────
+function toggleSub(titleEl) {
+  titleEl.classList.toggle('collapsed');
+  const wrap = titleEl.nextElementSibling;
+  wrap.classList.toggle('collapsed');
+}
+
+// ── HEIGHT VARIANT DRAWERS ───────────────────────────────
+function toggleHeights(drawerId) {
+  const drawer = document.getElementById(drawerId);
+  if (!drawer) return;
+  const trigger = drawer.previousElementSibling
+    ? drawer.previousElementSibling.querySelector('.height-trigger')
+    : null;
+  // find the trigger row that triggered this
+  const allTriggers = document.querySelectorAll('.height-trigger');
+  allTriggers.forEach(t => {
+    const attr = t.getAttribute('onclick');
+    if (attr && attr.includes("'" + drawerId + "'")) {
+      t.classList.toggle('open');
+    }
+  });
+  drawer.classList.toggle('open');
+}
+
+// ── CART — exact same format as main parts-manual / index.html ───
+const CART_KEY = 'flexiPartsCart';
+function getCart(){ try{ return JSON.parse(localStorage.getItem(CART_KEY)||'[]'); }catch(e){ return []; } }
+function saveCart(c){ localStorage.setItem(CART_KEY, JSON.stringify(c)); }
+
+function addToCart(partNo, desc, qty, btn, section) {
+  if (!partNo || partNo === '—') { showToast('No part number for this item'); return; }
+  const cart = getCart();
+  const ex = cart.find(i => (i['Part Number']||'') === partNo);
+  if (ex) {
+    ex.qty = (ex.qty || 1) + 1;
+    showToast('Qty updated: ' + partNo + ' (x' + ex.qty + ')');
+  } else {
+    cart.push({ 'Part Number': partNo, 'Description': desc, 'Supplier Code': '', 'System': section || 'A356 Mast System', 'qty': qty || 1 });
+    showToast('Added to cart: ' + partNo);
+  }
+  saveCart(cart);
+  updateCartBadge();
+  btn.classList.add('added');
+  btn.textContent = '✓';
+  setTimeout(() => { btn.classList.remove('added'); btn.textContent = '+'; }, 1500);
+}
+
+function hvAdd(partNo, desc, qty, btn) {
+  addToCart(partNo, desc, qty, btn, 'A356 Mast System');
+}
+
+function updateCartBadge(){
+  const c = getCart().length;
+  document.getElementById('basket-count').textContent = c;
+  document.getElementById('basket-count').classList.toggle('zero', c === 0);
+  document.getElementById('basket-btn').classList.toggle('has-items', c > 0);
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// ── SEARCH ───────────────────────────────────────────────
+function applySearch() {
+  const q = document.getElementById('search-input').value.toLowerCase().trim();
+  let visible = 0;
+
+  document.querySelectorAll('.parts-table tbody tr').forEach(row => {
+    if (row.classList.contains('height-trigger') || row.classList.contains('hv-table')) return;
+    const text = (row.textContent || '').toLowerCase();
+    const match = !q || text.includes(q);
+    row.classList.toggle('hidden-row', !match);
+    if (match) visible++;
+  });
+  // Also search height variant rows
+  document.querySelectorAll('.hv-table tbody tr').forEach(row => {
+    const text = (row.textContent || '').toLowerCase();
+    const match = !q || text.includes(q);
+    row.style.display = match ? '' : 'none';
+    if (match && q) visible++;
+    // Auto-open drawers with matches
+    if (match && q) {
+      const drawer = row.closest('.height-drawer');
+      if (drawer && !drawer.classList.contains('open')) {
+        drawer.classList.add('open');
+        const id = drawer.id;
+        document.querySelectorAll('.height-trigger').forEach(t => {
+          const attr = t.getAttribute('onclick') || '';
+          if (attr.includes("'" + id + "'")) t.classList.add('open');
+        });
+        // open parent subsection too
+        const wrap = drawer.closest('.parts-table-wrap');
+        if (wrap && wrap.classList.contains('collapsed')) {
+          wrap.classList.remove('collapsed');
+          const title = wrap.previousElementSibling;
+          if (title) title.classList.remove('collapsed');
+        }
+      }
+    }
+  });
+  updateCount(visible, q);
+}
+
+function updateCount(n, q) {
+  const el = document.getElementById('results-count');
+  if (!q) { el.textContent = ''; return; }
+  el.innerHTML = '<span>' + (n || 0) + '</span> result' + (n !== 1 ? 's' : '');
+}
+
+// ── DIAGRAM ──────────────────────────────────────────────
+
+// Map each section to its PDF URL and page number
+// A356-5  → doc1 page 1  (Fixed Stage Mast Components)
+// A356-4A → doc2 page 1  (Hydraulic Components)
+// A356-6  → doc3 page 1  (Hydraulic Components 3rd Stage)
+// A356-6B → doc3 page 1  (same diagram as A356-6)
+const BASE = 'https://narrowaisleservice.github.io/Flexi-Parts-System/images/';
+const DIAGRAMS = {
+  'a356-5':  { pdf: BASE + 'doc04095720260129130237.pdf', page: 1, label: 'A356-5 · Fixed Stage Mast Components' },
+  'a356-4a': { pdf: BASE + 'doc04107520260130142133.pdf', page: 1, label: 'A356-4A · Hydraulic Components' },
+  'a356-6':  { pdf: BASE + 'doc04133820260203161431.pdf', page: 1, label: 'A356-6 · Hydraulic Components – 3rd Stage' },
+  'a356-6b': { pdf: BASE + 'doc04133820260203161431.pdf', page: 1, label: 'A356-6B · 3rd Stage Fittings' }
+};
+
+let diagIsOpen = false;
+let _diagSection = null;
+const _pdfCache = {};   // keyed by URL
+const _pdfLoading = {}; // keyed by URL
+const _zs = {
+  panel: { scale:1, ox:0, oy:0, baseScale:1, dragging:false },
+  modal: { scale:1, ox:0, oy:0, baseScale:1, dragging:false }
+};
+const _canvSize = { panel: {w:0,h:0}, modal: {w:0,h:0} };
+
+function _applyTransform(ctx) {
+  const s = _zs[ctx];
+  const wrapId = ctx === 'modal' ? 'diagModalWrap' : 'diagWrap';
+  const wrap = document.getElementById(wrapId);
+  if (wrap) wrap.style.transform = `translate(${s.ox}px,${s.oy}px) scale(${s.scale})`;
+  const lvlId = ctx === 'modal' ? 'diagModalZoomLevel' : 'diagZoomLevel';
+  const lvl = document.getElementById(lvlId);
+  if (lvl) lvl.textContent = Math.round(s.scale * 100) + '%';
+}
+
+function _clampOffset(ctx) {
+  const s = _zs[ctx]; const c = _canvSize[ctx];
+  const vpId = ctx === 'modal' ? 'diagModalViewport' : 'diagViewport';
+  const vp = document.getElementById(vpId); if (!vp) return;
+  const vw = vp.clientWidth, vh = vp.clientHeight;
+  const sw = c.w * s.scale, sh = c.h * s.scale;
+  const maxX = 40, minX = Math.min(40, vw - sw - 40);
+  const maxY = 40, minY = Math.min(40, vh - sh - 40);
+  s.ox = Math.max(minX, Math.min(maxX, s.ox));
+  s.oy = Math.max(minY, Math.min(maxY, s.oy));
+}
+
+function _setupPanZoom(ctx, vpEl, wrapEl) {
+  vpEl.addEventListener('wheel', e => {
+    e.preventDefault();
+    const s = _zs[ctx]; const rect = vpEl.getBoundingClientRect();
+    const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+    const delta = e.deltaY < 0 ? 0.12 : -0.12;
+    const newScale = Math.max(s.baseScale * 0.5, Math.min(s.baseScale * 8, s.scale * (1 + delta)));
+    const ratio = newScale / s.scale;
+    s.ox = mx - ratio * (mx - s.ox); s.oy = my - ratio * (my - s.oy);
+    s.scale = newScale; _clampOffset(ctx); _applyTransform(ctx);
+  }, { passive: false });
+
+  vpEl.addEventListener('mousedown', e => {
+    if (e.button !== 0) return;
+    const s = _zs[ctx];
+    s.dragging = true; s.startX = e.clientX; s.startY = e.clientY;
+    s.startOX = s.ox; s.startOY = s.oy;
+    vpEl.classList.add('panning');
+  });
+  window.addEventListener('mousemove', e => {
+    const s = _zs[ctx]; if (!s.dragging) return;
+    s.ox = s.startOX + (e.clientX - s.startX);
+    s.oy = s.startOY + (e.clientY - s.startY);
+    _clampOffset(ctx); _applyTransform(ctx);
+  });
+  window.addEventListener('mouseup', () => {
+    _zs[ctx].dragging = false; vpEl.classList.remove('panning');
+  });
+
+  // Touch pinch + pan
+  let lastDist = 0;
+  vpEl.addEventListener('touchstart', e => {
+    const s = _zs[ctx];
+    if (e.touches.length === 1) {
+      const t = e.touches[0];
+      s.dragging = true; s.startX = t.clientX; s.startY = t.clientY;
+      s.startOX = s.ox; s.startOY = s.oy;
+    } else if (e.touches.length === 2) {
+      lastDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+    }
+  }, { passive: true });
+  vpEl.addEventListener('touchmove', e => {
+    e.preventDefault();
+    const s = _zs[ctx];
+    if (e.touches.length === 1 && s.dragging) {
+      const t = e.touches[0];
+      s.ox = s.startOX + (t.clientX - s.startX); s.oy = s.startOY + (t.clientY - s.startY);
+      _clampOffset(ctx); _applyTransform(ctx);
+    } else if (e.touches.length === 2) {
+      const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+      const mid = { x: (e.touches[0].clientX + e.touches[1].clientX) / 2, y: (e.touches[0].clientY + e.touches[1].clientY) / 2 };
+      const ratio = dist / lastDist;
+      const rect = vpEl.getBoundingClientRect();
+      const mx = mid.x - rect.left, my = mid.y - rect.top;
+      const newScale = Math.max(s.baseScale * 0.5, Math.min(s.baseScale * 8, s.scale * ratio));
+      const r2 = newScale / s.scale;
+      s.ox = mx - r2 * (mx - s.ox); s.oy = my - r2 * (my - s.oy);
+      s.scale = newScale; lastDist = dist; _clampOffset(ctx); _applyTransform(ctx);
+    }
+  }, { passive: false });
+  vpEl.addEventListener('touchend', () => { _zs[ctx].dragging = false; }, { passive: true });
+}
+
+// Zoom buttons
+function diagZoom(d){ const s=_zs.panel; s.scale=Math.max(s.baseScale*.5,Math.min(s.baseScale*8,s.scale*(1+d))); _clampOffset('panel'); _applyTransform('panel'); }
+function diagFit(){ const s=_zs.panel; s.scale=s.baseScale; s.ox=0; s.oy=0; _applyTransform('panel'); }
+function diagModalZoom(d){ const s=_zs.modal; s.scale=Math.max(s.baseScale*.5,Math.min(s.baseScale*8,s.scale*(1+d))); _clampOffset('modal'); _applyTransform('modal'); }
+function diagModalFit(){ const s=_zs.modal; s.scale=s.baseScale; s.ox=0; s.oy=0; _applyTransform('modal'); }
+
+function diagToggle() {
+  if (!diagIsOpen) {
+    _openDiag(_diagSection || 'a356-5');
+  } else {
+    diagClose();
+  }
+}
+
+function _openDiag(sectionId) {
+  diagIsOpen = true; _diagSection = sectionId;
+  document.body.classList.add('diag-open');
+  document.getElementById('diagToggleBtn').classList.add('on');
+  _diagRender(sectionId, 'panel');
+}
+
+function diagClose() {
+  diagIsOpen = false; _diagSection = null;
+  document.body.classList.remove('diag-open');
+  document.getElementById('diagToggleBtn').classList.remove('on');
+}
+
+function diagExpand() {
+  const modal = document.getElementById('diagModal');
+  document.getElementById('diagModalTitle').textContent = document.getElementById('diagTitle').textContent;
+  modal.classList.add('open');
+  if (_diagSection) _diagRender(_diagSection, 'modal');
+}
+function diagModalClose() { document.getElementById('diagModal').classList.remove('open'); }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') diagModalClose(); });
+
+function _loadPdfByUrl(url, callback) {
+  if (_pdfCache[url]) { callback(_pdfCache[url]); return; }
+  if (_pdfLoading[url]) { setTimeout(() => _loadPdfByUrl(url, callback), 300); return; }
+  _pdfLoading[url] = true;
+  const doLoad = () => {
+    pdfjsLib.getDocument(url).promise.then(doc => {
+      _pdfCache[url] = doc; _pdfLoading[url] = false; callback(doc);
+    }).catch(err => { _pdfLoading[url] = false; console.error('PDF load error:', err); });
+  };
+  if (!window.pdfjsLib) {
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+    s.onload = () => {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      doLoad();
+    };
+    s.onerror = () => { _pdfLoading[url] = false; console.error('Could not load PDF.js'); };
+    document.head.appendChild(s);
+  } else {
+    doLoad();
+  }
+}
+
+function _diagRender(sectionId, ctx) {
+  ctx = ctx || 'panel';
+  const diag = DIAGRAMS[sectionId];
+  const isModal = ctx === 'modal';
+  const body = isModal ? document.getElementById('diagModalBody') : document.getElementById('diagBody');
+  const titleEl = document.getElementById(isModal ? 'diagModalTitle' : 'diagTitle');
+
+  if (!diag) {
+    titleEl.textContent = '—';
+    body.innerHTML = '<div class="diag-none"><div class="icon">📋</div><p>No diagram available for this section</p></div>';
+    return;
+  }
+
+  titleEl.textContent = diag.label;
+
+  if (isModal) {
+    document.getElementById('diagModalWrap').innerHTML = '';
+    let sp = body.querySelector('.diag-spinner');
+    if (!sp) { sp = document.createElement('div'); sp.className = 'diag-none diag-spinner'; sp.style.cssText = 'position:absolute;inset:0;z-index:5;background:#0d0d0d;'; sp.innerHTML = '<div class="icon">⏳</div><p>Loading…</p>'; body.appendChild(sp); }
+  } else {
+    body.innerHTML = '<div class="diag-none"><div style="font-size:48px;opacity:.3">⏳</div><p style="font-size:12px;margin-top:8px">Loading diagram…</p></div>';
+  }
+
+  const renderScale = isModal ? (window.devicePixelRatio || 1) * 2 : (window.devicePixelRatio || 1) * 1.5;
+
+  _loadPdfByUrl(diag.pdf, doc => {
+    doc.getPage(diag.page).then(page => {
+      const vp0 = page.getViewport({ scale: 1 });
+      let vpEl, wrapEl;
+
+      if (isModal) {
+        vpEl = document.getElementById('diagModalViewport');
+        wrapEl = document.getElementById('diagModalWrap');
+        wrapEl.innerHTML = '';
+        const sp = body.querySelector('.diag-spinner'); if (sp) sp.remove();
+      } else {
+        body.innerHTML = '';
+        vpEl = document.createElement('div'); vpEl.className = 'diag-viewport'; vpEl.id = 'diagViewport';
+        wrapEl = document.createElement('div'); wrapEl.className = 'diag-wrap'; wrapEl.id = 'diagWrap';
+        vpEl.appendChild(wrapEl); body.appendChild(vpEl);
+        const zb = document.createElement('div'); zb.className = 'diag-zoom-bar';
+        zb.innerHTML = '<button onclick="diagZoom(-0.25)">−</button><span class="diag-zoom-level" id="diagZoomLevel">100%</span><button onclick="diagZoom(+0.25)">+</button><button onclick="diagFit()" style="font-size:10px;width:auto;padding:0 7px;">FIT</button>';
+        body.appendChild(zb);
+      }
+
+      const vp2 = page.getViewport({ scale: renderScale });
+      const canvas = document.createElement('canvas');
+      canvas.width = vp2.width; canvas.height = vp2.height;
+      const displayW = isModal ? Math.min(window.innerWidth - 32, vp0.width * (window.innerHeight - 80) / vp0.height) : (vpEl.clientWidth || 340);
+      canvas.style.cssText = `display:block;width:${displayW}px;height:auto;`;
+      wrapEl.appendChild(canvas);
+
+      const displayH = displayW * (vp0.height / vp0.width);
+      _canvSize[ctx] = { w: displayW, h: displayH };
+
+      const cs = _zs[ctx];
+      cs.scale = 1; cs.ox = 0; cs.oy = 0; cs.baseScale = 1;
+      wrapEl.style.transform = 'translate(0,0) scale(1)';
+      const lvl = document.getElementById(isModal ? 'diagModalZoomLevel' : 'diagZoomLevel');
+      if (lvl) lvl.textContent = '100%';
+
+      page.render({ canvasContext: canvas.getContext('2d'), viewport: vp2 }).promise.then(() => {
+        if (!vpEl._panZoomReady) { _setupPanZoom(ctx, vpEl, wrapEl); vpEl._panZoomReady = true; }
+      });
+    }).catch(() => {
+      const err = '<div class="diag-none"><div class="icon">⚠️</div><p>Could not render diagram</p></div>';
+      if (isModal) { document.getElementById('diagModalWrap').innerHTML = err; } else { body.innerHTML = err; }
+    });
+  });
+}
+
+// ── INIT ─────────────────────────────────────────────────
+// Open the first subsection of the default section
+document.addEventListener('DOMContentLoaded', () => {
+  updateCartBadge();
+  const first = document.querySelector('#sec-a356-5 .subsection-title');
+  if (first) {
+    first.classList.remove('collapsed');
+    first.nextElementSibling.classList.remove('collapsed');
+  }
+  updateCount();
+});
+</script>
+</body>
+</html>
