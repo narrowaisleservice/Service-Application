@@ -1,0 +1,1927 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flexi G3 Parts Manual</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600;700;800&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --red: #cc0000;
+  --red-dark: #990000;
+  --red-hover: #e60000;
+  --black: #ffffff;
+  --surface: #ffffff;
+  --surface2: #f4f4f4;
+  --surface3: #ebebeb;
+  --border: #ddd;
+  --border-light: #ccc;
+  --text: #1a1a1a;
+  --text-muted: #666;
+  --text-dim: #999;
+  --sidebar-w: 280px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body { font-family: 'Barlow', sans-serif; background: var(--black); color: var(--text); display: flex; flex-direction: column; }
+
+/* HEADER */
+#header {
+  background: var(--surface);
+  border-bottom: 2px solid var(--red);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  display: flex; align-items: center; gap: 16px;
+  padding: 0 20px; height: 56px; flex-shrink: 0; z-index: 100;
+}
+#header .logo { height: 32px; }
+#header .title-block { flex: 1; }
+#header .title-block h1 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 22px; font-weight: 700; letter-spacing: 1px;
+  color: var(--text); line-height: 1;
+}
+#header .title-block p {
+  font-size: 11px; color: var(--text-muted); letter-spacing: 2px;
+  text-transform: uppercase; margin-top: 2px;
+}
+#header .toolbar { display: flex; align-items: center; gap: 10px; }
+#search-input {
+  background: var(--surface3); border: 1px solid var(--border-light);
+  color: var(--text); padding: 7px 12px; border-radius: 4px;
+  font-family: 'Barlow', sans-serif; font-size: 13px; width: 220px;
+  outline: none;
+}
+#search-input::placeholder { color: var(--text-dim); }
+#search-input:focus { border-color: var(--red); }
+#cart-btn {
+  background: var(--red); border: none; color: #fff; cursor: pointer;
+  padding: 7px 14px; border-radius: 4px; font-family: 'Barlow Condensed', sans-serif;
+  font-size: 14px; font-weight: 600; letter-spacing: 1px; display: flex; align-items: center; gap: 8px;
+  transition: background 0.2s;
+}
+#cart-btn:hover { background: var(--red-hover); }
+#cart-badge {
+  background: #fff; color: var(--red); border-radius: 10px;
+  font-size: 11px; font-weight: 700; min-width: 18px; height: 18px;
+  display: flex; align-items: center; justify-content: center; padding: 0 4px;
+}
+
+/* MAIN LAYOUT */
+#main { display: flex; flex: 1; overflow: hidden; }
+
+/* SIDEBAR */
+#sidebar {
+  width: var(--sidebar-w); background: var(--surface); border-right: 1px solid var(--border);
+  overflow-y: auto; flex-shrink: 0;
+}
+#sidebar::-webkit-scrollbar { width: 4px; }
+#sidebar::-webkit-scrollbar-track { background: var(--surface); }
+#sidebar::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 2px; }
+.sidebar-section { padding: 10px 0; border-bottom: 1px solid var(--border); }
+.sidebar-section-title {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 10px;
+  font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--red); padding: 6px 16px 4px;
+}
+.sidebar-item {
+  display: block; width: 100%; text-align: left; background: none; border: none;
+  color: var(--text-muted); padding: 7px 16px; cursor: pointer;
+  font-family: 'Barlow', sans-serif; font-size: 12px; line-height: 1.3;
+  transition: all 0.15s; border-left: 3px solid transparent;
+}
+.sidebar-item:hover { color: var(--text); background: var(--surface2); }
+.sidebar-item.active { color: var(--red); font-weight: 600; background: var(--surface2); border-left-color: var(--red); }
+.sidebar-item .list-no {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 10px;
+  color: var(--text-dim); display: block; margin-top: 1px;
+}
+
+/* CONTENT */
+#content { flex: 1; overflow-y: auto; padding: 24px; }
+#content::-webkit-scrollbar { width: 6px; }
+#content::-webkit-scrollbar-track { background: var(--black); }
+#content::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 3px; }
+
+/* SECTION */
+.section { display: none; }
+.section.active { display: block; }
+.section-header {
+  background: var(--surface); border: 1px solid var(--border);
+  border-left: 4px solid var(--red); padding: 16px 20px; margin-bottom: 20px;
+  border-radius: 0 4px 4px 0;
+}
+.section-header h2 {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 26px; font-weight: 700;
+  letter-spacing: 1px; color: var(--text);
+}
+.section-header .meta { font-size: 12px; color: var(--text-muted); margin-top: 4px; letter-spacing: 1px; }
+
+/* PARTS TABLE */
+.parts-table-wrap { overflow-x: auto; margin-bottom: 20px; }
+table.parts {
+  width: 100%; border-collapse: collapse; font-size: 13px;
+}
+table.parts thead th {
+  background: var(--surface2); color: var(--text-muted); font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase;
+  padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 5;
+}
+table.parts tbody tr { border-bottom: 1px solid var(--border); transition: background 0.12s; }
+table.parts tbody tr:hover { background: var(--surface2); }
+table.parts tbody tr.subheader td {
+  background: var(--surface3); color: var(--red); font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; letter-spacing: 1px; font-size: 12px; padding: 8px 12px;
+}
+table.parts td { padding: 9px 12px; vertical-align: middle; }
+td.item-no { color: var(--text-dim); font-size: 12px; width: 48px; }
+td.part-no { font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: 13px; color: var(--text); min-width: 130px; }
+td.description { color: var(--text); }
+td.qty { text-align: center; color: var(--text-muted); width: 48px; }
+td.remarks { color: var(--text-dim); font-size: 12px; }
+td.add-col { width: 44px; text-align: center; }
+.add-btn {
+  background: var(--surface3); border: 1px solid var(--border-light); color: var(--text-muted);
+  width: 28px; height: 28px; border-radius: 4px; cursor: pointer; font-size: 16px;
+  display: flex; align-items: center; justify-content: center; transition: all 0.15s; margin: 0 auto;
+}
+.add-btn:hover { background: var(--red); border-color: var(--red); color: #fff; }
+
+/* NOTE BOX */
+.note-box {
+  background: var(--surface2); border: 1px solid var(--border); border-left: 3px solid var(--red-dark);
+  padding: 10px 14px; margin: 16px 0; border-radius: 0 4px 4px 0;
+  font-size: 12px; color: var(--text-muted); font-style: italic;
+}
+
+/* SEARCH RESULTS */
+#search-results { display: none; }
+#search-results.active { display: block; }
+.search-result-count { font-size: 13px; color: var(--text-muted); margin-bottom: 16px; }
+.search-group { margin-bottom: 24px; }
+.search-group-title {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 700;
+  color: var(--red); letter-spacing: 1px; margin-bottom: 8px; text-transform: uppercase;
+}
+
+/* CART MODAL */
+#cart-modal {
+  display: none; position: fixed; inset: 0; z-index: 1000;
+  background: rgba(0,0,0,0.75); align-items: center; justify-content: center;
+}
+#cart-modal.open { display: flex; }
+#cart-panel {
+  background: var(--surface); border: 1px solid var(--border); border-top: 3px solid var(--red);
+  width: 700px; max-width: 95vw; max-height: 85vh; display: flex; flex-direction: column;
+  border-radius: 4px;
+}
+#cart-panel header {
+  padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px;
+}
+#cart-panel header h3 {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 700; flex: 1; letter-spacing: 1px;
+}
+#cart-panel header .close-btn {
+  background: none; border: none; color: var(--text-muted); font-size: 24px; cursor: pointer; line-height: 1;
+}
+#cart-panel header .close-btn:hover { color: var(--text); }
+#cart-items { flex: 1; overflow-y: auto; padding: 16px 20px; }
+.cart-empty { text-align: center; padding: 40px; color: var(--text-dim); font-size: 14px; }
+.cart-row {
+  display: grid; grid-template-columns: 1fr 140px 80px 40px;
+  gap: 12px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.cart-row-head { font-size: 11px; color: var(--text-dim); font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
+.cart-row:not(.cart-row-head):hover { background: var(--surface2); margin: 0 -8px; padding: 10px 8px; }
+.cart-row .part-info strong { font-family: 'Barlow Condensed', sans-serif; font-size: 14px; color: var(--text); }
+.cart-row .part-info span { display: block; font-size: 12px; color: var(--text-muted); }
+.qty-ctrl { display: flex; align-items: center; gap: 6px; }
+.qty-ctrl button {
+  background: var(--surface3); border: 1px solid var(--border-light); color: var(--text);
+  width: 24px; height: 24px; border-radius: 3px; cursor: pointer; font-size: 14px; line-height: 1;
+}
+.qty-ctrl button:hover { background: var(--red); border-color: var(--red); }
+.qty-ctrl input {
+  width: 44px; text-align: center; background: var(--surface3); border: 1px solid var(--border-light);
+  color: var(--text); padding: 3px 4px; border-radius: 3px; font-size: 13px; font-family: 'Barlow', sans-serif;
+}
+.remove-btn { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 16px; }
+.remove-btn:hover { color: var(--red); }
+#cart-panel footer {
+  padding: 14px 20px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+}
+#requester-name {
+  flex: 1; min-width: 160px; background: var(--surface3); border: 1px solid var(--border-light);
+  color: var(--text); padding: 8px 12px; border-radius: 4px; font-size: 13px; font-family: 'Barlow', sans-serif;
+}
+#requester-name:focus { outline: none; border-color: var(--red); }
+#submit-btn {
+  background: var(--red); border: none; color: #fff; padding: 9px 20px; border-radius: 4px;
+  font-family: 'Barlow Condensed', sans-serif; font-size: 15px; font-weight: 700; letter-spacing: 1px;
+  cursor: pointer; transition: background 0.2s;
+}
+#submit-btn:hover { background: var(--red-hover); }
+#submit-btn:disabled { background: var(--border); cursor: not-allowed; }
+#clear-btn {
+  background: none; border: 1px solid var(--border-light); color: var(--text-muted); padding: 9px 14px;
+  border-radius: 4px; font-family: 'Barlow Condensed', sans-serif; font-size: 14px; cursor: pointer;
+}
+#clear-btn:hover { border-color: var(--red); color: var(--text); }
+
+/* TOAST */
+#toast {
+  position: fixed; bottom: 24px; right: 24px; background: var(--surface2);
+  border: 1px solid var(--border); border-left: 4px solid var(--red);
+  padding: 12px 18px; border-radius: 4px; font-size: 13px; color: var(--text);
+  transform: translateY(60px); opacity: 0; transition: all 0.3s; z-index: 2000;
+  pointer-events: none;
+}
+#toast.show { transform: translateY(0); opacity: 1; }
+
+/* HIGHLIGHT */
+.hl { background: rgba(204,0,0,0.15); color: var(--red-dark); font-weight: 600; border-radius: 2px; padding: 0 2px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div id="header">
+  <img src="https://narrowaisleservice.github.io/Flexi-Parts-System/flexi-logo.svg" alt="Flexi" class="logo" onerror="this.style.display='none'">
+  <div class="title-block">
+    <h1>FLEXI G3 PARTS MANUAL</h1>
+    <p>Generation 3 &nbsp;·&nbsp; Revision 9 &nbsp;·&nbsp; Narrow Aisle Ltd</p>
+  </div>
+  <div class="toolbar">
+    <input type="text" id="search-input" placeholder="Search parts or descriptions…">
+    <button id="cart-btn">🛒 BASKET <span id="cart-badge">0</span></button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+
+  <!-- SIDEBAR -->
+  <nav id="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Main Assemblies</div>
+      <button class="sidebar-item active" onclick="showSection('s0001')">Battery Tray Assembly<span class="list-no">LG0001-02</span></button>
+      <button class="sidebar-item" onclick="showSection('s0002')">Steering Column Module<span class="list-no">LG0002-01</span></button>
+      <button class="sidebar-item" onclick="showSection('s0003')">Steer Motor Extension<span class="list-no">LG0003-00</span></button>
+      <button class="sidebar-item" onclick="showSection('s0004')">Front Axle Assembly<span class="list-no">LG0004-00</span></button>
+      <button class="sidebar-item" onclick="showSection('s0005')">Mast Support Assembly<span class="list-no">LG0005-01</span></button>
+      <button class="sidebar-item" onclick="showSection('s0006')">Rear Wheel Assembly<span class="list-no">LG0006-00</span></button>
+      <button class="sidebar-item" onclick="showSection('s0006s')">Rear Wheel Brake Assembly<span class="list-no">LG0006-Service</span></button>
+      <button class="sidebar-item" onclick="showSection('s0007')">Oil Tank Module<span class="list-no">LG0007-00</span></button>
+      <button class="sidebar-item" onclick="showSection('s0008')">Overhead Guard<span class="list-no">LG0008-00</span></button>
+      <button class="sidebar-item" onclick="showSection('s0009')">Spool Valve Assembly<span class="list-no">LG0009-03</span></button>
+      <button class="sidebar-item" onclick="showSection('s0012')">Controls<span class="list-no">LG0012-01</span></button>
+      <button class="sidebar-item" onclick="showSection('s0013')">Pedal Plate Module<span class="list-no">LG0013-00</span></button>
+      <button class="sidebar-item" onclick="showSection('s0016')">Chassis Kit<span class="list-no">LG0016-03</span></button>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Mast Assemblies</div>
+      <button class="sidebar-item" onclick="showSection('s0017a')">Triplex Mast – Second Stage<span class="list-no">LG0017-01</span></button>
+      <button class="sidebar-item" onclick="showSection('s0017b')">Fork Carriage Assembly<span class="list-no">LG0017-03</span></button>
+      <button class="sidebar-item" onclick="showSection('s0017c')">Hydraulic Comps – Fixed Stage<span class="list-no">LG0017-06</span></button>
+      <button class="sidebar-item" onclick="showSection('s0017d')">Hydraulic Comps – Third Stage<span class="list-no">LG0017-07</span></button>
+      <button class="sidebar-item" onclick="showSection('s0017e')">Fixed Stage Mast Assembly<span class="list-no">LG0017-08</span></button>
+      <button class="sidebar-item" onclick="showSection('s0017f')">Third Stage Mast Assembly<span class="list-no">LG0017-09</span></button>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Motors</div>
+      <button class="sidebar-item" onclick="showSection('s_trac')">Traction Motor<span class="list-no">55295-06-000</span></button>
+      <button class="sidebar-item" onclick="showSection('s_lift')">Lift Motor<span class="list-no">5454-02-000</span></button>
+      <button class="sidebar-item" onclick="showSection('s_steer')">Steer Motor<span class="list-no">55309-02-000</span></button>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Axle & Transmission</div>
+      <button class="sidebar-item" onclick="showSection('s_db')">David Brown Axle<span class="list-no">4978.12.000</span></button>
+      <button class="sidebar-item" onclick="showSection('s_kordel')">Kordel Axle<span class="list-no">4978.13.000</span></button>
+      <button class="sidebar-item" onclick="showSection('s_tailift')">Tailift Axle<span class="list-no">4978.15.000</span></button>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Electrical</div>
+      <button class="sidebar-item" onclick="showSection('s0030a')">Electrical Module (G.E.)<span class="list-no">LG0030-01</span></button>
+      <button class="sidebar-item" onclick="showSection('s0030b')">Electrical Module (No Bat. Tap)<span class="list-no">LG0030-03</span></button>
+      <button class="sidebar-item" onclick="showSection('s_sw80b')">Solenoid Switch<span class="list-no">SW80B-464</span></button>
+      <button class="sidebar-item" onclick="showSection('s_sw200')">Solenoid Switch<span class="list-no">SW200-421</span></button>
+      <button class="sidebar-item" onclick="showSection('s_sw249')">Solenoid Switch<span class="list-no">SW201-249T</span></button>
+      <button class="sidebar-item" onclick="showSection('s_sw258')">Solenoid Switch<span class="list-no">SW202-258T</span></button>
+      <button class="sidebar-item" onclick="showSection('s_sw80')">Contactor<span class="list-no">SW80</span></button>
+      <button class="sidebar-item" onclick="showSection('s_fwdrev')">Contactor Fwd/Rev<span class="list-no">55262.20.000</span></button>
+      <button class="sidebar-item" onclick="showSection('s_bypass')">Contactor Bypass<span class="list-no">55262.23.000</span></button>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Wiring &amp; Accessories</div>
+      <button class="sidebar-item" onclick="showSection('s0018')">Labels<span class="list-no">LG0018-00</span></button>
+      <button class="sidebar-item" onclick="showSection('s0019')">Reverse Alarm Kit<span class="list-no">LG0019-00</span></button>
+      <button class="sidebar-item" onclick="showSection('s0020')">Seat and Covers<span class="list-no">LG0020-00</span></button>
+      <button class="sidebar-item" onclick="showSection('s0021')">Camera Mounting Kit<span class="list-no">LG0021-01</span></button>
+      <button class="sidebar-item" onclick="showSection('s0050')">Wiring Looms<span class="list-no">LG0050-00</span></button>
+      <button class="sidebar-item" onclick="showSection('s0051')">Wiring Looms<span class="list-no">LG0051-00</span></button>
+      <button class="sidebar-item" onclick="showSection('s0052')">Wiring Looms<span class="list-no">LG0052-00</span></button>
+      <button class="sidebar-item" onclick="showSection('s0053')">Wiring Looms<span class="list-no">LG0053-00</span></button>
+    </div>
+  </nav>
+
+  <!-- CONTENT -->
+  <div id="content">
+
+    <!-- SEARCH RESULTS -->
+    <div id="search-results"></div>
+
+    <!-- ===== SECTIONS ===== -->
+
+    <!-- LG0001-02 Battery Tray -->
+    <div class="section active" id="s0001">
+      <div class="section-header">
+        <h2>Battery Tray Assembly – Pallet Truck Removal</h2>
+        <div class="meta">List No. LG0001-02 &nbsp;·&nbsp; Revision F</div>
+      </div>
+      <div class="parts-table-wrap"><table class="parts">
+        <thead><tr><th>Item</th><th>Part Number</th><th>Description</th><th>Qty</th><th>Remarks</th><th></th></tr></thead>
+        <tbody id="tb_s0001"></tbody>
+      </table></div>
+    </div>
+
+    <!-- LG0002-01 Steering Column -->
+    <div class="section" id="s0002">
+      <div class="section-header">
+        <h2>Steering Column Module (with Load Moment Indicator)</h2>
+        <div class="meta">List No. LG0002-01 &nbsp;·&nbsp; Revision C</div>
+      </div>
+      <div class="parts-table-wrap"><table class="parts">
+        <thead><tr><th>Item</th><th>Part Number</th><th>Description</th><th>Qty</th><th>Remarks</th><th></th></tr></thead>
+        <tbody id="tb_s0002"></tbody>
+      </table></div>
+    </div>
+
+    <!-- LG0003-00 Steer Motor Extension -->
+    <div class="section" id="s0003">
+      <div class="section-header">
+        <h2>Steer Motor Extension</h2>
+        <div class="meta">List No. LG0003-00 &nbsp;·&nbsp; Revision D</div>
+      </div>
+      <div class="parts-table-wrap"><table class="parts">
+        <thead><tr><th>Item</th><th>Part Number</th><th>Description</th><th>Qty</th><th>Remarks</th><th></th></tr></thead>
+        <tbody id="tb_s0003"></tbody>
+      </table></div>
+    </div>
+
+    <!-- LG0004-00 Front Axle -->
+    <div class="section" id="s0004">
+      <div class="section-header">
+        <h2>Front Axle Assembly</h2>
+        <div class="meta">List No. LG0004-00 &nbsp;·&nbsp; Revision G</div>
+      </div>
+      <div class="parts-table-wrap"><table class="parts">
+        <thead><tr><th>Item</th><th>Part Number</th><th>Description</th><th>Qty</th><th>Remarks</th><th></th></tr></thead>
+        <tbody id="tb_s0004"></tbody>
+      </table></div>
+    </div>
+
+    <!-- LG0005-01 Mast Support -->
+    <div class="section" id="s0005">
+      <div class="section-header">
+        <h2>Mast Support Assembly (with Load Moment Sensor)</h2>
+        <div class="meta">List No. LG0005-01 &nbsp;·&nbsp; Revision F</div>
+      </div>
+      <div class="parts-table-wrap"><table class="parts">
+        <thead><tr><th>Item</th><th>Part Number</th><th>Description</th><th>Qty</th><th>Remarks</th><th></th></tr></thead>
+        <tbody id="tb_s0005"></tbody>
+      </table></div>
+    </div>
+
+    <!-- LG0006-00 Rear Wheel -->
+    <div class="section" id="s0006">
+      <div class="section-header">
+        <h2>Rear Wheel Assembly</h2>
+        <div class="meta">List No. LG0006-00 &nbsp;·&nbsp; Revision H</div>
+      </div>
+      <div class="parts-table-wrap"><table class="parts">
+        <thead><tr><th>Item</th><th>Part Number</th><th>Description</th><th>Qty</th><th>Remarks</th><th></th></tr></thead>
+        <tbody id="tb_s0006"></tbody>
+      </table></div>
+    </div>
+
+    <!-- LG0006-Service Rear Wheel Brake -->
+    <div class="section" id="s0006s">
+      <div class="section-header">
+        <h2>Rear Wheel Brake Assembly</h2>
+        <div class="meta">List No. LG0006-Service</div>
+      </div>
+      <div class="parts-table-wrap"><table class="parts">
+        <thead><tr><th>Item</th><th>Part Number</th><th>Description</th><th>Qty</th><th>Remarks</th><th></th></tr></thead>
+        <tbody id="tb_s0006s"></tbody>
+      </table></div>
+    </div>
+
+    <!-- LG0007-00 Oil Tank -->
+    <div class="section" id="s0007">
+      <div class="section-header">
+        <h2>Oil Tank Module</h2>
+        <div class="meta">List No. LG0007-00 &nbsp;·&nbsp; Revision J</div>
+      </div>
+      <div class="parts-table-wrap"><table class="parts">
+        <thead><tr><th>Item</th><th>Part Number</th><th>Description</th><th>Qty</th><th>Remarks</th><th></th></tr></thead>
+        <tbody id="tb_s0007"></tbody>
+      </table></div>
+    </div>
+
+    <!-- LG0008-00 Overhead Guard -->
+    <div class="section" id="s0008">
+      <div class="section-header">
+        <h2>Overhead Guard</h2>
+        <div class="meta">List No. LG0008-00 &nbsp;·&nbsp; Revision D</div>
+      </div>
+      <div class="parts-table-wrap"><table class="parts">
+        <thead><tr><th>Item</th><th>Part Number</th><th>Description</th><th>Qty</th><th>Remarks</th><th></th></tr></thead>
+        <tbody id="tb_s0008"></tbody>
+      </table></div>
+    </div>
+
+    <!-- LG0009-03 Spool Valve -->
+    <div class="section" id="s0009">
+      <div class="section-header">
+        <h2>Spool Valve Assembly</h2>
+        <div class="meta">List No. LG0009-03 &nbsp;·&nbsp; Revision B</div>
+      </div>
+      <div class="parts-table-wrap"><table class="parts">
+        <thead><tr><th>Item</th><th>Part Number</th><th>Description</th><th>Qty</th><th>Remarks</th><th></th></tr></thead>
+        <tbody id="tb_s0009"></tbody>
+      </table></div>
+    </div>
+
+    <!-- LG0012-01 Controls -->
+    <div class="section" id="s0012">
+      <div class="section-header">
+        <h2>Controls</h2>
+        <div class="meta">List No. LG0012-01 &nbsp;·&nbsp; Revision B</div>
+      </div>
+      <div class="parts-table-wrap"><table class="parts">
+        <thead><tr><th>Item</th><th>Part Number</th><th>Description</th><th>Qty</th><th>Remarks</th><th></th></tr></thead>
+        <tbody id="tb_s0012"></tbody>
+      </table></div>
+    </div>
+
+    <!-- LG0013-00 Pedal Plate -->
+    <div class="section" id="s0013">
+      <div class="section-header">
+        <h2>Pedal Plate Module</h2>
+        <div class="meta">List No. LG0013-00 &nbsp;·&nbsp; Revision G</div>
+      </div>
+      <div class="parts-table-wrap"><table class="parts">
+        <thead><tr><th>Item</th><th>Part Number</th><th>Description</th><th>Qty</th><th>Remarks</th><th></th></tr></thead>
+        <tbody id="tb_s0013"></tbody>
+      </table></div>
+    </div>
+
+    <!-- LG0016-03 Chassis Kit -->
+    <div class="section" id="s0016">
+      <div class="section-header">
+        <h2>Chassis Kit (Fork / Pallet Truck Battery Removal)</h2>
+        <div class="meta">List No. LG0016-03 &nbsp;·&nbsp; Revision D</div>
+      </div>
+      <div class="parts-table-wrap"><table class="parts">
+        <thead><tr><th>Item</th><th>Part Number</th><th>Description</th><th>Qty</th><th>Remarks</th><th></th></tr></thead>
+        <tbody id="tb_s0016"></tbody>
+      </table></div>
+    </div>
+
+    <!-- LG0017-01 Second Stage Mast -->
+    <div class="section" id="s0017a">
+      <div class="section-header">
+        <h2>Narrow Aisle Triplex Mast Assembly – Second Stage</h2>
+        <div class="meta">List No. LG0017-01 &nbsp;·&nbsp; Revision D</div>
+      </div>
+      <div class="note-box">For part numbers ending with -xx, quote truck lift height when ordering spare parts.</div>
+      <div class="parts-table-wrap"><table class="parts">
+        <thead><tr><th>Item</th><th>Part Number</th><th>Description</th><th>Qty</th><th>Remarks</th><th></th></tr></thead>
+        <tbody id="tb_s0017a"></tbody>
+      </table></div>
+    </div>
+
+    <!-- LG0017-03 Fork Carriage -->
+    <div class="section" id="s0017b">
+      <div class="section-header">
+        <h2>Narrow Aisle Fork Carriage Assembly</h2>
+        <div class="meta">List No. LG0017-03 &nbsp;·&nbsp; Revision D</div>
+      </div>
+      <div class="note-box">For part numbers ending with -xx, quote truck lift height when ordering spare parts.</div>
+      <div class="parts-table-wrap"><table class="parts">
+        <thead><tr><th>Item</th><th>Part Number</th><th>Description</th><th>Qty</th><th>Remarks</th><th></th></tr></thead>
+        <tbody id="tb_s0017b"></tbody>
+      </table></div>
+    </div>
+
+    <!-- LG0017-06 Hyd Fixed Stage -->
+    <div class="section" id="s0017c">
+      <div class="section-header">
+        <h2>Narrow Aisle Hydraulic Components – Fixed Stage</h2>
+        <div class="meta">List No. LG0017-06 &nbsp;·&nbsp; Revision C</div>
+      </div>
+      <div class="note-box">For part numbers ending with -xx, quote truck lift height when ordering spare parts.</div>
+      <div class="parts-table-wrap"><table class="parts">
+        <thead><tr><th>Item</th><th>Part Number</th><th>Description</th><th>Qty</th><th>Remarks</th><th></th></tr></thead>
+        <tbody id="tb_s0017c"></tbody>
+      </table></div>
+    </div>
+
+    <!-- LG0017-07 Hyd Third Stage -->
+    <div class="section" id="s0017d">
+      <div class="section-header">
+        <h2>Narrow Aisle Hydraulic Components – Third Stage</h2>
+        <div class="meta">List No. LG0017-07 &nbsp;·&nbsp; Revision A</div>
+      </div>
+      <div class="note-box">For part numbers ending with -xx, quote truck lift height when ordering spare parts.</div>
+      <div class="parts-table-wrap"><table class="parts">
+        <thead><tr><th>Item</th><th>Part Number</th><th>Description</th><th>Qty</th><th>Remarks</th><th></th></tr></thead>
+        <tbody id="tb_s0017d"></tbody>
+      </table></div>
+    </div>
+
+    <!-- LG0017-08 Fixed Stage Mast -->
+    <div class="section" id="s0017e">
+      <div class="section-header">
+        <h2>Fixed Stage Mast Assembly</h2>
+        <div class="meta">List No. LG0017-08 &nbsp;·&nbsp; Revision B</div>
+      </div>
+      <div class="note-box">For part numbers ending with -xx, quote truck lift height when ordering spare parts.</div>
+      <div class="parts-table-wrap"><table class="parts">
+        <thead><tr><th>Item</th><th>Part Number</th><th>Description</th><th>Qty</th><th>Remarks</th><th></th></tr></thead>
+        <tbody id="tb_s0017e"></tbody>
+      </table></div>
+    </div>
+
+    <!-- LG0017-09 Third Stage Mast -->
+    <div class="section" id="s0017f">
+      <div class="section-header">
+        <h2>Third Stage Mast Assembly</h2>
+        <div class="meta">List No. LG0017-09 &nbsp;·&nbsp; Revision B</div>
+      </div>
+      <div class="note-box">For part numbers ending with -xx, quote truck lift height when ordering spare parts.</div>
+      <div class="parts-table-wrap"><table class="parts">
+        <thead><tr><th>Item</th><th>Part Number</th><th>Description</th><th>Qty</th><th>Remarks</th><th></th></tr></thead>
+        <tbody id="tb_s0017f"></tbody>
+      </table></div>
+    </div>
+
+    <!-- Traction Motor -->
+    <div class="section" id="s_trac">
+      <div class="section-header"><h2>Traction Motor</h2><div class="meta">55295.06.000 &nbsp;·&nbsp; Revision A</div></div>
+      <div class="parts-table-wrap"><table class="parts"><thead><tr><th>Item</th><th>Part Number</th><th>Description</th><th>Qty</th><th>Remarks</th><th></th></tr></thead><tbody id="tb_s_trac"></tbody></table></div>
+    </div>
+
+    <!-- Lift Motor -->
+    <div class="section" id="s_lift">
+      <div class="section-header"><h2>Lift Motor</h2><div class="meta">5454.02.000 &nbsp;·&nbsp; Revision A</div></div>
+      <div class="parts-table-wrap"><table class="parts"><thead><tr><th>Item</th><th>Part Number</th><th>Description</th><th>Qty</th><th>Remarks</th><th></th></tr></thead><tbody id="tb_s_lift"></tbody></table></div>
+    </div>
+
+    <!-- Steer Motor -->
+    <div class="section" id="s_steer">
+      <div class="section-header"><h2>Steer Motor</h2><div class="meta">55309.02.000 &nbsp;·&nbsp; Revision A</div></div>
+      <div class="parts-table-wrap"><table class="parts"><thead><tr><th>Item</th><th>Part Number</th><th>Description</th><th>Qty</th><th>Remarks</th><th></th></tr></thead><tbody id="tb_s_steer"></tbody></table></div>
+    </div>
+
+    <!-- David Brown Axle -->
+    <div class="section" id="s_db">
+      <div class="section-header"><h2>David Brown Axle and Transmission Assembly</h2><div class="meta">4978.12.000 &nbsp;·&nbsp; Revision A</div></div>
+      <div class="parts-table-wrap"><table class="parts"><thead><tr><th>Item</th><th>Part Number</th><th>Description</th><th>Qty</th><th>Remarks</th><th></th></tr></thead><tbody id="tb_s_db"></tbody></table></div>
+    </div>
+
+    <!-- Kordel Axle -->
+    <div class="section" id="s_kordel">
+      <div class="section-header"><h2>Kordel Axle and Transmission Assembly</h2><div class="meta">4978.13.000 &nbsp;·&nbsp; Revision A</div></div>
+      <div class="parts-table-wrap"><table class="parts"><thead><tr><th>Item</th><th>Part Number</th><th>Description</th><th>Qty</th><th>Remarks</th><th></th></tr></thead><tbody id="tb_s_kordel"></tbody></table></div>
+    </div>
+
+    <!-- Tailift Axle -->
+    <div class="section" id="s_tailift">
+      <div class="section-header"><h2>Tailift Axle and Transmission Assembly</h2><div class="meta">4978.15.000 &nbsp;·&nbsp; Revision A</div></div>
+      <div class="parts-table-wrap"><table class="parts"><thead><tr><th>Item</th><th>Part Number</th><th>Description</th><th>Qty</th><th>Remarks</th><th></th></tr></thead><tbody id="tb_s_tailift"></tbody></table></div>
+    </div>
+
+    <!-- Electrical Module GE -->
+    <div class="section" id="s0030a">
+      <div class="section-header"><h2>Electrical Module – G.E. LXT Traction</h2><div class="meta">List No. LG0030-01 &nbsp;·&nbsp; Revision A</div></div>
+      <div class="parts-table-wrap"><table class="parts"><thead><tr><th>Item</th><th>Part Number</th><th>Description</th><th>Qty</th><th>Remarks</th><th></th></tr></thead><tbody id="tb_s0030a"></tbody></table></div>
+    </div>
+
+    <!-- Electrical Module No Bat Tap -->
+    <div class="section" id="s0030b">
+      <div class="section-header"><h2>Electrical Module (without Battery Tap)</h2><div class="meta">List No. LG0030-03 &nbsp;·&nbsp; Revision C</div></div>
+      <div class="parts-table-wrap"><table class="parts"><thead><tr><th>Item</th><th>Part Number</th><th>Description</th><th>Qty</th><th>Remarks</th><th></th></tr></thead><tbody id="tb_s0030b"></tbody></table></div>
+    </div>
+
+    <!-- Solenoid switches -->
+    <div class="section" id="s_sw80b">
+      <div class="section-header"><h2>Solenoid Switch</h2><div class="meta">SW80B-464 &nbsp;·&nbsp; Revision A</div></div>
+      <div class="parts-table-wrap"><table class="parts"><thead><tr><th>Item</th><th>Part Number</th><th>Description</th><th>Qty</th><th>Remarks</th><th></th></tr></thead><tbody id="tb_s_sw80b"></tbody></table></div>
+    </div>
+    <div class="section" id="s_sw200">
+      <div class="section-header"><h2>Solenoid Switch</h2><div class="meta">SW200-421 &nbsp;·&nbsp; Revision A</div></div>
+      <div class="parts-table-wrap"><table class="parts"><thead><tr><th>Item</th><th>Part Number</th><th>Description</th><th>Qty</th><th>Remarks</th><th></th></tr></thead><tbody id="tb_s_sw200"></tbody></table></div>
+    </div>
+    <div class="section" id="s_sw249">
+      <div class="section-header"><h2>Solenoid Switch</h2><div class="meta">SW201-249T &nbsp;·&nbsp; Revision A</div></div>
+      <div class="parts-table-wrap"><table class="parts"><thead><tr><th>Item</th><th>Part Number</th><th>Description</th><th>Qty</th><th>Remarks</th><th></th></tr></thead><tbody id="tb_s_sw249"></tbody></table></div>
+    </div>
+    <div class="section" id="s_sw258">
+      <div class="section-header"><h2>Solenoid Switch</h2><div class="meta">SW202-258T &nbsp;·&nbsp; Revision A</div></div>
+      <div class="parts-table-wrap"><table class="parts"><thead><tr><th>Item</th><th>Part Number</th><th>Description</th><th>Qty</th><th>Remarks</th><th></th></tr></thead><tbody id="tb_s_sw258"></tbody></table></div>
+    </div>
+    <div class="section" id="s_sw80">
+      <div class="section-header"><h2>Contactor SW80</h2><div class="meta">SW80 &nbsp;·&nbsp; Revision A</div></div>
+      <div class="parts-table-wrap"><table class="parts"><thead><tr><th>Item</th><th>Part Number</th><th>Description</th><th>Qty</th><th>Remarks</th><th></th></tr></thead><tbody id="tb_s_sw80"></tbody></table></div>
+    </div>
+    <div class="section" id="s_fwdrev">
+      <div class="section-header"><h2>Forward / Reverse Contactor (Traction Controller)</h2><div class="meta">55262.20.000 &nbsp;·&nbsp; Revision A</div></div>
+      <div class="parts-table-wrap"><table class="parts"><thead><tr><th>Item</th><th>Part Number</th><th>Description</th><th>Qty</th><th>Remarks</th><th></th></tr></thead><tbody id="tb_s_fwdrev"></tbody></table></div>
+    </div>
+    <div class="section" id="s_bypass">
+      <div class="section-header"><h2>Bypass Contactor (Traction Controller)</h2><div class="meta">55262.23.000 &nbsp;·&nbsp; Revision A</div></div>
+      <div class="parts-table-wrap"><table class="parts"><thead><tr><th>Item</th><th>Part Number</th><th>Description</th><th>Qty</th><th>Remarks</th><th></th></tr></thead><tbody id="tb_s_bypass"></tbody></table></div>
+    </div>
+
+    <!-- Labels -->
+    <div class="section" id="s0018">
+      <div class="section-header"><h2>Labels</h2><div class="meta">List No. LG0018-00 &nbsp;·&nbsp; Revision D</div></div>
+      <div class="parts-table-wrap"><table class="parts"><thead><tr><th>Item</th><th>Part Number</th><th>Description</th><th>Qty</th><th>Remarks</th><th></th></tr></thead><tbody id="tb_s0018"></tbody></table></div>
+    </div>
+
+    <!-- Reverse Alarm -->
+    <div class="section" id="s0019">
+      <div class="section-header"><h2>Reverse Alarm Kit</h2><div class="meta">List No. LG0019-00 &nbsp;·&nbsp; Revision A</div></div>
+      <div class="parts-table-wrap"><table class="parts"><thead><tr><th>Item</th><th>Part Number</th><th>Description</th><th>Qty</th><th>Remarks</th><th></th></tr></thead><tbody id="tb_s0019"></tbody></table></div>
+    </div>
+
+    <!-- Seat and Covers -->
+    <div class="section" id="s0020">
+      <div class="section-header"><h2>Seat and Covers</h2><div class="meta">List No. LG0020-00 &nbsp;·&nbsp; Revision M</div></div>
+      <div class="parts-table-wrap"><table class="parts"><thead><tr><th>Item</th><th>Part Number</th><th>Description</th><th>Qty</th><th>Remarks</th><th></th></tr></thead><tbody id="tb_s0020"></tbody></table></div>
+    </div>
+
+    <!-- Camera Mounting -->
+    <div class="section" id="s0021">
+      <div class="section-header"><h2>Camera Mounting Kit – Third Stage Mast</h2><div class="meta">List No. LG0021-01 &nbsp;·&nbsp; Revision A</div></div>
+      <div class="parts-table-wrap"><table class="parts"><thead><tr><th>Item</th><th>Part Number</th><th>Description</th><th>Qty</th><th>Remarks</th><th></th></tr></thead><tbody id="tb_s0021"></tbody></table></div>
+    </div>
+
+    <!-- Wiring Looms -->
+    <div class="section" id="s0050">
+      <div class="section-header"><h2>Wiring Looms</h2><div class="meta">List No. LG0050-00 &nbsp;·&nbsp; Revision A</div></div>
+      <div class="parts-table-wrap"><table class="parts"><thead><tr><th>Item</th><th>Part Number</th><th>Description</th><th>Qty</th><th>Remarks</th><th></th></tr></thead><tbody id="tb_s0050"></tbody></table></div>
+    </div>
+    <div class="section" id="s0051">
+      <div class="section-header"><h2>Wiring Looms</h2><div class="meta">List No. LG0051-00 &nbsp;·&nbsp; Revision A</div></div>
+      <div class="parts-table-wrap"><table class="parts"><thead><tr><th>Item</th><th>Part Number</th><th>Description</th><th>Qty</th><th>Remarks</th><th></th></tr></thead><tbody id="tb_s0051"></tbody></table></div>
+    </div>
+    <div class="section" id="s0052">
+      <div class="section-header"><h2>Wiring Looms</h2><div class="meta">List No. LG0052-00 &nbsp;·&nbsp; Revision A</div></div>
+      <div class="parts-table-wrap"><table class="parts"><thead><tr><th>Item</th><th>Part Number</th><th>Description</th><th>Qty</th><th>Remarks</th><th></th></tr></thead><tbody id="tb_s0052"></tbody></table></div>
+    </div>
+    <div class="section" id="s0053">
+      <div class="section-header"><h2>Wiring Looms</h2><div class="meta">List No. LG0053-00 &nbsp;·&nbsp; Revision A</div></div>
+      <div class="parts-table-wrap"><table class="parts"><thead><tr><th>Item</th><th>Part Number</th><th>Description</th><th>Qty</th><th>Remarks</th><th></th></tr></thead><tbody id="tb_s0053"></tbody></table></div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- CART MODAL -->
+<div id="cart-modal">
+  <div id="cart-panel">
+    <header>
+      <h3>🛒 Parts Basket</h3>
+      <button class="close-btn" onclick="closeCart()">×</button>
+    </header>
+    <div id="cart-items"></div>
+    <footer>
+      <input type="text" id="requester-name" placeholder="Your name / engineer ref…">
+      <button id="clear-btn" onclick="clearCart()">Clear All</button>
+      <button id="submit-btn" onclick="submitOrder()">Submit Order</button>
+    </footer>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ===================== PARTS DATA =====================
+const PARTS = {
+  s0001: [
+    ['1','41369-00','Battery Tank','1',''],
+    ['2','41327.02','Rear Cover','1',''],
+    ['3','','Cell','24','See Specification'],
+    ['4','55385.04.000','Battery Socket','1',''],
+    ['5','40366.03','Battery Socket Bracket','1',''],
+    ['6','6610.01.000','Button Head Setscrew','2','M6 x 12'],
+    ['7','6120.06.000','Spring Washer','2','M6'],
+    ['8','6221.06.050','Cap Head Setscrew','4','M6'],
+    ['9','6110.06.000','Plain Washer','18','M6'],
+    ['10','6131.06.000','Nyloc Nut','4','M6'],
+    ['11','6612.01.000','Button Head Setscrew','10','M6 x 20'],
+  ],
+  s0002: [
+    ['1','41242-02','Steering Column Mount','1',''],
+    ['2','41285-01','Steering Column Support','1',''],
+    ['3','41338-02','Upper Steering Cowl','1',''],
+    ['4','7646.01.000','Steering Column','1',''],
+    ['5','7647.06.000','Steering Wheel','1','ø13"'],
+    ['6','7647.07.000','Steering Wheel Label','1',''],
+    ['7','44001.05.000','Steer Orbital Valve','1','Low Torque 95 cc'],
+    ['8','4973.01.000','Steer Lock Valve','1',''],
+    ['9','55481.01.003','Zapi Display Unit','1','Part Of Traction Panel Kit'],
+    ['10','7601.01.000','Locking Lever','1',''],
+    ['11','7598.04.000','Handle','2',''],
+    ['12','41378-00','Cowl Reinforcement','1','Part of item 3'],
+    ['13','55495.01.000','Load Moment Indicator & Sensor','1',''],
+    ['14','41242.04','Extension Plate','1',''],
+    ['15','3729-31','Hose Assembly No. 1','1','Lock Valve - Orbital Valve'],
+    ['16','3729-32','Hose Assembly No. 2','1','Lock Valve - Orbital Valve'],
+    ['17','3729-30','Hose Assembly No. 3','1','Lock Valve - Steer Motor'],
+    ['18','3729-33','Hose Assembly No. 4','1','Lock Valve - Steer Motor'],
+    ['19','3729-34','Hose Assembly No. 5','1','Steer Pump - Orbital Valve'],
+    ['20','3729-35','Hose Assembly No. 6','1','Orbital Valve - Tank Return'],
+    ['21','3729-36','Hose Assembly No. 7','1','Tank - Lock Valve'],
+    ['22','6151.08.020','Button Head Screw','2','M8 x 20'],
+    ['23','6211.08.090','Hex Head Bolt','2','M8 x 90'],
+    ['24','6111.10.025','Setscrew','4','M10 x 25'],
+    ['25','6111.10.040','Setscrew','4','M10 x 40'],
+    ['26','41365.00','Hinge Screw','2','M12 x 25'],
+    ['27','6110.12.000','Plain Washer','2','M12'],
+    ['28','6120.08.000','Spring Washer','8','M8'],
+    ['29','6120.10.000','Spring Washer','8','M10'],
+    ['30','6110.08.000','Flat Washer','2','M8'],
+    ['31','6120.12.000','Spring Washer','1','M12'],
+    ['32','6121.08.030','Cap Head Screw','4','M8 x 30'],
+    ['33','4472.01.000','Adaptor','5','3/8" BSP - 3/8" BSP M/M'],
+    ['34','4443.01.000','Adaptor','4','1/2" BSP - 3/8" BSP M/M'],
+    ['35','4522.01.000','Seal','5','3/8" BSP Dowty'],
+    ['36','4520.01.000','Seal','4','1/2" BSP Dowty'],
+    ['37','55389.23.000','48/24v DC-DC Converter','1',''],
+    ['38','55384.07.000','Fuse 6.3A Anti-Surge','1',''],
+    ['39','5300.02.000','Horn','1',''],
+    ['40','55495.02.000','24/12v Regulator','1','For Load Moment Indicator'],
+  ],
+  s0003: [
+    ['1','41535.00','Steer Pinion Shaft','1',''],
+    ['2','41536.00','Bearing Housing','1',''],
+    ['3','7735.01.000','Bearing','2','6210-2RS'],
+    ['4','6588.01.000','Circlip','1',''],
+    ['5','6121.12.050','Cap Head Screw','4','M12'],
+    ['6','6131.12.000','Nyloc Nut','4','M12'],
+    ['7','6110.12.000','Plain Washer','4','M12'],
+  ],
+  s0004: [
+    ['1','41288-00','Axle Support Fabrication','1',''],
+    ['2','55295.06.000','Traction Motor','1','Advance'],
+    ['3','4978.12.000','Drive Axle – David Brown','1',''],
+    ['','4978.13.000','Drive Axle – Kordel','1',''],
+    ['','4978.15.000','Drive Axle – Tailift','1',''],
+    ['4','7661.09.000','Front Wheel Assembly','2',''],
+    ['','41218.00','Hub','2','Part of item 4'],
+    ['','7635.14.000','Tyre','2','Part of item 4'],
+    ['5','41045-04','Front Counterweight','1','Supplied with item 1'],
+    ['6','6422.01.000','Internal Clip','2','75mm Diameter'],
+    ['7','7644.01.000','Bearing','2',''],
+    ['8','41323.10','Motor Cable No. 1','1','Not illustrated'],
+    ['9','41323.11','Motor Cable No. 2','1','Not illustrated'],
+    ['10','41323.12','Motor Cable No. 3','1','Not illustrated'],
+    ['11','41323.13','Motor Cable No. 4','1','Not illustrated'],
+    ['12','5882.01.000','Rubber Boot','4','For use with motor cables'],
+    ['13','6111.20.140','Hex Head Bolt','4','M20 x 140'],
+    ['14','6579.01.000','Tab Washer','4','20mm Diameter'],
+    ['15','6566.04.000','Grease Nipple','2','M10'],
+    ['16','6111.24.100','Hex Head Bolt','1','M24 x 100'],
+    ['17','6120.24.000','Spring Washer','1','M24'],
+    ['18','6111.10.030','Set Screw','1','M10 x 30'],
+    ['19','6111.10.035','Set Screw','6','M10 x 35'],
+    ['20','6120.10.000','Spring Washer','7','M10'],
+    ['21','6121.20.060','Skt. Head Screw','2','M20 x 60'],
+    ['22','6211.20.080','Hex Head Bolt','1','M20 x 80'],
+    ['23','6120.20.000','Spring Washer','1','M20'],
+    ['24','6581.10.040','Stud','1','M10 x 40'],
+    ['25','6131.10.000','Nyloc Nut','1','M10'],
+  ],
+  s0005: [
+    ['1','41249.02','Mast Support Fabrication','1',''],
+    ['2','6121.12.030','Cap Head Setscrew','2','M12 x 30'],
+    ['3','6120.12.000','Spring Washer','2','M12'],
+    ['4','41343.01','Mast Retaining Washer','2',''],
+    ['5','7626.01.000','Mast Bush','2','Glacier'],
+    ['6','6221.20.090','Cap Head Bolt M20 x 90','4','Part of item 1'],
+    ['7','6120.20.000','Spring Washer','4','M20'],
+    ['8','6566.04.000','Grease Nipple','4','M10'],
+    ['9','7627.01.000','Thrust Washer','2','Glacier'],
+    ['10','6151.08.025','Button Head Setscrew','2','M8 x 25'],
+    ['11','6120.08.000','Spring Washer','3','M8'],
+    ['12','','Load Moment Sensor','1','See List LG0002-01 item 13'],
+    ['13','7629.03.000','Rubber Buffer','2',''],
+    ['14','6120.06.000','Spring Washer','5','M6'],
+    ['15','6612.01.000','Button Head Setscrew','4','M6 x 20'],
+    ['16','67II.12.075','Hex Head Bolt','47','M12 x 75 Grade 10.9'],
+    ['17','41424.00','Slewing Ring','1',''],
+    ['18','6588.01.000','Circlip','2','Ø50 External'],
+    ['19','3735.02','Pivot Shaft','1',''],
+    ['20','6161.12.020','Grub Screw','2','M12 x 20'],
+    ['21','44030.04.000','Tilt Cylinder','2',''],
+    ['22','6591.01.000','Spring Clip','4',''],
+    ['23','6110.24.000','Flat Washer','4','M24'],
+    ['24','44030.04.001','Rod End','2','Included with item 21'],
+    ['25','3526.03','Tilt Cylinder Mounting Shaft','4',''],
+    ['26','4521.01.000','Seal','4','¼" BSP Dowty'],
+    ['27','4415.01.000','Adaptor','4','¼" BSP to ¼" BSP M/M'],
+    ['28','4486.02.000','Swivel Tee','2','¼" BSPM - Z1104'],
+    ['29','3729.80','Hose Number 41','1',''],
+    ['30','3729.81','Hose Number 42','1',''],
+    ['31','5181.01.000','Cable Tie','3',''],
+    ['32','6310.12.000','Flat Washer','47','M12 Hardened'],
+  ],
+  s0006: [
+    ['1','7738.10.000','Brake Backplate Assembly R/H','1','Knott'],
+    ['2','7738.11.000','Brake Backplate Assembly L/H','1','Knott'],
+    ['3','6171.14.030','Setscrew','12','M14 x 30 Durlock'],
+    ['4','4998.01.000','Oil Seal','2','Ø75 x Ø105 x 13mm'],
+    ['5','7624.01.000','Taper Roller Bearing','2','32013'],
+    ['6','7624.02.000','Taper Roller Bearing','2','32010'],
+    ['7','41303.00','Washer','2','M6'],
+    ['8','4998.03.000','Lock Washer','2','MB9 45mm'],
+    ['9','4998.02.000','Lock Nut','2','KM9 - M45 x 1.5mm'],
+    ['10','41293.01','Grease Cover','2',''],
+    ['11','6131.06.012','Countersunk Socket Head Screw','6','M6 x 12'],
+    ['12','7660.09.000','Rear Wheel Assembly','2','Plain Rubber 18" x 12"'],
+    ['12a','41278.00','Hub','2','Part of item 12'],
+    ['12b','7635.09.000','Tyre','2','Part of item 12'],
+    ['13','7738.08.000','Brake Cable','2',''],
+  ],
+  s0006s: [
+    ['1','7738.06.001','R/H Shoe','1',''],
+    ['2','7738.07.001','Wheel Cylinder','1','per side'],
+    ['3','7738.07.002','Adjuster','1','per side'],
+    ['4','7738.07.003','L/H Shoe','1',''],
+    ['5','7738.07.004','Common Shoe','1','per side'],
+    ['6','7738.07.005','Tension Spring','2','per side'],
+    ['7','7738.07.006','Tension Spring','1','per side'],
+    ['8','7738.07.007','Steady Spring','2','per side'],
+  ],
+  s0007: [
+    ['1','41282.03','Oil Tank','1',''],
+    ['2','41282.01','Oil Tank Lid','1',''],
+    ['3','41282.04','Oil Tank Lid','1',''],
+    ['4','41282.02','Gasket','2',''],
+    ['5','5454.02.000','Lift Pump Motor','1',''],
+    ['6','44047.02.000','Lift Pump','1','PLP20-14S'],
+    ['7','55309.02.000','Steering Pump Motor','1',''],
+    ['8','4981.02.000','Steering Pump','1','PLP 20-8D'],
+    ['9','4004.01.000','Serrated Drive','2',''],
+    ['10','4632.01.000','Suction Filter – Lift','1','1" BSP'],
+    ['11','4634.01.000','Suction Filter – Steering','1',''],
+    ['12','4959.01.000','Filter Breather Assembly','1',''],
+    ['13','4994.03.000','Cast Flanged Elbow','3','1/2" BSP'],
+    ['14','4994.01.000','Cast Flanged Elbow','1','3/4" BSP'],
+    ['15','4489.01.000','Adaptor','1','1" BSP - 1/2" BSP M/M'],
+    ['16','4452.01.000','Adaptor','2','3/4" BSP - 1/2" BSP M/M'],
+    ['17','4441.01.000','Adaptor','1','1/2" BSP - 1/2" BSP M/M'],
+    ['18','4443.01.000','Adaptor','1','1/2" BSP - 3/8" BSP M/M'],
+    ['19','4466.01.000','Adaptor','1','1" BSP - 3/4" BSP M/M'],
+    ['20','4409.01.000','Adaptor','1','3/4" BSP - 3/4" BSP M/M'],
+    ['21','4487.02.000','Swivel Tee Fitting','1','1/2"-1/2"-3/8" BSP M/F/M'],
+    ['22','4975.01.000','Nylon Pipe Fitting','2','1/4" BSP - 8mm Elbow'],
+    ['23','4524.01.000','Seal','2','1" BSP Dowty'],
+    ['24','4520.01.000','Seal','4','1/2" BSP Dowty'],
+    ['25','4523.01.000','Seal','1','3/4" BSP Dowty'],
+    ['26','3729-47','Hose Assembly No. 12','1','Lift Pump Suction'],
+    ['27','3729-46','Hose Assembly No. 11','1','Steer Pump Suction'],
+    ['28','3729-45','Hose Assembly No. 10','1','Lift Pump Pressure'],
+    ['29','3729-44','Hose Assembly No. 9','1','Steer Pump Pressure'],
+    ['30','3729-43','Hose Assembly No. 8','1','Steer Motor Bleed'],
+    ['31','6221.08.035','Skt. Hd. Bolt','8','M8 x 35'],
+    ['32','6121.08.025','Skt. Hd. Screw','2','M8 x 25'],
+    ['33','6111.08.020','Set Screw','2','M8 x 20'],
+    ['34','6111.06.020','Set Screw','12','M6 x 20'],
+    ['35','6120.08.000','Spring Washer','12','M8'],
+    ['36','6120.06.000','Spring Washer','12','M6'],
+    ['37','4959.02.000','Filter Element','1',''],
+    ['38','4959.03.000','Filter Element','1',''],
+    ['39','5882.01.000','Rubber Terminal Boot','2','Not Illustrated'],
+    ['40','4976.01.000','Nylon Pipe – 4.2m x 8mm Ø','','Not Illustrated'],
+  ],
+  s0008: [
+    ['1','41268.00','Overhead Guard','1',''],
+    ['2','6171.14.045','Flange Head Screw','8','M14 x 45 Durlock'],
+    ['3','7404.02.000','Mirror','1',''],
+    ['4','6152.00.002','Screw Pan Head','2','2BA x ½"'],
+    ['5','6120.00.002','Spring Washer','2','2BA'],
+  ],
+  s0009: [
+    ['1','4977.08.000','Spool Valve','1',''],
+    ['2','41317.00','Spool Valve Mounting Bracket','1',''],
+    ['3','7620.02.000','Handbrake Assembly','1',''],
+    ['4','4970.02.000','Flow Regulator','2',''],
+    ['5','4667.01.000','48v Hold Valve','1',''],
+    ['6','5277.01.000','Spool Valve Microswitch','1',''],
+    ['7','55219.01.000','Limit Switch','1','XCM - A1022'],
+    ['8','7668.01.000','Handbrake Cable','1',''],
+    ['9','41348.06','Lift Lever','1',''],
+    ['10','41348.07','Tilt Lever','1',''],
+    ['11','41348.08','Sideshift Lever','1',''],
+    ['12','7638.05.000','Lift Knob','1',''],
+    ['13','4977.08.001','Spool Valve Lever Housing','3',''],
+    ['14','7638.06.000','Tilt Knob','1',''],
+    ['15','7638.07.000','Sideshift Knob','1',''],
+    ['16','6221.08.055','Cap Head Screw','3','M8 x 55'],
+    ['17','6120.08.000','Spring Washer','3','M8'],
+    ['18','6221.03.025','Cap Head Screw','2','M3 x 25'],
+    ['19','6120.03.000','Spring Washer','2','M3'],
+    ['20','6110.03.000','Flat Washer','2','M3'],
+    ['21','6111.06.040','Hex Head Setscrew','2','M6 x 40'],
+    ['22','6120.06.000','Spring Washer','2','M6'],
+    ['23','41393.00','Hex Head Bolt – Special','1','M10 x 35 (Cut down)'],
+    ['24','6131.10.000','Nyloc Nut','1','M10'],
+    ['25','6111.10.020','Hex Head Screw','1','M10 x 20'],
+    ['26','6120.10.000','Spring Washer','4','M10'],
+    ['27','6131.10.015','Csk Set Pin','1','M10 x 15'],
+    ['28','6111.10.030','Hex Head Setscrew','3','M10 x 30'],
+    ['29','6601.01.000','Pozi Head Taptite','2','M4 x 25'],
+    ['30','4437.01.000','Blanking Plug','1','1/2" BSP'],
+    ['31','4520.01.000','Seal','10','1/2" Dowty'],
+    ['32','4441.02.000','Coupler','5','1/2" - 1/2" BSP M/M'],
+    ['33','4416.01.000','Reducer','4','1/2" - 1/4" BSP M/M'],
+    ['34','4415.01.000','Coupler','2','1/4" - 1/4" BSP M/M'],
+    ['35','4471.01.000','Bulkhead Coupler','2','1/4" - 1/4" BSP M/M'],
+    ['36','4521.01.000','Seal','4','1/4" Dowty'],
+    ['37','4818.02.000','Swivel Coupler','4','1/4" - 1/4" BSP F/M'],
+    ['37a','4475.01.000','Swivel Coupler','2','1/2" - 1/2" BSP F/M'],
+    ['38','41391.00','Retaining Strap','1',''],
+    ['40','3729.87','Hose No. 48','1',''],
+    ['41','3729.86','Hose No. 47','1',''],
+    ['43','3729.82','Hose No. 43','1',''],
+    ['44','3729.83','Hose No. 44','1',''],
+    ['45','3729.84','Hose No. 45','1',''],
+    ['46','3729.85','Hose No. 46','1',''],
+    ['47','3729.60','Hose No. 25','1',''],
+    ['48','3729.61','Hose No. 26','1',''],
+    ['49','41323.01','Wire Loom B','1',''],
+    ['51','6111.08.030','Hex Head Setscrew','1','M8 x 30'],
+    ['100','4977.03.000','Seal Kit','1',''],
+  ],
+  s0012: [
+    ['1','5202.01.000','Direction Lever','1',''],
+    ['2','5500.01.000','Ignition Switch','1',''],
+    ['3','5513.01.000','Contact Block 2no with bezel','1',''],
+    ['4','5511.01.000','Contact Block 1no','1',''],
+    ['5','5512.01.000','Contact Block 2nc','1',''],
+    ['6','55498.00.000','Red Push Button','1','Horn'],
+    ['7','41340.00','Spool Valve Lever Cover','1',''],
+    ['8','','Lift Lever','','See List LG0009.xx'],
+    ['9','','Tilt Lever','','See List LG0009.xx'],
+    ['10','','Sideshift Lever','','See List LG0009.xx'],
+    ['11','','Handbrake Assembly','','See List LG0009.xx'],
+    ['12','55498.01.000','Blue Push Button','1','Spot Light (Optional)'],
+    ['13','5500.10.000','Rotary Switch','1','Spot Light (Optional)'],
+  ],
+  s0013: [
+    ['1','41297-00','Pedal Mounting Plate','1',''],
+    ['2','41296-00','Brake Pedal','1',''],
+    ['3','41291-00','Brake Push Rod','1',''],
+    ['4','5201.01.000','Foot Switch – Deadman','1',''],
+    ['5','55481.01.001','Accelerator Pedal Unit','1','Part Of Traction Panel Kit'],
+    ['6','7197.04.000','Brake Master Cylinder','1',''],
+    ['7','55215.02.000','Brake Pedal Rubber','2',''],
+    ['8','7625.01.000','Plain Bush','2',''],
+    ['9','7081.01.000','Expansion Spring','1',''],
+    ['10','6211.12.090','Hex Head Bolt','1','M12 x 90'],
+    ['11','6131.12.000','Nyloc Nut','1','M12'],
+    ['12','6114.02.000','Plain Nut','1','5/16" UNF'],
+    ['13','6121.08.025','Skt. Head Screw','2','M8 x 25'],
+    ['14','6131.08.000','Nyloc Nut','4','M8'],
+    ['15','6110.08.000','Plain Washer','3','M8'],
+    ['16','6221.08.035','Skt. Head Screw','1','M8 x 35'],
+    ['17','6121.06.020','Skt. Head Screw','2','M6 x 20'],
+    ['18','6111.10.020','Set Screw','4','M10 x 20'],
+    ['19','6131.06.000','Nyloc Nut','3','M6'],
+    ['20','6110.06.000','Plain Washer','1','M6'],
+    ['21','6120.10.000','Spring Washer','4','M10'],
+  ],
+  s0016: [
+    ['1','','Steering Motor Extension','1','See List LG0003-xx'],
+    ['2','41577.00','Battery Retaining Assy','1',''],
+    ['3','44000.02.000','Hydraulic Steer Motor','1',''],
+    ['4','41286.00','Steer Motor Mtg Plate','1',''],
+    ['5','41328.00','Quarter Ballast','2',''],
+    ['6','41320.00','Side Ballast','2',''],
+    ['7','41345.00','Battery Plug Bracket','1',''],
+    ['8','41386.02','Swivel Hose Bracket Assembly','1','Set'],
+    ['9','41318.00','Electrical Mounting Bracket','1',''],
+    ['10','6221.06.050','Cap Head Bolt','4',''],
+    ['11','6131.06.000','Nyloc Nut','4',''],
+    ['12','6110.06.000','Flat Washer','4',''],
+    ['13','41302.30','Handbrake Cable Linkage Assy','1','Set Reference 41302-12'],
+    ['14','41316.00','Dome Face Nut','2',''],
+    ['15','7626.10.000','Glacier Bush','2','PM1215 DX'],
+    ['16','41265.03','Chassis Fabrication','1','Pallet Truck Batt. Removal'],
+    ['17','41277.00','Stub Axle','2','Part of item 16'],
+    ['18','6121.12.045','Cap Head Setscrew','4','M12 x 45'],
+    ['19','6120.12.000','Spring Washer','4','M12'],
+    ['20','7763.01.000','Extension Spring','2','12 O/D x 1.5 Wire x 35 F/L'],
+    ['21','3729.80','Hose No. 41','1',''],
+    ['22','3729.81','Hose No. 42','1',''],
+    ['23','41379-01','Fan Fixing Bracket','1',''],
+    ['24','55131.10.000','Fan','3','24 Volt'],
+    ['25','6121.04.025','Cap Head Screw','4','M4 x 25'],
+    ['26','6110.04.000','Plain Washer','4','M4'],
+    ['28','7093.01.000','Brass Tee Piece','1',''],
+    ['29','','Brass Straight Fitting','1','1/4" BSP - 8mm'],
+    ['30','4443.01.000','Straight Coupler','2','1/2" - 3/8" BSP'],
+    ['31','4520.01.000','Dowty Seal','2','1/2" BSP'],
+    ['32','4690.01.000','Pipe Clip','3','1/4"'],
+    ['33','6121.20.075','Cap Head Setscrew','6','M20 x 75'],
+    ['34','6121.20.050','Cap Head Setscrew','4','M20 x 50'],
+    ['35','6211.12.050','Hex Head Bolt','2','M12 x 50'],
+    ['36','6110.20.000','Plain Washer','10','M20'],
+    ['37','6120.20.000','Spring Washer','10','M20'],
+    ['38','6111.10.030','Hex Head Setscrew','2','M10 x 30'],
+    ['39','6120.10.000','Spring Washer','2','M10'],
+    ['40','6111.12.000','Plain Nut','2','M12'],
+    ['43','6111.08.025','Hex Head Setscrew','2','M8 x 25'],
+    ['44','6120.08.000','Spring Washer','4','M8'],
+    ['46','6120.06.000','Spring Washer','1','M6'],
+    ['47','6111.06.040','Hex Head Setscrew','1','M6 x 40'],
+    ['48','6517.02.000','Hole Insert','6','Side Weights'],
+    ['49','6110.12.000','Plain Washer','4','M12'],
+    ['51','6120.08.000','Flat Washer','2','M8'],
+    ['52','6453.01.000','Roll Pin','4','M8 x 30'],
+    ['53','6581.03.000','Brake Pipe','1','R/H Wheel to Tee'],
+    ['54','6581.04.000','Brake Pipe','1','L/H Wheel to Tee'],
+    ['55','6581.05.000','Brake Pipe','1','Tee to Master Cyl.'],
+    ['56','6152.00.002','Screw','2','2BA x 1/2"'],
+    ['57','6121.08.020','Cap Head Pin','2','M8 x 20'],
+  ],
+  s0017a: [
+    ['1','41397-xx','Second Stage Mast Fabrication','1','See Specification'],
+    ['2','6596.01.000','Shim','12','40 ID x 0.5'],
+    ['3','7671.01.000','Roller Assembly','4',''],
+    ['4','41409-00','Pulley Shaft','2','30 OD x 112'],
+    ['5','40148.01','Chain Pulley','2',''],
+    ['6','7672.01.000','Bearing','2','6306-2RS'],
+    ['7','6428.01.000','Circlip','2','72 mm Internal'],
+    ['8','40206.00','Spacer','4',''],
+    ['9','3169.35.000','Spacer','1',''],
+    ['10','41408-01','Hose Pulley','1',''],
+    ['11','40149.00','Hose Pulley','2',''],
+    ['12','6150.30.000','Plain Washer','3','M30 Light'],
+    ['13','3169.30.000','Shafting Collar','2','35 ID x 30 Lg.'],
+    ['14','6161.10.010','Grubscrew','2','M10 x 10'],
+    ['15','6111.08.016','Setscrew','2','M8 x 16'],
+    ['16','6120.08.000','Spring Washer','2','M8'],
+    ['17','40558.03','Striker','1',''],
+    ['18','6131.06.020','Csk Setscrew','2','M6 x 20'],
+  ],
+  s0017b: [
+    ['1','41411-xx','Fork Carriage Fabrication','1','See Specification'],
+    ['2','6596.01.000','Shim','12','40 ID x 0.5'],
+    ['3','7671.01.000','Roller Assembly','4',''],
+    ['4','7694.02.000','Chain Anchor Bolt','2','BL 0534 MB1'],
+    ['5','7694.03.000','Chain Anchor Pin','2','8234-090 Part of Item 4'],
+    ['6','6131.16.000','Nyloc Nut','2','M16'],
+    ['7','6353.01.000','Cotter Pin','4','1/16" x 3/8" Part of Item 4'],
+    ['8','6351.01.000','Cotter Pin','2','1/8" x 1 1/2"'],
+    ['10','6121.16.025','SKT. HD. Set Screw','1','M16 x 25'],
+    ['11','6120.16.000','Spring Washer','1','M16'],
+    ['12','6566.05.000','Grease Nipple','4','M6'],
+    ['14','4997.04.001','Wear Pads Upper','','Old'],
+    ['15','4997.04.002','Wear Pads Lower','','Old'],
+    ['16','4977.04.004','Cylinder Ram','','Old'],
+    ['17','4977.04.003','Seal Kit','','Old'],
+    ['18','4977.21.002','Wear Pads Right Lower','','New'],
+    ['19','4977.21.003','Wear Pads Left Lower','','New'],
+    ['20','4977.21.004','Wear Pads Left Upper','','New'],
+    ['21','4977.21.005','Wear Pads Right Upper','','New'],
+    ['22','4977.21.001','Cylinder Ram','','New'],
+    ['23','4997.21.006','Seal Kit','','New'],
+  ],
+  s0017c: [
+    ['1','41522-XX','Free Lift Feed Pipe','1','See Specification'],
+    ['2','41441-XX','Main Lift Feed Pipe','1','See Specification'],
+    ['3','41442-XX','Main Lift Feed Pipe','1','See Specification'],
+    ['4','41523-XX','Sideshift Feed Pipe','1','See Specification'],
+    ['5','41524-XX','Sideshift Feed Pipe','1','See Specification'],
+    ['6','41484-00','Free Lift Feed Pipe','1',''],
+    ['7','41485-00','Sideshift Feed Pipe','1',''],
+    ['8','41486-00','Sideshift Feed Pipe','1',''],
+    ['9','41437-00','Manifold','1',''],
+    ['10','4971.05.000','Flow Control Cartridge','1','35 l/min'],
+    ['11','44057.17.000','Blanking Plug','1','1/2" BSP'],
+    ['12','44057.12.000','Male Stud Coupling (Body Only)','1','1/2" BSP - 15 mm'],
+    ['13','44057.13.000','Bulkhead Coupling (Body Only)','1','15 mm'],
+    ['14','44057.14.000','Male Stud Coupling (Body Only)','4','3/8" BSP - 10 mm'],
+    ['15','44057.15.000','Bulkhead Coupling (Body Only)','4','8 mm'],
+    ['16','44057.18.000','Straight Coupling (Body Only)','2','8 mm'],
+    ['17','44057.16.000','Straight Coupling (Body Only)','1','15 mm'],
+    ['18','41452-XX','Free Lift Hose Assembly','1','See Specification'],
+    ['19','41453-XX','Sideshift Hose Assembly','2','See Specification'],
+    ['20','41451-00','Bulkhead Bracket','1',''],
+    ['21','4627.05.000','Pipe Clamp','3','15 mm Single'],
+    ['22','4627.04.000','Pipe Clamp','3','8 mm Twin'],
+    ['23','6111.08.020','Set Screw','2','M8 x 20'],
+    ['24','6611.01.000','Button Head Screw','6','M6 x 30'],
+    ['25','6610.01.000','Button Head Screw','2','M6 x 12'],
+    ['26','6110.08.000','Plain Washer','2','M8'],
+    ['27','6120.08.000','Spring Washer','2','M8'],
+    ['28','6120.06.000','Spring Washer','3','M6'],
+    ['29','4975.09.000','Bracketed Tee','1','Ø8'],
+    ['30','4975.08.000','Equal Elbow','2','Ø8'],
+    ['31','4975.07.000','Nippled Adaptor','2','1/4" BSPT - Ø8'],
+    ['32','4975.03.000','Tube Nut','4','Ø8'],
+    ['33','4975.04.000','Olive','4','Ø8'],
+    ['34','4976.01.000','Nylon Tube','A/R','Ø8'],
+    ['35','4690.01.000','P Clip','8','1/4"'],
+    ['36','6600.01.000','Taptite Screw','8','M4 x 12'],
+    ['37','6111.06.030','Set Screw','1','M6 x 30'],
+    ['38','','Rupture Valve – Set To 1.2 mm','2','Part Of F/L Cylinder'],
+    ['100','44063.01.000','Walform Seal','–','8 mm'],
+    ['101','44063-02.000','Walform Seal','–','10 mm'],
+    ['102','44063.04.000','Walform Seal','–','15 mm'],
+    ['103','44063.05.000','Walform Spacer Ring','–','10 mm'],
+  ],
+  s0017d: [
+    ['1','41487-XX','Sideshift Feed Pipe','1','See Specification'],
+    ['2','41488-XX','Sideshift Feed Pipe','1','See Specification'],
+    ['3','41454-XX','Sideshift Hose – Secondary','2','See Specification'],
+    ['4','','Sideshift Hose – Primary','2','See LG0017-06'],
+    ['5','44057.15.000','Bulkhead Coupling (Body Only)','4','8 mm'],
+    ['6','44057.11.000','Male Stud Coupling (Body Only)','2','M14 - 8L'],
+    ['7','4627.07.000','Pipe Clamp','2','8 mm Single'],
+    ['8','','Free Lift Hose Assembly','1','See LG0017-06'],
+    ['9','41457-01','Link Pipe','1','Ø12'],
+    ['10','41457-02','Extension Pipe','1','Ø12'],
+    ['11','41457-03','Feed Pipe','1','Ø15'],
+    ['12','44057.05.000','Bulkhead Elbow','1','15L'],
+    ['13','44057.08.000','Adjustable Equal Tee','1','12L'],
+    ['14','44057.09.000','Reducing Coupling','1','15L - 12L'],
+    ['15','44057.10.000','Adjustable Elbow','2','12L'],
+    ['16','44057.07.000','Male Stud Coupling (Body Only)','2','3/8" BSP - 12L'],
+    ['17','','Rupture Valve – Set To 1.2 mm','2','Part Of F/L Cylinder'],
+    ['18','6611.01.000','Button Head Screw','2','M6 x 30'],
+    ['100','44063.01.000','Walform Seal','–','8 mm'],
+    ['101','44063-03.000','Walform Seal','–','12 mm'],
+    ['102','44063.04.000','Walform Seal','–','15 mm'],
+  ],
+  s0017e: [
+    ['1','41396-xx','Fixed Stage Mast Fabrication','1','See Specification'],
+    ['2','6596.01.000','Shim','6','40 ID x 0.5'],
+    ['3','7671.01.000','Roller Assembly','2',''],
+    ['4','7694.01.000','Leaf Chain','A/R','BL 0534'],
+    ['5','7694.02.000','Chain Anchor Bolt','2','BL 0534 MB1'],
+    ['6','7694.03.000','Chain Anchor Pin','2','8234-090 Part of Ref 5'],
+    ['7','6131.16.000','Nyloc Nut','2','M16'],
+    ['8','6353.01.000','Cotter Pin','4','1/16" x 3/8" Part of Ref 5'],
+    ['9','6351.01.000','Cotter Pin','2','1/8" x 1 1/2"'],
+    ['10','41404-xx','Cylinder','2','See Specification'],
+    ['11','41410-00','Cylinder Clamp','2',''],
+    ['12','6211.10.050','Bolt','4','M10 x 50'],
+    ['13','6131.10.000','Nyloc Nut','4','M10'],
+    ['14','55219.01.000','Limit Switch','1',''],
+    ['15','40558.06','Limit Switch Bracket','1',''],
+    ['16','7629.04.000','Rubber Buffer','2',''],
+    ['17','41583-00','Spacer','2',''],
+    ['18','6161.10.010','Grubscrew','2','M10 x 10'],
+    ['19','6566.06.000','Grease Nipple','2','M6'],
+    ['20','41343.01','Retaining Washer','2','Part of Mast Support Kit'],
+    ['21','6121.10.030','Cap Head Screw','4','Part of Mast Support Kit'],
+    ['22','6120.10.000','Spring Washer','4','Part of Mast Support Kit'],
+    ['23','6610.01.000','Button Head Screw','2','M6 x 12'],
+    ['24','6121.04.020','Cap Head Screw','2','M4 x 20'],
+    ['25','6131.04.000','Nyloc Nut','2','M4'],
+    ['26','6120.06.000','Spring Washer','2','M6'],
+    ['27','6110.06.000','Plain Washer','2','M6'],
+    ['28','7771.01.000','Repair Washer','A/R','3/8" I/Dia x 2" O/Dia'],
+  ],
+  s0017f: [
+    ['1','41398-xx','Third Stage Mast Fabrication','1','See Specification'],
+    ['2','6596.01.000','Shim','6','40 ID x 0.5'],
+    ['3','7671.01.000','Roller Assembly','2',''],
+    ['4','7694.02.000','Chain Anchor Bolt','4','BL 0534 MB1'],
+    ['5','7694.03.000','Chain Anchor Pin','4','8234-090 Part of Ref 4'],
+    ['6','6131.16.000','Nyloc Nut','4','M16'],
+    ['7','6353.01.000','Cotter Pin','8','1/16" x 3/8" Part of Ref 4'],
+    ['8','6351.01.000','Cotter Pin','4','1/8" x 1 1/2"'],
+    ['9','7694.01.000','Chain','2','BL 0534'],
+    ['10','7629.04.000','Rubber Buffer','2',''],
+    ['11','41405-xx','Cylinder','2','See Specification'],
+    ['12','41410-01','Cylinder Clamp','2',''],
+    ['13','6131.08.000','Nyloc Nut','4','M8'],
+    ['14','41406-00','Pulley Yoke','2',''],
+    ['15','41407-00','Chain Pulley','2',''],
+    ['16','7672.01.000','Bearing','2','6306-2RS'],
+    ['17','6428.01.000','Circlip','2','72 mm Internal'],
+    ['18','40206-02','Spacer','4',''],
+    ['19','41408-00','Hose Pulley','2',''],
+    ['20','41409-01','Pulley Shaft','2',''],
+    ['21','6150.30.000','Plain Washer','2','M30 Light'],
+    ['22','6161.08.010','Grub Screw','2','M8 x 10'],
+    ['23','6161.08.020','Grub Screw','4','M8 x 20'],
+    ['24','6111.08.016','Set Screw','2','M8 x 16'],
+    ['25','6120.08.000','Spring Washer','2','M8'],
+    ['26','6121.10.020','Skt Head Cap Screw','2','M10 x 20'],
+    ['27','6120.10.000','Spring Washer','2','M10'],
+    ['28','6131.10.000','Nyloc Nut','2','M10'],
+  ],
+  s_trac: [
+    ['1','55295.06.002','Drive End Head','1','FE9 - 003'],
+    ['2','55295.03.002','Drive End Bearing','1','BR - 207'],
+    ['3','55295.03.003','Drive End Bearing Circlip','1','H - 209'],
+    ['4','55295.03.004','Fan','1','F89 - 009'],
+    ['5','55295.06.003','Armature and Fan Assembly','1','FE9 - 3106'],
+    ['6','55295.03.006','Field Coil Kit','1','FE7 - 3005S'],
+    ['7','55295.04.000','Brush','8','A91 - 112A'],
+    ['8','5454.04.000','Brush Spring','8','B89 - 016'],
+    ['9','55295.03.007','Brush Plate and Box Assembly','1','J89 - 1064'],
+    ['10','55295.03.008','Brush Lead Assembly Kit','1','F97 - 2034NS'],
+    ['11','55295.06.001','Brush Wear Indicator Service Kit','1','L92 - 2032'],
+    ['12','55295.03.009','Commutator End Bearing','1','BR - 305'],
+    ['13','55295.03.010','Com End Bearing Wavy Washer','1','H - 044'],
+    ['14','55295.03.011','Commutator End Head','1','FE7 - 002'],
+    ['15','55295.03.012','Headband Assembly','1','HB - 1034'],
+    ['16','55295.06.000','Motor Complete','1',''],
+  ],
+  s_lift: [
+    ['1','55294.04.001','Drive Endhead','1','H95-003A'],
+    ['2','55294.04.002','Bearing','1','BR-107'],
+    ['3','55294.04.003','Drive End Bearing Circlip','1','H-014'],
+    ['4','55294.04.004','Fan','1','A90-109C'],
+    ['5','5454.02.003','Armature and Fan Assembly','1','BM5-3006'],
+    ['6/7','5454.02.004','Field Coil Kit','1','BM5-3005S'],
+    ['8','5454.04.000','Brush Spring','8','B89-016'],
+    ['9','5454.02.007','Brush','8','A89-012A'],
+    ['10','55295.03.007','Brush Plate Assembly','1','J89-1064'],
+    ['11','5454.02.005','Brush Lead Assembly Kit','1','L91-2035S'],
+    ['12','55294.04.008','Bearing','1','BR-205'],
+    ['13','55294.04.009','Wavy Washer','1','H-016'],
+    ['14','5454.02.001','Commutator Endhead','1','L97-002C'],
+    ['15','5454.02.006','Headband Assembly','1','HB-1052'],
+    ['16','5454.02.000','Motor Complete','1',''],
+    ['16A','5454.02.000S','Motor Complete','1','Service Exchange'],
+  ],
+  s_steer: [
+    ['1','55294.04.001','Drive Endhead','1','H95-003A'],
+    ['2','55294.04.002','Bearing','1','BR-107'],
+    ['3','55294.04.003','Drive End Bearing Circlip','1','H-014'],
+    ['4','55294.04.004','Fan','1','A90-109C'],
+    ['5','55309.02.001','Armature and Fan Assembly','1','M97-3146'],
+    ['6','55309.02.002','Field Coil Kit','1','M97-3005AS'],
+    ['7','55309.02.003','Brush','4','A97-1012'],
+    ['8','5454.04.000','Brush Spring','4','B89-016'],
+    ['9','55309.02.004','Brush Plate Assembly','1','A88-1064'],
+    ['10','55294.04.007','Brush Lead Assembly Kit','1','L93-2035AS'],
+    ['11','55294.04.008','Bearing','1','BR-205'],
+    ['12','55294.04.009','Wavy Washer','1','H-016'],
+    ['13','55309.02.005','Commutator Endhead','1','G97-102A'],
+    ['14','55309.02.006','Headband Assembly','1','HB-1061'],
+    ['15','55309.02.000','Motor Complete','1',''],
+    ['15A','55309.02.00S','Motor Complete','1','Service Exchange'],
+  ],
+  s_db: [
+    ['1','4978.12.000','Drive Axle Complete','1','69300649'],
+    ['1/1','4978.12.001','Differential Cage Assembly','1','670123575 *'],
+    ['2/1','4978.12.002','Differential Gear Set','1','670124102 *'],
+    ['3/1','4978.12.003','Differential Spider','1','660040730'],
+    ['4/1','4978.12.004','Pinion Thrust Washer','4','660040755'],
+    ['5/1','4978.12.005','Wheel Thrust Washer','2','630031751'],
+    ['6/1','6211.08.xxx','Bolt M8','8','748230551'],
+    ['7/1','4978.09.048','Washer – Spring','4','660240108'],
+    ['8/1','4978.12.006','Bearing – Taper Roller','2','660102142 **'],
+    ['9/1','4978.12.007','Shim','a/r','631042484'],
+    ['10/1','4978.12.008','Shim','a/r','631042476'],
+    ['11/1','4978.12.009','Shim','a/r','631042468'],
+    ['12/1','4978.12.010','Bearing – Taper Roller','3','660101979 **'],
+    ['13/1','4978.12.011','Cover Plate','2','631036718'],
+    ['14/1','6211.08.xxx','Bolt M8','6','748210793'],
+    ['15/1','4978.12.012','Spacer','1','632076556'],
+    ['16/1','4978.12.013','Retaining Ring','1','660070216'],
+    ['17/1','4978.12.014','Bearing – Taper Roller','1','660102100 **'],
+    ['18/1','4978.12.015','Seal','1','742736033'],
+    ['19/1','4978.12.015','Input Pinion – Helical','1','63004965'],
+    ['20/1','4978.12.016','Intermediate Gear Assembly','1','670051016 ***'],
+    ['23/1','4978.12.017','Wheel – Helical','1','63005055'],
+    ['24/1','6211.12.xxx','Bolt M12','10','631180300'],
+    ['25/1','6131.12.000','Nut – Self Locking','10','660191343'],
+    ['26/1','4978.12.018','Magnetic Plug','1','670184056'],
+    ['27/1','4978.09.061','Plug','1','742223040'],
+    ['28/1','4978.12.019','Drive Shaft – Short','1','633045139'],
+    ['1/2','6121.10.xxx','Capscrew M10','12','748011076'],
+    ['2/2','6120.10.000','Spring Washer','12','740773053'],
+    ['3/2','4978.12.020','Dowel','6','630048110'],
+    ['4/2','4978.12.021','Oil Seal','2','660301348'],
+    ['5/2','4978.12.022','Locknut Assembly','2','689003370 *'],
+    ['6/2','4978.12.023','Wheel Stud','12','630020812'],
+    ['7/2','4978.12.024','Bearing – Taper Roller','4','660102092 **'],
+    ['8/2','9478.12.025','Hub','2','632017683'],
+    ['9/2','4978.12.026','Wheel Spacer','2','63307681'],
+    ['1/3','4978.12.027','Gear Casing Assembly','1','67112123 ***'],
+    ['2/3','6211.10.065','Bolt','6','748230767'],
+    ['3/3','6211.10.050','Bolt','2','748230734'],
+    ['4/3','6211.10.040','Bolt','3','748230718'],
+    ['6/3','4978.12.028','Drive Shaft – Long','1','632045742'],
+    ['7/3','6220.10.000','Spring Washer (M10)','11','660240116'],
+    ['8/3','4978.12.029','Wheel Nut','12','660160074'],
+    ['','4978.12.030','Plug','1','660191020'],
+    ['','4978.12.031','Breather / Relief Valve','1','660500246'],
+    ['','4978.12.032','Dowel','2','740100562'],
+  ],
+  s_kordel: [
+    ['10','01.1465.0','Housing Half Right','1',''],
+    ['20','01.1466.0','Housing Half Left','1',''],
+    ['40','','Differential Housing Complete','1','Parts 0600173 + 0600183'],
+    ['60','09.0689.4','Bearing Cover','2',''],
+    ['80','10.1521.3','Half Shaft','1',''],
+    ['90','10.1522.3','Half Shaft','1',''],
+    ['110','13.0007.4','Differential Shaft','2',''],
+    ['130','15.0494.2','Bearing Flange','1',''],
+    ['150','16.0111.3','Axle Tube','1',''],
+    ['170','17.0034.3','Wheel Hub','2',''],
+    ['190','32.0303.4.4','Differential Gear','4',''],
+    ['200','33.0446.3','Differential Gear','2',''],
+    ['220','43.0596.4','Helical Pinion','1',''],
+    ['230','43.0597.4','Helical Pinion','1',''],
+    ['250','44.0559.3','Helical Gear','1',''],
+    ['260','44.0560.4','Helical Gear','1',''],
+    ['280','61.0013.4','Wheel Bolt','12',''],
+    ['320','65.1596.4','Ring','2',''],
+    ['340','66.0140.4','Spacer','1',''],
+    ['350','66.0176.4','Washer','4',''],
+    ['360','233 0700805','Support Washer','1',''],
+    ['370','66.0457.4','Washer','2',''],
+    ['380','72.1321.4','Name Plate','1',''],
+    ['400','106 0107100','Roller Bearing','3',''],
+    ['410','106 0008100','Roller Bearing','1',''],
+    ['420','106 0313100','Roller Bearing','6',''],
+    ['440','234 070080','Spacer','1',''],
+    ['460','200 0401503','Shaft Seal','1',''],
+    ['470','200 0800303','Shaft Seal','2',''],
+    ['490','230 1003060','Lock Ring','2',''],
+    ['500','233 0400504','Support Washer','1',''],
+    ['510','367 0000620','Wheel Nut','12',''],
+    ['530','307 0501040','Socket Screw','6',''],
+    ['540','307 1002540','Socket Screw','8',''],
+    ['550','307 1003050','Socket Screw','12',''],
+    ['560','307 1004040','Socket Screw','5',''],
+    ['570','307 1006540','Socket Screw','6',''],
+    ['580','307 1008050','Socket Screw','12',''],
+    ['600','453 0300060','Pin','2',''],
+    ['610','453 1000200','Pin','2',''],
+    ['620','455 1000303','Pin','2',''],
+    ['630','455 1000362','Pin','4',''],
+    ['640','463 1002400','Cylinder Screw','6',''],
+    ['650','480 0260400','Fixing Pin','2',''],
+    ['670','340 0375110','Filler Plug','1',''],
+    ['680','340 0500110','Oil Level Screw','1',''],
+    ['690','339 0500117','Magnetic Drain Plug','1',''],
+    ['700','391 5000101','Breather','1',''],
+    ['710','340 0125110','Screw','1',''],
+    ['720','250 0000620','LOCTITE 620','1',''],
+    ['730','250 0000574','LOCTITE 574','1',''],
+    ['740','251 0005249','DELO 5249','1',''],
+    ['750','700 4070014','Bearing Grease L474 Bechem Rhus','0.001','KG'],
+    ['800','700 1110033','Aral Oil SAE 85W-90','1',''],
+  ],
+  s_tailift: [
+    ['1','300095','Axle Seat','1',''],
+    ['2','30092','Gear Casing','1',''],
+    ['3','30088+30094','Spacer + Washer','1',''],
+    ['4','M1308-10*32','Key','1','10 x 8 x 32'],
+    ['5','30091','Cover Plate','1',''],
+    ['6','M1402-M8*25','Hex Head Bolt','6','M8 x 25mm'],
+    ['7','M0904-30307','Taper Roller Bearing','2',''],
+    ['8','30074','Intermediate Gear','1',''],
+    ['9','30073','Wheel – Helical','1',''],
+    ['10','M0904-32013','Taper Roller Bearing','2',''],
+    ['11','30093','Gear Casing (2)','1',''],
+    ['12','M1301-16*20','Pin','2','Ø16 x 20mm'],
+    ['13','30090','Connecting Shaft','1',''],
+    ['14','M1301-16*32','Pin','4','Ø16 x 32mm'],
+    ['15','30089','Axle Seat','1',''],
+    ['16','M0702045','Oil Seal','2','TB80 x 105 x 13(ACM)'],
+    ['17','30085','Hub','2',''],
+    ['18','30086','Axle Screw','12',''],
+    ['19','M0904-32013','Taper Roller Bearing','4',''],
+    ['20','M1401-M10*30','Cap Head Screw','16','M10 x 30mm'],
+    ['21','M1422-CBS5-8','Cap Head Screw (short head)','6','CBS5-8'],
+    ['22','M1301-10*30','Pin','4','Ø10 x 30mm'],
+    ['23','30083','Locknut','1',''],
+    ['24','30084','Locknut','1',''],
+    ['25','30079','Drive Shaft – Long','1',''],
+    ['26','30082','Differential Case','1',''],
+    ['27','31502017','Differential Gear','2',''],
+    ['28','M1401-M10*30','Hex Head Bolt','12','M10 x P1.25 x 30mm'],
+    ['29','30081','Differential Case','1',''],
+    ['30','32502009','Washer','2',''],
+    ['31','M1402-M8*70','Hex Head Bolt','12','M8 x 70mm'],
+    ['32','30078','Drive Shaft – Short','1',''],
+    ['33','M0904-32009X','Taper Roller Bearing','1',''],
+    ['34','30076','Input Pinion – Helical','1',''],
+    ['35','30071','Spacer','1',''],
+    ['36','M0904-30307','Taper Roller Bearing','1',''],
+    ['37','30075','Wheel – Helical','1',''],
+    ['38','92502010','Exhaust Pipe','1',''],
+    ['39','32502015','Differential Gear','4',''],
+    ['40','32502014','Washer Differential Gear','4',''],
+    ['41','30080','Differential Spider','1',''],
+  ],
+  s0030a: [
+    ['1','55165.01.000','Traction Controller','1','LXT'],
+    ['2','55167.01.000','LX Display/BDI/Hourmeter','1',''],
+    ['3','55165.03.000','Truck Management Module','1',''],
+    ['4','5327.06.000','P.M.T. Driver','1',''],
+    ['5','41283.00','Mounting Plate','1',''],
+    ['6','55385.01.000','Battery Connector Male','1',''],
+    ['7','55385.04.000','Battery Connector Female','1',''],
+    ['8','55385.02.000','Battery Connector Handle','1',''],
+    ['9','55385.03.000','Battery Connector 24v Pin Male','1',''],
+    ['10','55385.05.000','Battery Connector 24v Pin Female','1',''],
+    ['11','5845.01.000','SW80A Contactor','1',''],
+    ['12','5300.02.000','Horn','1','Klaxon'],
+    ['15','55349.01.000','Zener Diode 68v','1',''],
+    ['16','5397.01.000','25A Stud Diode','1',''],
+    ['17','55094.01.000','M.O.V.','1',''],
+    ['18','55099.01.000','100uF Capacitor','2',''],
+    ['19','5400.01.000','Resistor Diode Suppressor','4',''],
+    ['20','55392.01.000','Resistor 12R 50W','1',''],
+    ['21','55096.01.000','400A Fuse','2','F1,F2'],
+    ['22','5367.01.000','100A Fuse','1','F3'],
+    ['23','55444.01.000','Fuseholder','1','F3'],
+    ['24','55166.02.000','Y Plug/Pin Kit','1',''],
+    ['25','55166.03.000','A Plug/Pin Kit','1',''],
+    ['26','55167.02.000','LX Meter Plug/Pin Kit','1',''],
+    ['27','55197.07.000','Terminal Rail','1',''],
+    ['28','3975','Terminal Rail Bracket','1',''],
+    ['29','7709.01.000','Cable Sleeving','1','Metre'],
+    ['30','5882.01.000','Cable Rubber Boot','4',''],
+    ['31','5849.03.000','11 Pin Relay 24v 16A','1',''],
+    ['32','55155.01.000','Suppressor','1',''],
+    ['33','55197.01.000','Terminals Sak 2.5','14',''],
+    ['34','55197.06.000','Fuse Terminal','2',''],
+    ['35','55197.02.000','End Bracket','2',''],
+    ['36','55197.03.000','End Plate','1',''],
+    ['37','55197.08.000','Fuse End Plate','1',''],
+    ['38','55201.01.000','10A Fuse','2',''],
+    ['39','55434.08.000','12 Way Male Plug','6','AMP'],
+    ['40','55434.12.000','Male Pins','a/r','AMP'],
+    ['41','55434.14.000','Male Pins (gold flashed)','2','AMP'],
+  ],
+  s0030b: [
+    ['2','5397.01.000','Stud Diode – 25A','1',''],
+    ['3','5365.01.000','Inline Fuseholder','1',''],
+    ['4','55384.04.000','1A Fuse','1',''],
+    ['5','5400.01.000','Resistor/Diode Supressor','3',''],
+    ['6','55197.01.000','SAK 2.5 Terminal','14',''],
+    ['7','55197.03.000','SAK 2.5 End Plate','1',''],
+    ['8','55197.06.000','Fuse Terminal','3',''],
+    ['9','55197.02.000','End Bracket','2',''],
+    ['10','55197.08.000','Fuse End Plate','1',''],
+    ['11','55201.01.000','Fuse – 10A','3',''],
+    ['13','5849.03.000','Relay – 24v DC – 16A','1',''],
+    ['14','55115.01.000','Supressor','1',''],
+    ['15','55485.01.000','Contactor – SW200 24v','1',''],
+    ['16','55434.08.000','12 Way Plug Housing','3',''],
+    ['17','55434.09.000','12 Way Receptacle','1',''],
+    ['18','55434.19.000','6 Way Plug Housing','3',''],
+    ['19','55434.20.000','6 Way Receptacle','1',''],
+    ['20','55434.12.000','Male Connector Pin','45',''],
+    ['21','55434.13.000','Female Connector Pin','26',''],
+    ['22','5349.01.000','Contactor Bracket – Large Single','1','for SW200'],
+    ['23','5388.01.000','Diode','2',''],
+    ['25','55481.01.000','Zapi H2 Mosfet Control System','1',''],
+    ['30','41283.00','Electrical Mounting Plate','1',''],
+    ['31','55385.02.000','Battery Handle','2',''],
+    ['32','55385.01.000','Battery Plug Male','2',''],
+    ['33','6110.08.000','Plain Washer','4','M8'],
+    ['34','6120.08.000','Spring Washer','6','M8'],
+    ['35','6602.01.000','Taptite Screw – Hex Hd.','2','M6 x 12'],
+    ['36','6600.01.000','Taptite Screw – Pozi. Hd.','7','M4 x 12'],
+    ['37','6111.08.020','Hex Head Setscrew','4','M8 x 20'],
+    ['40','6211.08.050','Hex Head Bolt','1','M8 x 50'],
+    ['41','6111.08.000','Plain Nut','2','M8'],
+    ['43','55385.04.000','Battery Plug Female','1',''],
+  ],
+  s_sw80b: [
+    ['A','55490.01.000','Contactor','1','SW80B-464'],
+    ['1','5611.01.000','Fixed Contact Assembly','2','2070-46'],
+    ['2','5876.01.000','Moving Contact Assembly','1','2070-13'],
+    ['3','55490.01.001','Top Cover','1','2070-58'],
+    ['4','55490.01.002','Fixing Screws','2','2070-19'],
+    ['5','55490.01.003','Return Spring','1','2070-16D'],
+    ['6','55490.01.004','Frame And Coil','1','2070-20H'],
+  ],
+  s_sw200: [
+    ['A','55490.02.000','Contactor','1','SW200-421'],
+    ['1','55490.02.001','Fixing Screw','2','2155-22'],
+    ['2','55490.02.002','Top Cover','1','2155-65'],
+    ['3','5435.01.000','Fixed Contact','2','2155-19'],
+    ['4','5436.01.000','Moving Contact','1','2155-23'],
+    ['5','55490.02.003','Return Spring','1','2065-156A'],
+    ['6','55490.02.004','Top Cover Base','1','2155-2'],
+    ['7','55490.02.005','Plunger','1','2155-7'],
+    ['8','55490.02.006','Frame And Coil','1','2155-53FF'],
+    ['9','55490.02.007','End Cap','1','2155-281'],
+  ],
+  s_sw249: [
+    ['A','55490.03.000','Contactor','1','SW201-249T'],
+    ['1','55490.02.001','Fixing Screw','2','2155-22'],
+    ['2','55490.03.001','Top Cover','1','2155-65F'],
+    ['3','55490.03.002','Fixed Contact','2','2155-594'],
+    ['4','55490.03.003','Moving Contact','1','2155-549'],
+    ['5','55490.03.004','Return Spring','1','2065-43L'],
+    ['6','55490.02.004','Top Cover Base','1','2155-2'],
+    ['7','55490.02.005','Plunger','1','2155-7'],
+    ['8','55490.03.005','Frame And Coil','1','2155-53NW'],
+    ['9','55490.02.007','End Cap','1','2155-281'],
+    ['10','55490.03.006','N/C Fixed Contact','2','2155-595'],
+    ['11','55490.03.007','Cranked Link','1','2155-48'],
+  ],
+  s_sw258: [
+    ['A','55490.04.000','Contactor','1','SW202-258T'],
+    ['1','55490.02.001','Fixing Screw','2','2155-22'],
+    ['2','55490.03.001','Top Cover','1','2155-65F'],
+    ['3','55490.03.002','Fixed Contact','2','2155-594'],
+    ['4','55490.03.003','Moving Contact','1','2155-549'],
+    ['5','55490.04.001','Return Spring','1','2155-126B'],
+    ['6','55490.02.004','Top Cover Base','1','2155-2'],
+    ['7','55490.02.005','Plunger','1','2155-7'],
+    ['8','55490.04.002','Frame And Coil','1','2155-53FC'],
+    ['9','55490.02.007','End Cap','1','2155-281'],
+    ['10','55490.03.006','N/C Fixed Contact','2','2155-595'],
+    ['11','55490.04.003','N/C Fixed Contact','1','2155-596'],
+    ['12','55490.03.007','Cranked Link','2','2155-48'],
+    ['13','55490.04.004','Straight Link','1','2155-50'],
+  ],
+  s_sw80: [
+    ['','5940.01.000','SW80','','24 Volt'],
+    ['','5385.01.000','SW80','','36 Volt'],
+    ['','5845.01.000','SW80A','','48 Volt'],
+    ['','5377.01.000','SW80','','48 Volt'],
+    ['','5872.01.000','SW80A','','72 Volt'],
+    ['','55438.01.000','SW80A','','80 Volt'],
+    ['1','5845.01.001','SW80 Contact Kit','1',''],
+    ['2','5872.01.004','Return Spring','1','2070-16'],
+    ['3a','5872.02.000','Coil and Magnet','1','72 Volt'],
+    ['3b','5845.02.000','Coil and Magnet','1','48 Volt'],
+    ['3c','5385.02.000','Coil and Magnet','1','36 Volt'],
+    ['3d','5940.02.000','Coil and Magnet','1','24 Volt'],
+    ['4','5618.01.000','Auxiliary Contact Kit','1',''],
+  ],
+  s_fwdrev: [
+    ['','55262.20.000','Complete Contact Assembly','1',''],
+    ['1','55262.24.000','Contact Tip Kit','1',''],
+    ['2','55262.15.000','Upper Bus Insulation','2','44A297274P001'],
+    ['3','55262.13.000','Spring','2','259A3238P1'],
+    ['4','55262.19.000','Moving Tip Carrier','2','44A297267P001'],
+    ['5','55262.11.000','Plunger Bush','2','44A297268G001'],
+    ['6','55262.12.000','Spring','2','44A297287P001'],
+    ['7','55262.26.000','Cover','2','44B716719P001'],
+    ['8','55262.27.000','Bus Clamp','4','44B716722P001'],
+    ['9','55262.28.000','Bus Base','2','44B716121P001'],
+    ['10','55262.29.000','Frame','2','44B716726P001'],
+    ['11','55262.30.000','Coil','2','44B716737G124'],
+    ['12','55262.31.000','Magnet Base','1','44A297280G002'],
+    ['13','55262.32.000','Clamp','2','245A8493P003'],
+  ],
+  s_bypass: [
+    ['','55262.23.000','Complete Contactor Assembly','2',''],
+    ['1','55262.25.000','Contact Tip Kit','2',''],
+    ['2','55262.33.000','Plate Magnet Base','1','44A297280G004'],
+    ['3','55262.30.000','Coil 24Volt','1','44B716737G124'],
+    ['4','55262.34.000','Spring Retainer','1','259A3201P1'],
+    ['5','55262.35.000','Bus Clamp','2','44B716729P001'],
+    ['6','55262.18.000','Plunger Bush','1','44A297268P001'],
+    ['7','55262.36.000','Carrier (Movable)','1','44A297267P001'],
+    ['8','55262.10.000','Spring Seat','1','44A297274P002'],
+    ['9','55262.37.000','Spring','1','259A3202P1'],
+    ['10','55262.38.000','Tip Spring Retainer','1','259A1298P1'],
+    ['11','55262.39.000','Bus Base','1','44B716721P001'],
+    ['12','55262.40.000','Armature Assembly','1','44A297281G002'],
+  ],
+  s0018: [
+    ['1','40222-00','Capacity Plate','1',''],
+    ['3','40084-02','Warning Label','1','General Operation'],
+    ['4','40084-12','Instruction Label','1','Lifting Points'],
+    ['5','40084-00','Warning Label','2','Hand Crush - Side Force'],
+    ['6','40084-01','Warning Label','2','Foot Crush - Side Force'],
+    ['7','40084-03','Warning Label','1','Tip Over'],
+    ['8','7207.01.000','Lifting Point Label','4',''],
+    ['9','40084-04','Warning Label','2','Overhead Loads'],
+    ['10','40155-00','Battery Plug Label','1',"'Charge'"],
+    ['11','40113-00','Instruction Label','1','Pedal Functions'],
+    ['12','40129-00','Instruction Label','1','Transmission Oil Fill Point'],
+    ['13','40129-01','Instruction Label','1','Hydraulic Oil Fill Point'],
+    ['15','7618.02.000','Flexi Logo','1','Set'],
+    ['18','41344.00','Warning Label','1',''],
+  ],
+  s0019: [
+    ['1','55327.01.000','Audible Alarm','1',''],
+    ['2','55006.01.000','Resistor 22R 25W','1',''],
+    ['3','55195.01.000','Zener Diode 47v','1',''],
+    ['4','55154.01.000','Bridge Rectifier','1',''],
+    ['5','749','Zener Diode Bracket','1',''],
+    ['6','6620.01.000','Plastic Screw','2',''],
+    ['7','6621.01.000','Washer','2',''],
+    ['8','6539.01.000','Insulation Spacer','1',''],
+    ['9','41284.00','Mounting Bracket','1',''],
+  ],
+  s0020: [
+    ['1','41339.00','Battery Lid','1',''],
+    ['2','41337.00','Front Electrics Cover','1',''],
+    ['3','41390.00','Arm Rest','1',''],
+    ['4','41385.00','Seat Pan','1',''],
+    ['5','41336.01','Front Nose Cone Cover','1',''],
+    ['7','7659.01.000','Gas Strut','1',''],
+    ['8','41342.00','Traction Lever Facia','1',''],
+    ['9','55497.01.000','Document Holder','1',''],
+    ['10','41392.00','Hinge','1',''],
+    ['14','7633.27.000','Seat','1','6520 - MSG 20 inc. Belt'],
+    ['15','41372.00','Seat Frame','1',''],
+    ['16','41321.02','Floor Plate','1',''],
+    ['18','6131.06.016','Csk Setscrew','4','M6 x 16'],
+    ['20','6131.08.000','Nyloc Nut','5','M8'],
+    ['22','41372.02','Seat Frame Support','2',''],
+    ['23','6111.08.025','Hex Head Setscrew','2','M8 x 25'],
+    ['24','6111.08.030','Hex Head Setscrew','2','M8 x 30'],
+    ['25','6120.06.000','Spring Washer','4','M6'],
+    ['26','7598.03.000','Handle','2','Battery Lid'],
+    ['28','6110.10.000','Plain Washer','4','M10'],
+    ['32','6600.01.000','Pozi Pan Screw','4','M4 x 12'],
+    ['33','41393.00','Hinge Bolt','2','M10'],
+    ['34','6610.01.000','Button Head Screw','2','M6 x 12'],
+    ['35','6613.01.000','Button Head Screw','2','M6 x 30'],
+    ['38','41394.00','Seat Stop','1',''],
+    ['39','6221.08.040','Cap Head Screw','1','M8 x 40'],
+  ],
+  s0021: [
+    ['1','55480.07.00','CCTV Camera','1','Maplin ref. PP30H'],
+    ['2','41503-xx','Mounting Kit Camera','1','See Specification'],
+    ['3','41438-04','Cable Clamp Mountings','1','Reference Drawing'],
+    ['4','41438-xx','Mounting Details','1','Reference Drawing'],
+    ['5','41504-xx','Cable Conduit','1','See Specification'],
+    ['6','41408-02','Hose Pulley','1',''],
+    ['7','4627.08.000','Stauff Clamp SP109.5-PP-TS','2','9.5mm'],
+    ['8','55434.01.000','Plug RS 448-418','2',''],
+    ['9','55434.02.000','Socket RS 448-430','1',''],
+    ['10','55434.03.000','Socket RS 452-170','1',''],
+    ['11','5117.08.000','3 Core Screened Cable','18m','Igus Chainflex CF2.10.03'],
+    ['12','6111.08.020','Set Screw','4','M8 x 20'],
+    ['13','6610.01.000','Button Head Screw','10','M6 x 12'],
+    ['14','6152.06.002','Pan Head Screw','4','6 BA x 1/2"'],
+    ['15','6132.06.000','Nyloc Nut','4','6 BA'],
+  ],
+  s0050: [
+    ['1','41323.00','Wire Loom A – Control Panel to Control Pod','1',''],
+    ['2','41323.01','Wire Loom B – Control Panel to Spool Valve','1',''],
+    ['3','41323.02','Wire Loom C – Control Panel to Mast/Deadman Switch','1',''],
+    ['4','41323.03','Wire Loom D – Control Panel to Lift & Steer Motors','1',''],
+    ['5','','Wire Loom E (BDI)','1','Part of Control Panel'],
+    ['6','41323.04','Wire Loom F – Control Panel to Horn & Seat Switch','1',''],
+  ],
+  s0051: [
+    ['1','41323.05','Heavy Cable No. 2 – Line Contactor - Fuse','1',''],
+    ['2','41323.06','Heavy Cable No. 20 – Steer & Lift/Tilt Motor Link','1',''],
+    ['3','41323.07','Heavy Cable No. 20 – Steer Motor - Main Negative','1',''],
+    ['4','41323.08','Heavy Cable P2 – Lift/Tilt Motor - K4','1',''],
+    ['5','41323.09','Heavy Cable P4 – Steer Motor - K5','1',''],
+    ['6','41323.10','Heavy Cable A1','','Available as kit – See LG0053 Item 3'],
+    ['7','41323.11','Heavy Cable A2','','Available as kit – See LG0053 Item 3'],
+    ['8','41323.12','Heavy Cable D1','','Available as kit – See LG0053 Item 3'],
+    ['9','41323.13','Heavy Cable D2','','Available as kit – See LG0053 Item 3'],
+  ],
+  s0052: [
+    ['1','41323.14','Wire Loom','','Available as kit – See LG0053 Item 3'],
+    ['2','41323.15','Wire Loom – Deadman Switch to Loom C','1',''],
+    ['3','41323.17','Wire Loom – Keycode System to Key Switch & Horn','1',''],
+    ['4','41323.18','Optional Wire Loom – Keycode System','1',''],
+    ['5','41323.19','Wire Loom G – DC Convertor','1',''],
+    ['6','41323.20','Wire Loom – Fan Lead','2',''],
+    ['7','41323.21','Wire Loom Horn PB','1',''],
+  ],
+  s0053: [
+    ['1','41323.22','Wire Loom – Horn','1',''],
+    ['2','41323.23','Wire Loom – Reverse Alarm','1',''],
+    ['3','41323.24','Wire Loom Assembly from Zappi to Traction Motor','1',''],
+    ['4','41323.25','Wire Loom – Fwd/Rev Lever','1',''],
+    ['5','41323.26','Wire Loom – Battery Cable Panel/Male','1',''],
+    ['6','41323.27','Wire Loom – Battery Cable F/F','1',''],
+  ],
+};
+
+// Section titles map for search
+const SECTION_TITLES = {
+  s0001:'Battery Tray Assembly', s0002:'Steering Column Module', s0003:'Steer Motor Extension',
+  s0004:'Front Axle Assembly', s0005:'Mast Support Assembly', s0006:'Rear Wheel Assembly',
+  s0006s:'Rear Wheel Brake Assembly', s0007:'Oil Tank Module', s0008:'Overhead Guard',
+  s0009:'Spool Valve Assembly', s0012:'Controls', s0013:'Pedal Plate Module',
+  s0016:'Chassis Kit', s0017a:'Second Stage Mast', s0017b:'Fork Carriage Assembly',
+  s0017c:'Hydraulic Comps Fixed Stage', s0017d:'Hydraulic Comps Third Stage',
+  s0017e:'Fixed Stage Mast', s0017f:'Third Stage Mast',
+  s_trac:'Traction Motor', s_lift:'Lift Motor', s_steer:'Steer Motor',
+  s_db:'David Brown Axle', s_kordel:'Kordel Axle', s_tailift:'Tailift Axle',
+  s0030a:'Electrical Module GE', s0030b:'Electrical Module No Battery Tap',
+  s_sw80b:'Solenoid Switch SW80B', s_sw200:'Solenoid Switch SW200',
+  s_sw249:'Solenoid Switch SW201', s_sw258:'Solenoid Switch SW202',
+  s_sw80:'Contactor SW80', s_fwdrev:'Contactor Fwd/Rev', s_bypass:'Contactor Bypass',
+  s0018:'Labels', s0019:'Reverse Alarm Kit', s0020:'Seat and Covers',
+  s0021:'Camera Mounting Kit', s0050:'Wiring Looms LG0050', s0051:'Wiring Looms LG0051',
+  s0052:'Wiring Looms LG0052', s0053:'Wiring Looms LG0053',
+};
+
+// ===================== RENDER TABLES =====================
+function renderTables() {
+  for (const [sid, rows] of Object.entries(PARTS)) {
+    const tbody = document.getElementById('tb_' + sid);
+    if (!tbody) continue;
+    tbody.innerHTML = rows.map(r => buildRow(r, sid)).join('');
+  }
+}
+
+function buildRow([item, partNo, desc, qty, remarks], sid, hl='') {
+  const pnDisp = hl ? partNo.replace(new RegExp(hl,'gi'), m=>`<span class="hl">${m}</span>`) : partNo;
+  const dDisp  = hl ? desc.replace(new RegExp(hl,'gi'), m=>`<span class="hl">${m}</span>`) : desc;
+  const canAdd = partNo && partNo.trim() !== '';
+  return `<tr>
+    <td class="item-no">${item}</td>
+    <td class="part-no">${pnDisp}</td>
+    <td class="description">${dDisp}</td>
+    <td class="qty">${qty}</td>
+    <td class="remarks">${remarks}</td>
+    <td class="add-col">${canAdd ? `<button class="add-btn" title="Add to basket" onclick='addToCart(${JSON.stringify(partNo)},${JSON.stringify(desc)},${JSON.stringify(qty)},${JSON.stringify(SECTION_TITLES[sid]||"G3")})'>+</button>` : ''}</td>
+  </tr>`;
+}
+
+// ===================== NAVIGATION =====================
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.sidebar-item').forEach(b => b.classList.remove('active'));
+  const sec = document.getElementById(id);
+  if (sec) { sec.classList.add('active'); sec.scrollIntoView({behavior:'instant',block:'start'}); }
+  document.querySelectorAll('.sidebar-item').forEach(b => {
+    if (b.getAttribute('onclick') && b.getAttribute('onclick').includes(id)) b.classList.add('active');
+  });
+  document.getElementById('search-results').classList.remove('active');
+  document.getElementById('content').scrollTop = 0;
+}
+
+// ===================== SEARCH =====================
+let searchTimer;
+document.getElementById('search-input').addEventListener('input', function() {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => doSearch(this.value.trim()), 200);
+});
+
+function doSearch(q) {
+  const sr = document.getElementById('search-results');
+  if (!q) {
+    sr.classList.remove('active');
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    const first = document.querySelector('.sidebar-item');
+    if (first) { const match = first.getAttribute('onclick').match(/'([^']+)'/); if (match) showSection(match[1]); }
+    return;
+  }
+  const re = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'i');
+  let html = '';
+  let total = 0;
+  for (const [sid, rows] of Object.entries(PARTS)) {
+    const matched = rows.filter(r => re.test(r[1]) || re.test(r[2]));
+    if (!matched.length) continue;
+    total += matched.length;
+    html += `<div class="search-group">
+      <div class="search-group-title">${SECTION_TITLES[sid] || sid}</div>
+      <div class="parts-table-wrap"><table class="parts">
+        <thead><tr><th>Item</th><th>Part Number</th><th>Description</th><th>Qty</th><th>Remarks</th><th></th></tr></thead>
+        <tbody>${matched.map(r => buildRow(r, sid, q)).join('')}</tbody>
+      </table></div></div>`;
+  }
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  sr.innerHTML = `<p class="search-result-count">${total} result${total!==1?'s':''} for "<strong>${q}</strong>"</p>${html || '<p style="color:var(--text-dim);font-size:13px">No results found.</p>'}`;
+  sr.classList.add('active');
+}
+
+// ===================== CART =====================
+const CART_KEY = 'flexiPartsCart';
+
+function loadCart() {
+  try { return JSON.parse(localStorage.getItem(CART_KEY)) || []; } catch { return []; }
+}
+function saveCart(cart) { localStorage.setItem(CART_KEY, JSON.stringify(cart)); }
+
+function addToCart(partNo, desc, qty, system) {
+  const cart = loadCart();
+  const existing = cart.find(i => i['Part Number'] === partNo);
+  if (existing) { existing.qty = (parseInt(existing.qty)||1) + 1; }
+  else { cart.push({'Part Number': partNo, 'Description': desc, 'Supplier Code': '', 'System': 'Flexi G3 – ' + system, qty: 1}); }
+  saveCart(cart);
+  updateBadge();
+  showToast(`Added: ${partNo}`);
+}
+
+function updateBadge() {
+  const cart = loadCart();
+  const total = cart.reduce((s,i) => s + (parseInt(i.qty)||1), 0);
+  document.getElementById('cart-badge').textContent = total;
+}
+
+function openCart() {
+  renderCart();
+  document.getElementById('cart-modal').classList.add('open');
+}
+function closeCart() { document.getElementById('cart-modal').classList.remove('open'); }
+
+function renderCart() {
+  const cart = loadCart();
+  const el = document.getElementById('cart-items');
+  if (!cart.length) { el.innerHTML = '<div class="cart-empty">Your basket is empty.</div>'; return; }
+  el.innerHTML = `<div class="cart-row cart-row-head"><span>Part</span><span>System</span><span>Qty</span><span></span></div>` +
+    cart.map((item, idx) => `
+    <div class="cart-row">
+      <div class="part-info"><strong>${item['Part Number']}</strong><span>${item['Description']}</span></div>
+      <div style="font-size:11px;color:var(--text-dim)">${item['System']||''}</div>
+      <div class="qty-ctrl">
+        <button onclick="changeQty(${idx},-1)">−</button>
+        <input type="number" min="1" value="${item.qty||1}" onchange="setQty(${idx},this.value)">
+        <button onclick="changeQty(${idx},1)">+</button>
+      </div>
+      <button class="remove-btn" onclick="removeItem(${idx})">×</button>
+    </div>`).join('');
+}
+
+function changeQty(idx, delta) {
+  const cart = loadCart();
+  cart[idx].qty = Math.max(1, (parseInt(cart[idx].qty)||1) + delta);
+  saveCart(cart); updateBadge(); renderCart();
+}
+function setQty(idx, val) {
+  const cart = loadCart();
+  cart[idx].qty = Math.max(1, parseInt(val)||1);
+  saveCart(cart); updateBadge(); renderCart();
+}
+function removeItem(idx) {
+  const cart = loadCart();
+  cart.splice(idx, 1);
+  saveCart(cart); updateBadge(); renderCart();
+}
+function clearCart() {
+  if (!confirm('Clear all items from basket?')) return;
+  saveCart([]); updateBadge(); renderCart();
+}
+
+function submitOrder() {
+  const cart = loadCart();
+  const name = document.getElementById('requester-name').value.trim();
+  if (!cart.length) { showToast('Basket is empty'); return; }
+  if (!name) { document.getElementById('requester-name').focus(); showToast('Please enter your name'); return; }
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true; btn.textContent = 'Submitting…';
+
+  const payload = {
+    requester: name,
+    timestamp: new Date().toISOString(),
+    source: 'Flexi G3 Parts Manual',
+    items: cart
+  };
+
+  fetch('https://script.google.com/macros/s/AKfycbyU-lHV9jXm7jvmxuWExv_hF9QKZRH5xCGQyTsGDuV5UiKxSTCqVN1AUyH76QU0v2k/exec', {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(payload)
+  }).then(() => {
+    saveCart([]);
+    updateBadge();
+    closeCart();
+    showToast('Order submitted successfully!');
+    btn.disabled = false; btn.textContent = 'Submit Order';
+  }).catch(() => {
+    showToast('Submission failed – please try again');
+    btn.disabled = false; btn.textContent = 'Submit Order';
+  });
+}
+
+document.getElementById('cart-btn').addEventListener('click', openCart);
+document.getElementById('cart-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeCart();
+});
+
+// ===================== TOAST =====================
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ===================== INIT =====================
+renderTables();
+updateBadge();
+</script>
+</body>
+</html>
