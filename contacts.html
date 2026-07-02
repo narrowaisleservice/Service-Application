@@ -1,23 +1,24 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Customer Contacts — Narrow Aisle</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&family=Barlow+Condensed:wght@800&display=swap" rel="stylesheet">
-<style>
+<meta>
+ 
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ 
+ <title>
+  Customer Contacts — Narrow Aisle
+ </title>
+ <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&family=Barlow+Condensed:wght@800&display=swap" rel="stylesheet">
+ <style>
   *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
   :root {
-    --red: #E8001D;
-    --red-dim: rgba(232,0,29,0.08);
-    --red-mid: rgba(232,0,29,0.3);
+    --red: #df0a1e;
+    --red-dim: rgba(223,10,30,0.08);
+    --red-mid: rgba(223,10,30,0.3);
     --bg: #FFFFFF;
     --surface: #FFFFFF;
-    --surface2: #F5F5F7;
-    --border: rgba(0,0,0,0.09);
-    --border-hover: rgba(0,0,0,0.2);
-    --text: #0C0C10;
-    --muted: #6B6B76;
+    --surface2: #F5F5F5;
+    --border: rgba(0,0,0,0.1);
+    --border-hover: rgba(0,0,0,0.25);
+    --text: #101010;
+    --muted: #707070;
     --mono: 'DM Mono', monospace;
     --head: 'Syne', sans-serif;
     --body: 'DM Sans', sans-serif;
@@ -35,7 +36,7 @@
     position:fixed;
     inset:0;
     background-image:
-      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(232,0,29,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(223,10,30,0.06) 0%, transparent 60%),
       repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(0,0,0,0.025) 39px, rgba(0,0,0,0.025) 40px),
       repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(0,0,0,0.025) 39px, rgba(0,0,0,0.025) 40px);
     pointer-events:none;
@@ -50,7 +51,6 @@
     padding: 0 24px 80px;
   }
 
-  /* TOPBAR */
   .topbar {
     display: flex;
     align-items: center;
@@ -59,17 +59,9 @@
     border-bottom: 1px solid var(--border);
     margin-bottom: 40px;
   }
-  .brand {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
+  .brand { display: flex; align-items: center; gap: 16px; }
   .brand svg { height: 28px; width: auto; display: block; }
-  .brand-divider {
-    width: 1px;
-    height: 28px;
-    background: var(--border);
-  }
+  .brand-divider { width: 1px; height: 28px; background: var(--border); }
   .brand-module {
     font-family: var(--mono);
     font-size: 11px;
@@ -86,7 +78,6 @@
   }
   .topbar-meta strong { color: var(--red); font-weight: 500; }
 
-  /* PAGE TITLE */
   .page-title { margin-bottom: 36px; }
   .page-title .eyebrow {
     font-family: var(--mono);
@@ -103,10 +94,9 @@
     line-height: 1;
     letter-spacing: -1px;
     text-transform: uppercase;
-    color: #0C0C10 !important;
+    color: #101010 !important;
   }
 
-  /* CONTROLS ROW */
   .controls {
     display: grid;
     grid-template-columns: 1fr auto;
@@ -137,7 +127,7 @@
   }
   #searchInput:focus {
     border-color: var(--red);
-    box-shadow: 0 0 0 3px rgba(232,0,29,0.12);
+    box-shadow: 0 0 0 3px rgba(223,10,30,0.12);
   }
   #searchInput::placeholder { color: var(--muted); }
   #clearBtn {
@@ -157,13 +147,7 @@
   }
   #clearBtn:hover { color: var(--text); }
 
-  /* FILTERS */
-  .filter-row {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-bottom: 16px;
-  }
+  .filter-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
   .filter-btn {
     padding: 7px 14px;
     background: var(--surface2);
@@ -181,12 +165,7 @@
   .filter-btn:hover { border-color: var(--border-hover); color: var(--text); }
   .filter-btn.active { background: var(--red-dim); border-color: var(--red-mid); color: var(--red); }
 
-  /* SORT */
-  .sort-select-wrap {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
+  .sort-select-wrap { display: flex; align-items: center; gap: 8px; }
   .sort-label {
     font-family: var(--mono);
     font-size: 11px;
@@ -206,21 +185,15 @@
     outline: none;
     appearance: none;
     cursor: pointer;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B6B76' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23707070' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 12px center;
     transition: border-color 0.2s;
   }
   #sortSelect:focus { border-color: var(--red); }
-  #sortSelect option { background: #FFFFFF; }
+  #sortSelect option { background: #FFFFFF; color: #101010; }
 
-  /* STATS */
-  .stats-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 12px;
-  }
+  .stats-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
   .stats-text {
     font-family: var(--mono);
     font-size: 11px;
@@ -230,19 +203,15 @@
   }
   .stats-text strong { color: var(--red); font-weight: 500; }
 
-  /* TABLE CARD */
   .table-card {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 16px;
     overflow: hidden;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
   }
   table { width: 100%; border-collapse: collapse; font-size: 14px; }
-  thead {
-    background: var(--surface2);
-    border-bottom: 1px solid var(--border);
-  }
+  thead { background: var(--surface2); border-bottom: 1px solid var(--border); }
   th {
     padding: 12px 16px;
     text-align: left;
@@ -258,22 +227,18 @@
     transition: color 0.2s;
   }
   th:hover { color: var(--text); }
-  th.sorted-asc { color: var(--red); }
-  th.sorted-desc { color: var(--red); }
+  th.sorted-asc, th.sorted-desc { color: var(--red); }
   th .arrow { margin-left: 5px; opacity: 0.4; font-size: 9px; }
   th.sorted-asc .arrow::after { content: '▲'; opacity: 1; }
   th.sorted-desc .arrow::after { content: '▼'; opacity: 1; }
   th:not(.sorted-asc):not(.sorted-desc) .arrow::after { content: '⇅'; }
 
-  tbody tr {
-    border-bottom: 1px solid var(--border);
-    transition: background 0.15s;
-  }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
   tbody tr:last-child { border-bottom: none; }
   tbody tr:hover { background: rgba(0,0,0,0.02); }
   td { padding: 12px 16px; vertical-align: middle; }
 
-  /* AVATAR */
+  .company-cell { display: flex; align-items: center; gap: 12px; }
   .avatar {
     width: 34px; height: 34px;
     border-radius: 8px;
@@ -290,31 +255,35 @@
     flex-shrink: 0;
     text-transform: uppercase;
   }
-  .name-cell { display: flex; align-items: center; gap: 12px; }
-  .name-text { font-weight: 600; font-size: 14px; color: var(--text); }
-
-  .company-tag {
+  .company-text {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text);
+    max-width: 260px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .address-text {
+    font-size: 13px;
+    color: var(--text);
+    max-width: 260px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .postcode-tag {
     display: inline-block;
     padding: 4px 10px;
     background: var(--surface2);
     border: 1px solid var(--border);
     border-radius: 6px;
-    font-size: 13px;
+    font-family: var(--mono);
+    font-size: 12px;
     font-weight: 500;
     color: var(--text);
-    max-width: 220px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .job-text {
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--muted);
     letter-spacing: 0.5px;
   }
-
   .phone-link {
     font-family: var(--mono);
     font-size: 12px;
@@ -324,28 +293,27 @@
     transition: color 0.15s;
   }
   .phone-link:hover { color: var(--red); }
+  .website-link {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--red);
+    text-decoration: none;
+    letter-spacing: 0.3px;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: inline-block;
+    vertical-align: middle;
+  }
+  .website-link:hover { text-decoration: underline; }
   .no-data { color: var(--muted); font-family: var(--mono); font-size: 12px; }
 
-  /* EMPTY STATE */
-  .empty-state {
-    padding: 72px 32px;
-    text-align: center;
-    color: var(--muted);
-  }
-  .empty-state .icon {
-    font-size: 36px;
-    margin-bottom: 16px;
-    opacity: 0.4;
-  }
-  .empty-state h3 {
-    font-family: var(--head);
-    font-size: 20px;
-    color: var(--text);
-    margin-bottom: 8px;
-  }
+  .empty-state { padding: 72px 32px; text-align: center; color: var(--muted); }
+  .empty-state .icon { font-size: 36px; margin-bottom: 16px; opacity: 0.4; }
+  .empty-state h3 { font-family: var(--head); font-size: 20px; color: var(--text); margin-bottom: 8px; }
   .empty-state p { font-size: 14px; color: var(--muted); }
 
-  /* PAGINATION */
   .pagination {
     display: flex;
     align-items: center;
@@ -371,284 +339,274 @@
   }
   .page-btn:hover { background: var(--surface); border-color: var(--border); color: var(--text); }
   .page-btn.active { background: var(--red); border-color: var(--red); color: #fff; }
-  .page-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .page-btn:disabled { opacity: 0.25; cursor: not-allowed; }
   .page-btn:disabled:hover { background: none; border-color: transparent; color: var(--muted); }
   .page-ellipsis { color: var(--muted); padding: 0 2px; font-size: 12px; font-family: var(--mono); }
 
-  /* HIGHLIGHT */
-  mark {
-    background: rgba(232,0,29,0.15);
-    color: var(--red);
-    border-radius: 2px;
-    padding: 0 1px;
-  }
+  mark { background: rgba(223,10,30,0.18); color: var(--red); border-radius: 2px; padding: 0 1px; }
 
   @media (max-width: 768px) {
     .controls { grid-template-columns: 1fr; }
     .sort-select-wrap { justify-content: flex-start; }
-    td:nth-child(3), th:nth-child(3),
+    td:nth-child(2), th:nth-child(2),
     td:nth-child(5), th:nth-child(5) { display: none; }
     .app { padding: 0 16px 60px; }
   }
-</style>
-</head>
-<body>
-<div class="app">
+ </style>
+ <div class="app">
 
   <div class="topbar">
-    <div class="brand">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 841.9 497.3">
-        <style>.st0{fill:#0C0C10;}</style>
-        <g>
-          <path class="st0" d="M724.9,251.8l9.8-4.4c0.7-0.3,1.5-0.2,2.1,0.2l21.4,13.9c1.4,0.9,1.4,3.1-0.1,3.9l-8.5,4.9c-0.7,0.4-1.6,0.4-2.3-0.1l-22.7-14.4C723.1,254.8,723.2,252.5,724.9,251.8"/>
-          <path class="st0" d="M465.5,354.3c-3.9-1.9-6.2-15.3,4.1-34.8c8-15.1,17.6-20.8,22.6-22.6c5.2-1.9,8.9-0.1,10,1c5.6,5.8,0.6,20-6.5,31.4C487.1,343.2,471.1,357,465.5,354.3 M806,352.8c-8.6,14.7-20.3,14-29.1,8.3c-7.7-5-13.3-26-16.2-34.6c-3.1-9-11.7-19.9-21.8-19.9c-13.1,0-30.8,36.5-35.8,42.1c-11.6,12.8-38.3,28-60.3,14.1c-12.1-7.6-28.3-29-28.3-29s49.6-49.4,51.6-52.3l-18.8-19.1c-2.3,3.8-48.6,51.6-50.4,51.6c-1.8,0-22.7-34.8-25.3-38c0,0-31.1-3-32.5-1.6c0,0,40.1,55.2,38.8,57.5c-2,3.3-45.5,34.9-56,40.5c-21.1,11.1-38.5,6.4-38.5,6.4s30.2-25.5,40.3-45.5c5-9.8,23.1-42.2-16.6-60.4c-23.6-10.8-44.4-1.6-63.6,26.8c-21.1,31-4.3,75.7-4.3,75.7s-23.6,16.7-44.6,1.3c-15.4-11.2-26.2-49.6-28.8-85.2c-3.9-52.6,6.8-158.4,6.8-158.4l-47.3-13.9c0,0,6,51.3-5.2,93.9c-26.9,102.3-97,128.4-104.6,129.3c-7.6,0.9-7.6-52.3-59.1-145C122.7,136.8,60,68.7,60.9,65.5c0.9-3.2,81.3-26.5,150.3-28.4c96.8-2.7,185.3,3,191.5,9.3c6.3,6.4-25.5,16.6,6.7,31.4c15.1,6.9,27.3-5.9,32.9-13.5c2.3-3.2,2.1-7.6-0.4-10.5C430.3,40.4,387.4,7.2,249,11.9C76.6,17.8,15.7,44.2,12.1,50.1s107.1,130.9,138,206.3c24.7,60.2,32.3,97.3,31.4,101.4c-0.9,4.1-44.4,1.4-44.4,1.4l13,21.4l35.4-1c0,0,3.9,24.3-1.8,42.7c-7.9,25.4-22.8,37.7-22.8,42.3l30.9,17.7c0,0,19.5-14.3,25.5-54.6c3-20.2,0-47.7,0-47.7s30.1-8.8,60.5-31.4c30.2-22.5,52.4-60,52.4-60s16.5,73.6,37.7,94.9c25.9,25.9,59,26.5,94,11.5c8.1,3.9,15.5,6.6,22.1,8.5c19.5,5.7,40.4,2.5,57.6-8.5c16.4-10.4,41-30.3,55.5-43.4c2.7-2.4,37.2,42.7,83.1,37.6c30.9-3.4,42.8-19,55.6-39c6.6-10.2,13.7,20.7,45.9,32.5c18.4,6.7,37.5,0.2,44.3-11C837,354,814.7,337.9,806,352.8"/>
-        </g>
-      </svg>
-      <div class="brand-divider"></div>
-      <div class="brand-module">Customer Contacts</div>
-    </div>
-    <div class="topbar-meta">
-      <strong id="totalCount">0</strong> contacts · <strong id="companyCount">0</strong> companies
-    </div>
+   <div class="brand">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 841.9 497.3" style="height:28px;width:auto;display:block;">
+     <style>.st0{fill:#101010;}</style>
+     <g>
+      <path class="st0" d="M724.9,251.8l9.8-4.4c0.7-0.3,1.5-0.2,2.1,0.2l21.4,13.9c1.4,0.9,1.4,3.1-0.1,3.9l-8.5,4.9c-0.7,0.4-1.6,0.4-2.3-0.1l-22.7-14.4C723.1,254.8,723.2,252.5,724.9,251.8"/>
+      <path class="st0" d="M465.5,354.3c-3.9-1.9-6.2-15.3,4.1-34.8c8-15.1,17.6-20.8,22.6-22.6c5.2-1.9,8.9-0.1,10,1c5.6,5.8,0.6,20-6.5,31.4C487.1,343.2,471.1,357,465.5,354.3 M806,352.8c-8.6,14.7-20.3,14-29.1,8.3c-7.7-5-13.3-26-16.2-34.6c-3.1-9-11.7-19.9-21.8-19.9c-13.1,0-30.8,36.5-35.8,42.1c-11.6,12.8-38.3,28-60.3,14.1c-12.1-7.6-28.3-29-28.3-29s49.6-49.4,51.6-52.3l-18.8-19.1c-2.3,3.8-48.6,51.6-50.4,51.6c-1.8,0-22.7-34.8-25.3-38c0,0-31.1-3-32.5-1.6c0,0,40.1,55.2,38.8,57.5c-2,3.3-45.5,34.9-56,40.5c-21.1,11.1-38.5,6.4-38.5,6.4s30.2-25.5,40.3-45.5c5-9.8,23.1-42.2-16.6-60.4c-23.6-10.8-44.4-1.6-63.6,26.8c-21.1,31-4.3,75.7-4.3,75.7s-23.6,16.7-44.6,1.3c-15.4-11.2-26.2-49.6-28.8-85.2c-3.9-52.6,6.8-158.4,6.8-158.4l-47.3-13.9c0,0,6,51.3-5.2,93.9c-26.9,102.3-97,128.4-104.6,129.3c-7.6,0.9-7.6-52.3-59.1-145C122.7,136.8,60,68.7,60.9,65.5c0.9-3.2,81.3-26.5,150.3-28.4c96.8-2.7,185.3,3,191.5,9.3c6.3,6.4-25.5,16.6,6.7,31.4c15.1,6.9,27.3-5.9,32.9-13.5c2.3-3.2,2.1-7.6-0.4-10.5C430.3,40.4,387.4,7.2,249,11.9C76.6,17.8,15.7,44.2,12.1,50.1s107.1,130.9,138,206.3c24.7,60.2,32.3,97.3,31.4,101.4c-0.9,4.1-44.4,1.4-44.4,1.4l13,21.4l35.4-1c0,0,3.9,24.3-1.8,42.7c-7.9,25.4-22.8,37.7-22.8,42.3l30.9,17.7c0,0,19.5-14.3,25.5-54.6c3-20.2,0-47.7,0-47.7s30.1-8.8,60.5-31.4c30.2-22.5,52.4-60,52.4-60s16.5,73.6,37.7,94.9c25.9,25.9,59,26.5,94,11.5c8.1,3.9,15.5,6.6,22.1,8.5c19.5,5.7,40.4,2.5,57.6-8.5c16.4-10.4,41-30.3,55.5-43.4c2.7-2.4,37.2,42.7,83.1,37.6c30.9-3.4,42.8-19,55.6-39c6.6-10.2,13.7,20.7,45.9,32.5c18.4,6.7,37.5,0.2,44.3-11C837,354,814.7,337.9,806,352.8"/>
+     </g>
+    </svg>
+    <div class="brand-divider"></div>
+    <div class="brand-module">Customer Contacts</div>
+   </div>
+   <div class="topbar-meta">
+    <strong id="totalCount">0</strong> companies
+   </div>
   </div>
 
   <div class="page-title">
-    <div class="eyebrow">Portal Directory</div>
-    <h1>Contacts</h1>
+   <div class="eyebrow">Portal Directory</div>
+   <h1>Contacts</h1>
   </div>
 
   <div class="controls">
-    <div class="search-wrap">
-      <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-        <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
-      </svg>
-      <input type="text" id="searchInput" placeholder="Search name, company, phone, job title…" autocomplete="off" spellcheck="false">
-      <button id="clearBtn" title="Clear">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-        </svg>
-      </button>
-    </div>
-    <div class="sort-select-wrap">
-      <span class="sort-label">Sort</span>
-      <select id="sortSelect">
-        <option value="company">Company A–Z</option>
-        <option value="company-desc">Company Z–A</option>
-        <option value="lastname">Last Name A–Z</option>
-        <option value="firstname">First Name A–Z</option>
-      </select>
-    </div>
+   <div class="search-wrap">
+    <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+     <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+    </svg>
+    <input type="text" id="searchInput" placeholder="Search company, address, postcode, phone…" autocomplete="off" spellcheck="false">
+    <button id="clearBtn" title="Clear">
+     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+     </svg>
+    </button>
+   </div>
+   <div class="sort-select-wrap">
+    <span class="sort-label">Sort</span>
+    <select id="sortSelect">
+     <option value="company">Company A–Z</option>
+     <option value="company-desc">Company Z–A</option>
+     <option value="postcode">Postcode A–Z</option>
+    </select>
+   </div>
   </div>
 
   <div class="filter-row">
-    <button class="filter-btn active" data-filter="all">All Contacts</button>
-    <button class="filter-btn" data-filter="has-mobile">Has Mobile</button>
-    <button class="filter-btn" data-filter="has-jobtitle">Has Job Title</button>
-    <button class="filter-btn" data-filter="no-company">No Company</button>
+   <button class="filter-btn active" data-filter="all">All Contacts</button>
+   <button class="filter-btn" data-filter="has-website">Has Website</button>
+   <button class="filter-btn" data-filter="has-phone">Has Phone</button>
+   <button class="filter-btn" data-filter="no-postcode">No Postcode</button>
   </div>
 
   <div class="stats-bar">
-    <div class="stats-text">Showing <strong id="showingCount">0</strong> results</div>
-    <div class="stats-text" id="pageInfo"></div>
+   <div class="stats-text">Showing <strong id="showingCount">0</strong> results</div>
+   <div class="stats-text" id="pageInfo"></div>
   </div>
 
   <div class="table-card">
-    <table>
-      <thead>
-        <tr>
-          <th data-col="name">Name <span class="arrow"></span></th>
-          <th data-col="company">Company <span class="arrow"></span></th>
-          <th data-col="jobtitle">Job Title <span class="arrow"></span></th>
-          <th data-col="phone">Phone <span class="arrow"></span></th>
-          <th data-col="mobile">Mobile <span class="arrow"></span></th>
-        </tr>
-      </thead>
-      <tbody id="tableBody"></tbody>
-    </table>
+   <table>
+    <thead>
+     <tr>
+      <th data-col="company">Company <span class="arrow"></span></th>
+      <th data-col="address">Address <span class="arrow"></span></th>
+      <th data-col="postcode">Post Code <span class="arrow"></span></th>
+      <th data-col="phone">Phone <span class="arrow"></span></th>
+      <th data-col="website">Website <span class="arrow"></span></th>
+     </tr>
+    </thead>
+    <tbody id="tableBody">
+     <tr><td colspan="5" style="padding:40px 16px;text-align:center;color:var(--muted);font-family:var(--mono);font-size:12px;">Loading contacts…</td></tr>
+    </tbody>
     <div id="emptyState" class="empty-state" style="display:none;">
-      <div class="icon">◎</div>
-      <h3>No contacts found</h3>
-      <p>Try adjusting your search or filter</p>
+     <div class="icon">◎</div>
+     <h3>No contacts found</h3>
+     <p>Try adjusting your search or filter</p>
     </div>
     <div class="pagination" id="pagination"></div>
+   </table>
   </div>
 
-</div>
-<script>
-// TODO: replace with your deployed Apps Script web app URL (Code.gs below)
-const API_URL = 'https://script.google.com/macros/s/AKfycbxrS4NUqB8KGrsShxZdFuFmHPoY9zc1ut5vKmMqOIGdUfHiispq2TO1W97BWY12Nkxfpw/exec';
+ </div>
+ <script>
+  // ===== Point this at your Apps Script /exec URL =====
+  const API_URL = 'https://script.google.com/macros/s/AKfycbweBc6FkZANninOHpRO9ld_N04G7DefThXNxVELFq1YYduFbEx1Ha7qmK_c6zjPDlSX/exec';
 
-const PAGE_SIZE = 50;
-let DATA = [];
-let filtered = [], currentPage = 1, sortCol = 'company', sortDir = 1, searchTerm = '', activeFilter = 'all';
+  const PAGE_SIZE = 50;
+  let DATA = [];
+  let filtered = [], currentPage = 1, sortCol = 'company', sortDir = 1, searchTerm = '', activeFilter = 'all';
 
-async function loadData() {
-  const tbody = document.getElementById('tableBody');
-  tbody.innerHTML = `<tr><td colspan="5" style="padding:40px 16px;text-align:center;color:var(--muted);font-family:var(--mono);font-size:12px;">Loading contacts…</td></tr>`;
-  try {
-    const res = await fetch(API_URL);
-    if (!res.ok) throw new Error('Request failed: ' + res.status);
-    DATA = await res.json();
-  } catch (err) {
-    tbody.innerHTML = `<tr><td colspan="5" style="padding:40px 16px;text-align:center;color:var(--red);font-family:var(--mono);font-size:12px;">Couldn't load contacts — check API_URL / deployment.<br>${esc(String(err.message||err))}</td></tr>`;
-    return;
+  function esc(s) {
+    return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
-  const uniqueCompanies = new Set(DATA.map(r => r['Customer Name']).filter(Boolean)).size;
-  document.getElementById('totalCount').textContent = DATA.length.toLocaleString();
-  document.getElementById('companyCount').textContent = uniqueCompanies.toLocaleString();
-  run();
-}
-
-function esc(s) {
-  return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
-function highlight(text, term) {
-  if (!term || !text) return esc(text||'');
-  return esc(text).replace(new RegExp('(' + term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ')', 'gi'), '<mark>$1</mark>');
-}
-function initials(f, l) { return ((f||'')[0]||'').toUpperCase() + ((l||'')[0]||'').toUpperCase() || '?'; }
-
-function run() {
-  let d = DATA.slice();
-  if (activeFilter === 'has-mobile') d = d.filter(r => r['Mobile No']);
-  else if (activeFilter === 'has-jobtitle') d = d.filter(r => r['Job Title']);
-  else if (activeFilter === 'no-company') d = d.filter(r => !r['Customer Name']);
-  if (searchTerm) {
-    const q = searchTerm.toLowerCase();
-    d = d.filter(r =>
-      (r['First Name']||'').toLowerCase().includes(q) ||
-      (r['Last Name']||'').toLowerCase().includes(q) ||
-      (r['Customer Name']||'').toLowerCase().includes(q) ||
-      (r['Job Title']||'').toLowerCase().includes(q) ||
-      (r['Phone No']||'').toLowerCase().includes(q) ||
-      (r['Mobile No']||'').toLowerCase().includes(q)
-    );
+  function highlight(text, term) {
+    if (!term || !text) return esc(text||'');
+    return esc(text).replace(new RegExp('(' + term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ')', 'gi'), '<mark>$1</mark>');
   }
-  d.sort((a,b) => {
-    let av, bv;
-    if (sortCol==='company')   { av=a['Customer Name']||'zzz'; bv=b['Customer Name']||'zzz'; }
-    else if (sortCol==='name') { av=(a['Last Name']||'')+(a['First Name']||''); bv=(b['Last Name']||'')+(b['First Name']||''); }
-    else if (sortCol==='jobtitle') { av=a['Job Title']||'zzz'; bv=b['Job Title']||'zzz'; }
-    else if (sortCol==='phone')    { av=a['Phone No']||'zzz'; bv=b['Phone No']||'zzz'; }
-    else if (sortCol==='mobile')   { av=a['Mobile No']||'zzz'; bv=b['Mobile No']||'zzz'; }
-    else if (sortCol==='firstname') { av=a['First Name']||'zzz'; bv=b['First Name']||'zzz'; }
-    return av.localeCompare(bv)*sortDir;
-  });
-  filtered = d;
-  currentPage = 1;
-  render();
-}
-
-function render() {
-  const tbody = document.getElementById('tableBody');
-  const empty = document.getElementById('emptyState');
-  const total = filtered.length;
-  const start = (currentPage-1)*PAGE_SIZE;
-  const page = filtered.slice(start, start+PAGE_SIZE);
-  const pages = Math.ceil(total/PAGE_SIZE);
-
-  document.getElementById('showingCount').textContent = total.toLocaleString();
-  document.getElementById('pageInfo').textContent = total > 0 ? `Page ${currentPage} of ${pages}` : '';
-
-  if (!total) {
-    tbody.innerHTML=''; empty.style.display=''; renderPagination(0); return;
+  function initials(name) {
+    const words = (name||'').trim().split(/\s+/).filter(Boolean);
+    if (!words.length) return '?';
+    return (words[0][0] + (words[1] ? words[1][0] : '')).toUpperCase();
   }
-  empty.style.display='none';
-  const q = searchTerm;
-
-  tbody.innerHTML = page.map(r => {
-    const init = initials(r['First Name'], r['Last Name']);
-    const fullName = [r['First Name'], r['Last Name']].filter(Boolean).join(' ');
-    const phone = r['Phone No'] ? `<a class="phone-link" href="tel:${r['Phone No'].replace(/\s/g,'')}">${highlight(r['Phone No'],q)}</a>` : '<span class="no-data">—</span>';
-    const mobile = r['Mobile No'] ? `<a class="phone-link" href="tel:${r['Mobile No'].replace(/\s/g,'')}">${highlight(r['Mobile No'],q)}</a>` : '<span class="no-data">—</span>';
-    const company = r['Customer Name'] ? `<span class="company-tag" title="${esc(r['Customer Name'])}">${highlight(r['Customer Name'],q)}</span>` : '<span class="no-data">—</span>';
-    const job = r['Job Title'] ? `<span class="job-text">${highlight(r['Job Title'],q)}</span>` : '<span class="no-data">—</span>';
-    return `<tr>
-      <td><div class="name-cell"><div class="avatar">${esc(init)}</div><span class="name-text">${highlight(fullName||'Unknown',q)}</span></div></td>
-      <td>${company}</td>
-      <td>${job}</td>
-      <td>${phone}</td>
-      <td>${mobile}</td>
-    </tr>`;
-  }).join('');
-
-  renderPagination(total);
-}
-
-function renderPagination(total) {
-  const pages = Math.ceil(total/PAGE_SIZE);
-  const el = document.getElementById('pagination');
-  if (pages <= 1) { el.innerHTML=''; return; }
-  const p = currentPage;
-  let html = `<button class="page-btn" onclick="go(${p-1})" ${p===1?'disabled':''}>‹</button>`;
-  const range = [...new Set([1,2,p-1,p,p+1,pages-1,pages].filter(x=>x>=1&&x<=pages))].sort((a,b)=>a-b);
-  let prev=null;
-  for (const n of range) {
-    if (prev!==null && n-prev>1) html+=`<span class="page-ellipsis">…</span>`;
-    html+=`<button class="page-btn ${n===p?'active':''}" onclick="go(${n})">${n}</button>`;
-    prev=n;
+  function cleanUrl(u) { return (u||'').replace(/^https?:\/\//i,'').replace(/\/$/,''); }
+  function fullUrl(u) {
+    if (!u) return '';
+    return /^https?:\/\//i.test(u) ? u : 'https://' + u;
   }
-  html+=`<button class="page-btn" onclick="go(${p+1})" ${p===pages?'disabled':''}>›</button>`;
-  el.innerHTML=html;
-}
 
-function go(n) {
-  const pages = Math.ceil(filtered.length/PAGE_SIZE);
-  if (n<1||n>pages) return;
-  currentPage=n;
-  render();
-  window.scrollTo({top:0,behavior:'smooth'});
-}
-
-// Search
-const si = document.getElementById('searchInput');
-const cb = document.getElementById('clearBtn');
-let deb;
-si.addEventListener('input', () => {
-  clearTimeout(deb);
-  deb = setTimeout(() => {
-    searchTerm = si.value.trim();
-    cb.style.display = searchTerm ? '' : 'none';
+  async function loadData() {
+    const tbody = document.getElementById('tableBody');
+    try {
+      const res = await fetch(API_URL);
+      if (!res.ok) throw new Error('Request failed: ' + res.status);
+      DATA = await res.json();
+    } catch (err) {
+      tbody.innerHTML = `<tr><td colspan="5" style="padding:40px 16px;text-align:center;color:var(--red);font-family:var(--mono);font-size:12px;">Couldn't load contacts — check API_URL / deployment.<br>${esc(String(err.message||err))}</td></tr>`;
+      return;
+    }
+    document.getElementById('totalCount').textContent = DATA.length.toLocaleString();
     run();
-  }, 180);
-});
-cb.addEventListener('click', () => {
-  si.value=''; searchTerm=''; cb.style.display='none'; run(); si.focus();
-});
+  }
 
-// Filters
-document.querySelectorAll('.filter-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');
-    activeFilter = btn.dataset.filter;
-    run();
+  function run() {
+    let d = DATA.slice();
+    if (activeFilter === 'has-website') d = d.filter(r => r['Website']);
+    else if (activeFilter === 'has-phone') d = d.filter(r => r['Phone Number']);
+    else if (activeFilter === 'no-postcode') d = d.filter(r => !r['Post Code']);
+    if (searchTerm) {
+      const q = searchTerm.toLowerCase();
+      d = d.filter(r =>
+        (r['Company Name']||'').toLowerCase().includes(q) ||
+        (r['Address']||'').toLowerCase().includes(q) ||
+        (r['Post Code']||'').toLowerCase().includes(q) ||
+        (r['Phone Number']||'').toLowerCase().includes(q) ||
+        (r['Website']||'').toLowerCase().includes(q)
+      );
+    }
+    d.sort((a,b) => {
+      let av, bv;
+      if (sortCol==='company')      { av=a['Company Name']||'zzz'; bv=b['Company Name']||'zzz'; }
+      else if (sortCol==='address') { av=a['Address']||'zzz'; bv=b['Address']||'zzz'; }
+      else if (sortCol==='postcode'){ av=a['Post Code']||'zzz'; bv=b['Post Code']||'zzz'; }
+      else if (sortCol==='phone')   { av=a['Phone Number']||'zzz'; bv=b['Phone Number']||'zzz'; }
+      else if (sortCol==='website') { av=a['Website']||'zzz'; bv=b['Website']||'zzz'; }
+      return String(av).localeCompare(String(bv))*sortDir;
+    });
+    filtered = d;
+    currentPage = 1;
+    render();
+  }
+
+  function render() {
+    const tbody = document.getElementById('tableBody');
+    const empty = document.getElementById('emptyState');
+    const total = filtered.length;
+    const start = (currentPage-1)*PAGE_SIZE;
+    const page = filtered.slice(start, start+PAGE_SIZE);
+    const pages = Math.ceil(total/PAGE_SIZE);
+
+    document.getElementById('showingCount').textContent = total.toLocaleString();
+    document.getElementById('pageInfo').textContent = total > 0 ? `Page ${currentPage} of ${pages}` : '';
+
+    if (!total) {
+      tbody.innerHTML=''; empty.style.display=''; renderPagination(0); return;
+    }
+    empty.style.display='none';
+    const q = searchTerm;
+
+    tbody.innerHTML = page.map(r => {
+      const company = r['Company Name'] || 'Unknown';
+      const init = initials(company);
+      const address = r['Address'] ? `<span class="address-text" title="${esc(r['Address'])}">${highlight(r['Address'],q)}</span>` : '<span class="no-data">—</span>';
+      const postcode = r['Post Code'] ? `<span class="postcode-tag">${highlight(r['Post Code'],q)}</span>` : '<span class="no-data">—</span>';
+      const phone = r['Phone Number'] ? `<a class="phone-link" href="tel:${r['Phone Number'].replace(/\s/g,'')}">${highlight(r['Phone Number'],q)}</a>` : '<span class="no-data">—</span>';
+      const website = r['Website'] ? `<a class="website-link" href="${esc(fullUrl(r['Website']))}" target="_blank" rel="noopener" title="${esc(r['Website'])}">${highlight(cleanUrl(r['Website']),q)}</a>` : '<span class="no-data">—</span>';
+      return `<tr>
+        <td><div class="company-cell"><div class="avatar">${esc(init)}</div><span class="company-text">${highlight(company,q)}</span></div></td>
+        <td>${address}</td>
+        <td>${postcode}</td>
+        <td>${phone}</td>
+        <td>${website}</td>
+      </tr>`;
+    }).join('');
+
+    renderPagination(total);
+  }
+
+  function renderPagination(total) {
+    const pages = Math.ceil(total/PAGE_SIZE);
+    const el = document.getElementById('pagination');
+    if (pages <= 1) { el.innerHTML=''; return; }
+    const p = currentPage;
+    let html = `<button class="page-btn" onclick="go(${p-1})" ${p===1?'disabled':''}>‹</button>`;
+    const range = [...new Set([1,2,p-1,p,p+1,pages-1,pages].filter(x=>x>=1&&x<=pages))].sort((a,b)=>a-b);
+    let prev=null;
+    for (const n of range) {
+      if (prev!==null && n-prev>1) html+=`<span class="page-ellipsis">…</span>`;
+      html+=`<button class="page-btn ${n===p?'active':''}" onclick="go(${n})">${n}</button>`;
+      prev=n;
+    }
+    html+=`<button class="page-btn" onclick="go(${p+1})" ${p===pages?'disabled':''}>›</button>`;
+    el.innerHTML=html;
+  }
+
+  function go(n) {
+    const pages = Math.ceil(filtered.length/PAGE_SIZE);
+    if (n<1||n>pages) return;
+    currentPage=n;
+    render();
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+
+  const si = document.getElementById('searchInput');
+  const cb = document.getElementById('clearBtn');
+  let deb;
+  si.addEventListener('input', () => {
+    clearTimeout(deb);
+    deb = setTimeout(() => {
+      searchTerm = si.value.trim();
+      cb.style.display = searchTerm ? '' : 'none';
+      run();
+    }, 180);
   });
-});
+  cb.addEventListener('click', () => {
+    si.value=''; searchTerm=''; cb.style.display='none'; run(); si.focus();
+  });
 
-// Sort dropdown
-document.getElementById('sortSelect').addEventListener('change', e => {
-  const v=e.target.value;
-  if (v==='company') { sortCol='company'; sortDir=1; }
-  else if (v==='company-desc') { sortCol='company'; sortDir=-1; }
-  else if (v==='lastname') { sortCol='name'; sortDir=1; }
-  else if (v==='firstname') { sortCol='firstname'; sortDir=1; }
-  run();
-});
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      activeFilter = btn.dataset.filter;
+      run();
+    });
+  });
 
-// Column header sort
-document.querySelectorAll('th[data-col]').forEach(th => {
-  th.addEventListener('click', () => {
-    const col = th.dataset.col;
-    if (sortCol===col) sortDir*=-1; else { sortCol=col; sortDir=1; }
-    document.querySelectorAll('th').forEach(t=>t.classList.remove('sorted-asc','sorted-desc'));
-    th.classList.add(sortDir===1?'sorted-asc':'sorted-desc');
+  document.getElementById('sortSelect').addEventListener('change', e => {
+    const v=e.target.value;
+    if (v==='company') { sortCol='company'; sortDir=1; }
+    else if (v==='company-desc') { sortCol='company'; sortDir=-1; }
+    else if (v==='postcode') { sortCol='postcode'; sortDir=1; }
     run();
   });
-});
 
-document.querySelector('th[data-col="company"]').classList.add('sorted-asc');
-loadData();
-</script>
-</body>
-</html>
+  document.querySelectorAll('th[data-col]').forEach(th => {
+    th.addEventListener('click', () => {
+      const col = th.dataset.col;
+      if (sortCol===col) sortDir*=-1; else { sortCol=col; sortDir=1; }
+      document.querySelectorAll('th').forEach(t=>t.classList.remove('sorted-asc','sorted-desc'));
+      th.classList.add(sortDir===1?'sorted-asc':'sorted-desc');
+      run();
+    });
+  });
+
+  document.querySelector('th[data-col="company"]').classList.add('sorted-asc');
+  loadData();
+ </script>
