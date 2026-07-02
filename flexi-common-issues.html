@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flexi Common Issues</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #FFFFFF;
+  --card: #FFFFFF;
+  --border: rgba(0,0,0,0.1);
+  --border-hover: rgba(0,0,0,0.25);
+  --red: #df0a1e;
+  --red-dim: rgba(223,10,30,0.08);
+  --text: #101010;
+  --text-muted: #707070;
+  --text-dim: #9a9a9a;
+  --green: #15803d;
+  --green-subtle: rgba(21,128,61,0.1);
+  --amber: #b45309;
+  --amber-subtle: rgba(180,83,9,0.1);
+  --grey: #4b5563;
+  --grey-subtle: rgba(75,85,99,0.08);
+  --surface2: #F5F5F5;
+  --radius: 6px;
+  --font: 'Barlow Condensed', sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--bg);
+  background-image:radial-gradient(ellipse 80% 40% at 50% -10%, rgba(223,10,30,0.05) 0%, transparent 60%);
+  color:var(--text);
+  font-family:var(--font);
+  font-size:16px;
+  font-weight:500;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+::-webkit-scrollbar{width:6px;height:6px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--red);border-radius:3px;}
+
+.container{max-width:1080px;margin:0 auto;padding:0 24px 80px;}
+
+.header{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-left:4px solid var(--red);
+  border-radius:16px;
+  padding:28px 32px 24px;
+  margin:28px 0 28px;
+  display:flex;
+  align-items:center;
+  gap:24px;
+  box-shadow:0 2px 12px rgba(0,0,0,0.04);
+}
+.header-logo{flex-shrink:0;width:clamp(80px,12vw,140px);}
+.header-logo img{width:100%;height:auto;display:block;filter:brightness(0);}
+.header-eyebrow{
+  font-size:11px;
+  letter-spacing:0.3em;
+  color:var(--text-dim);
+  text-transform:uppercase;
+  margin-bottom:6px;
+  font-weight:500;
+}
+.header h1{
+  font-size:clamp(28px,5vw,52px);
+  font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:0.05em;
+  line-height:1;
+  color:var(--text);
+}
+.header h1 span{color:var(--red);}
+.header-sub{
+  margin-top:6px;
+  font-size:13px;
+  letter-spacing:0.15em;
+  color:var(--text-dim);
+  text-transform:uppercase;
+  font-weight:500;
+}
+
+/* Search */
+.search-bar{
+  display:flex;
+  margin-bottom:28px;
+  border:1px solid var(--border);
+  background:var(--card);
+  border-radius:var(--radius);
+  overflow:hidden;
+  transition:border-color 0.2s;
+  box-shadow:0 1px 6px rgba(0,0,0,0.03);
+}
+.search-bar:focus-within{border-color:var(--red);}
+.search-prefix{
+  padding:0 16px;
+  background:var(--red);
+  color:#fff;
+  font-family:var(--font);
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:0.15em;
+  display:flex;
+  align-items:center;
+  white-space:nowrap;
+  flex-shrink:0;
+  text-transform:uppercase;
+}
+#searchInput{
+  flex:1;
+  background:transparent;
+  border:none;
+  outline:none;
+  color:var(--text);
+  font-family:var(--font);
+  font-size:15px;
+  font-weight:500;
+  letter-spacing:0.06em;
+  padding:13px 16px;
+}
+#searchInput::placeholder{color:var(--text-dim);}
+
+/* Category section */
+.category{margin-bottom:32px;}
+.category-header{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:14px;
+  padding-bottom:10px;
+  border-bottom:2px solid var(--border);
+}
+.category-icon{font-size:22px;line-height:1;}
+.category-title{
+  font-size:26px;
+  font-weight:800;
+  letter-spacing:0.03em;
+  text-transform:uppercase;
+  color:var(--text);
+}
+.category-count{
+  margin-left:auto;
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:12px;
+  font-weight:600;
+  letter-spacing:0.1em;
+  color:var(--text-dim);
+  text-transform:uppercase;
+}
+
+.issues-grid{display:flex;flex-direction:column;gap:8px;}
+.issue-card{
+  display:grid;
+  grid-template-columns:4px 1fr;
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  overflow:hidden;
+  transition:border-color 0.15s, transform 0.15s;
+}
+.issue-card:hover{border-color:var(--border-hover);}
+.issue-accent.electrical{background:var(--amber);}
+.issue-accent.mechanical{background:var(--red);}
+.issue-accent.chassis{background:var(--grey);}
+.issue-body{padding:16px 20px;}
+.issue-title{
+  font-size:19px;
+  font-weight:700;
+  letter-spacing:0.01em;
+  color:var(--text);
+  margin-bottom:4px;
+}
+.issue-cause{
+  font-size:14px;
+  line-height:1.5;
+  color:var(--text-muted);
+}
+.issue-cause strong{color:var(--text);font-weight:600;}
+.issue-tag{
+  display:inline-block;
+  margin-top:8px;
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:0.15em;
+  text-transform:uppercase;
+  padding:3px 9px;
+  border-radius:3px;
+}
+.issue-tag.electrical{color:var(--amber);background:var(--amber-subtle);}
+.issue-tag.mechanical{color:var(--red);background:var(--red-dim);}
+.issue-tag.chassis{color:var(--grey);background:var(--grey-subtle);}
+
+.empty-state{
+  text-align:center;
+  padding:48px 24px;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  color:var(--text-dim);
+  font-size:14px;
+  display:none;
+}
+
+.footer{
+  background:var(--card);
+  border-top:1px solid var(--border);
+  text-align:center;
+  margin-top:48px;
+  padding:20px;
+  font-size:10px;
+  font-weight:600;
+  letter-spacing:0.22em;
+  color:var(--text-dim);
+  text-transform:uppercase;
+}
+
+@media(max-width:600px){
+  .header{padding:22px 22px 20px;gap:16px;}
+  .category-title{font-size:22px;}
+  .issue-title{font-size:17px;}
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div class="header-logo">
+      <img src="https://narrowaisleservice.github.io/Flexi-Parts-System/flexi-logo-white.svg" alt="Flexi">
+    </div>
+    <div>
+      <div class="header-eyebrow">Reference Guide &nbsp;/&nbsp; Flexi Portal</div>
+      <h1>Common <span>Issues</span></h1>
+      <div class="header-sub">Narrow Aisle Ltd &nbsp;·&nbsp; Known Faults &amp; Root Causes</div>
+    </div>
+  </div>
+
+  <div class="search-bar">
+    <div class="search-prefix">Search ›</div>
+    <input type="text" id="searchInput" placeholder="Search an issue, e.g. steering, A226, tyres…" autocomplete="off" spellcheck="false">
+  </div>
+
+  <div id="categoriesRoot"></div>
+
+  <div class="empty-state" id="emptyState">No matching issues found</div>
+
+  <div class="footer">Flexi Narrow Aisle Ltd &nbsp;·&nbsp; Common Issues Reference &nbsp;·&nbsp; Internal Use Only</div>
+</div>
+
+<script>
+var DATA = [
+  {
+    category: 'Electrical',
+    icon: '⚡',
+    key: 'electrical',
+    issues: [
+      { title: 'No Drive', cause: 'Seat switch, Handbrake, Accelerator Pedal' },
+      { title: 'A226 Traction', cause: 'Re-teach of Accelerator (GEN1)' },
+      { title: 'A226 Pump', cause: 'Reteach of Lift Potentiometer' },
+      { title: 'Truck carries on driving when accelerator pedal released', cause: 'MS1 does not close and gets stuck on the arm' },
+      { title: 'Truck stuck in creep', cause: 'Mast switch failed or broken wire in front end' }
+    ]
+  },
+  {
+    category: 'Mechanical',
+    icon: '⚙️',
+    key: 'mechanical',
+    issues: [
+      { title: 'Heavy steering one way', cause: 'Lock valve' },
+      { title: 'Heavy steering both ways or paddling', cause: 'Lock valve and orbital valves' },
+      { title: 'Floating steering, unresponsive steering', cause: 'Hydraulic oil bypassing the hydraulic steer motor seals' }
+    ]
+  },
+  {
+    category: 'Chassis',
+    icon: '🚚',
+    key: 'chassis',
+    issues: [
+      { title: 'Cracking overhead guard', cause: '' },
+      { title: 'Cracking front end', cause: '' },
+      { title: 'Front axle hub seal leaking', cause: 'Due to shrink wrap' },
+      { title: 'Debonding tyres / cracking tyres', cause: '' }
+    ]
+  }
+];
+
+var root = document.getElementById('categoriesRoot');
+var empty = document.getElementById('emptyState');
+
+function esc(s) {
+  return (s||'').replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; });
+}
+
+function render(filter) {
+  var q = (filter||'').toLowerCase().trim();
+  var html = '';
+  var anyResults = false;
+
+  DATA.forEach(function(cat) {
+    var matches = cat.issues.filter(function(i) {
+      if (!q) return true;
+      return i.title.toLowerCase().includes(q) || i.cause.toLowerCase().includes(q) || cat.category.toLowerCase().includes(q);
+    });
+    if (!matches.length) return;
+    anyResults = true;
+
+    html += '<div class="category">' +
+      '<div class="category-header">' +
+        '<span class="category-icon">' + cat.icon + '</span>' +
+        '<span class="category-title">' + esc(cat.category) + '</span>' +
+        '<span class="category-count">' + matches.length + (matches.length===1?' Issue':' Issues') + '</span>' +
+      '</div>' +
+      '<div class="issues-grid">';
+
+    matches.forEach(function(i) {
+      html += '<div class="issue-card">' +
+        '<div class="issue-accent ' + cat.key + '"></div>' +
+        '<div class="issue-body">' +
+          '<div class="issue-title">' + esc(i.title) + '</div>' +
+          (i.cause ? '<div class="issue-cause"><strong>Likely Cause:</strong> ' + esc(i.cause) + '</div>' : '') +
+          '<span class="issue-tag ' + cat.key + '">' + esc(cat.category) + '</span>' +
+        '</div>' +
+      '</div>';
+    });
+
+    html += '</div></div>';
+  });
+
+  root.innerHTML = html;
+  empty.style.display = anyResults ? 'none' : 'block';
+}
+
+var deb;
+document.getElementById('searchInput').addEventListener('input', function(e){
+  clearTimeout(deb);
+  var val = e.target.value;
+  deb = setTimeout(function(){ render(val); }, 150);
+});
+
+render('');
+</script>
+</body>
+</html>
