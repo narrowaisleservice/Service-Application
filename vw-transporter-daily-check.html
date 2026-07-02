@@ -1,0 +1,609 @@
+<meta>
+ 
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ 
+ <title>
+  VW Transporter — Daily Safety Check
+ </title>
+ <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&amp;family=Syne:wght@700;800&amp;family=DM+Sans:wght@400;500;600&amp;family=Barlow+Condensed:wght@800&amp;display=swap" rel="stylesheet">
+ <style>
+  :root {
+  --red: #df0a1e;
+  --red-dim: rgba(223,10,30,0.08);
+  --red-mid: rgba(223,10,30,0.3);
+  --bg: #FFFFFF;
+  --surface: #FFFFFF;
+  --surface2: #F5F5F5;
+  --border: rgba(0,0,0,0.1);
+  --border-hover: rgba(0,0,0,0.25);
+  --text: #101010;
+  --muted: #707070;
+  --green: #15803d;
+  --green-dim: rgba(21,128,61,0.08);
+  --amber: #b45309;
+  --amber-dim: rgba(180,83,9,0.08);
+  --mono: 'DM Mono', monospace;
+  --head: 'Syne', sans-serif;
+  --body: 'DM Sans', sans-serif;
+}
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--body);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+body::before {
+  content:'';
+  position:fixed;
+  inset:0;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(223,10,30,0.06) 0%, transparent 60%),
+    repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(0,0,0,0.025) 39px, rgba(0,0,0,0.025) 40px),
+    repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(0,0,0,0.025) 39px, rgba(0,0,0,0.025) 40px);
+  pointer-events:none;
+  z-index:0;
+}
+.app {
+  position: relative;
+  z-index: 1;
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 40px 20px 100px;
+}
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 32px;
+}
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand svg { height: 32px; width: auto; display: block; }
+.brand-divider { width: 1px; height: 28px; background: var(--border); }
+.brand-module {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+.page-title { margin-bottom: 28px; }
+.page-title .eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--red);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.page-title h1 {
+  font-family: 'Barlow Condensed', var(--head);
+  font-size: clamp(36px, 7vw, 60px);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -1px;
+  text-transform: uppercase;
+  color: #101010 !important;
+}
+.page-title .sub {
+  margin-top: 8px;
+  font-size: 14px;
+  color: var(--muted);
+}
+.progress-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 28px;
+  padding: 14px 18px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.progress-track {
+  flex: 1;
+  height: 6px;
+  background: rgba(0,0,0,0.08);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: var(--red);
+  border-radius: 3px;
+  width: 0%;
+  transition: width 0.25s ease;
+}
+.progress-text {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+  letter-spacing: 0.5px;
+}
+.progress-text strong { color: var(--red); font-weight: 500; }
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+}
+.card-title {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 18px;
+}
+.field-grid {
+  display: grid;
+  gap: 14px;
+}
+.field-grid.cols-3 { grid-template-columns: repeat(3,1fr); }
+@media (max-width: 560px) { .field-grid.cols-3 { grid-template-columns: 1fr; } }
+.field { display: flex; flex-direction: column; gap: 8px; }
+.field label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+.field input,
+.field select,
+.field textarea {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  color: var(--text);
+  font-family: var(--body);
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  -webkit-appearance: none;
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  border-color: var(--red);
+  box-shadow: 0 0 0 3px rgba(223,10,30,0.12);
+}
+.field select {
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23707070' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 36px;
+}
+.field select option { background: #FFFFFF; color: #101010; }
+
+.category { margin-bottom: 20px; }
+.category-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  padding: 0 4px;
+}
+.category-icon { font-size: 18px; line-height: 1; }
+.category-name {
+  font-family: 'Barlow Condensed', var(--head);
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+.category-status {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+.check-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.check-item-name {
+  flex: 1;
+  min-width: 160px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+.check-toggle { display: flex; gap: 6px; }
+.check-btn {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.check-btn:hover { border-color: var(--border-hover); }
+.check-btn.pass.active { background: var(--green-dim); border-color: var(--green); color: var(--green); }
+.check-btn.fail.active { background: var(--red-dim); border-color: var(--red); color: var(--red); }
+.check-btn.na.active { background: rgba(0,0,0,0.06); border-color: var(--border-hover); color: var(--text); }
+
+.defects-card { display: none; }
+.defects-card.show { display: block; }
+.defects-card textarea {
+  width: 100%;
+  min-height: 100px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  color: var(--text);
+  font-family: var(--body);
+  font-size: 14px;
+  line-height: 1.5;
+  outline: none;
+  resize: vertical;
+}
+.defects-card textarea:focus { border-color: var(--red); box-shadow: 0 0 0 3px rgba(223,10,30,0.12); }
+.defects-list {
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: var(--red);
+  font-weight: 600;
+}
+.defects-list span { display: block; margin-bottom: 4px; }
+
+.declaration {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 4px 4px 0;
+}
+.declaration input[type="checkbox"] {
+  width: 20px; height: 20px; flex-shrink: 0; margin-top: 2px; accent-color: var(--red); cursor: pointer;
+}
+.declaration label { font-size: 13px; color: var(--muted); line-height: 1.5; cursor: pointer; }
+
+.btn-primary {
+  width: 100%;
+  background: var(--red);
+  color: #fff;
+  border: none;
+  font-family: var(--body);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  padding: 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  margin-top: 20px;
+  transition: all 0.2s ease;
+}
+.btn-primary:hover:not(:disabled) { background: #ff1a30; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(223,10,30,0.25); }
+.btn-primary:disabled { background: var(--surface2); color: var(--muted); cursor: not-allowed; }
+
+.success-screen { display:none; text-align:center; padding:60px 20px; }
+.success-screen.active { display:block; }
+.success-icon {
+  width: 72px; height: 72px;
+  background: var(--green-dim);
+  border: 2px solid rgba(21,128,61,0.4);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 24px; font-size: 32px; color: var(--green);
+}
+.success-screen h2 {
+  font-family: var(--head); font-size: 32px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 10px;
+}
+.success-screen p { color: var(--muted); font-size: 15px; margin-bottom: 24px; }
+.success-ref {
+  font-family: var(--mono); font-size: 13px; color: var(--red);
+  background: var(--red-dim); border: 1px solid var(--red-mid);
+  border-radius: 8px; padding: 10px 20px; display: inline-block; margin-bottom: 32px;
+}
+.hidden { display: none !important; }
+ </style>
+ <div class="app" id="formScreen">
+  <div class="topbar">
+   <div class="brand">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 841.9 497.3" style="height:32px;width:auto;display:block;">
+     <style>.st0{fill:#101010;}</style>
+     <g>
+      <path class="st0" d="M724.9,251.8l9.8-4.4c0.7-0.3,1.5-0.2,2.1,0.2l21.4,13.9c1.4,0.9,1.4,3.1-0.1,3.9l-8.5,4.9c-0.7,0.4-1.6,0.4-2.3-0.1l-22.7-14.4C723.1,254.8,723.2,252.5,724.9,251.8"/>
+      <path class="st0" d="M465.5,354.3c-3.9-1.9-6.2-15.3,4.1-34.8c8-15.1,17.6-20.8,22.6-22.6c5.2-1.9,8.9-0.1,10,1c5.6,5.8,0.6,20-6.5,31.4C487.1,343.2,471.1,357,465.5,354.3 M806,352.8c-8.6,14.7-20.3,14-29.1,8.3c-7.7-5-13.3-26-16.2-34.6c-3.1-9-11.7-19.9-21.8-19.9c-13.1,0-30.8,36.5-35.8,42.1c-11.6,12.8-38.3,28-60.3,14.1c-12.1-7.6-28.3-29-28.3-29s49.6-49.4,51.6-52.3l-18.8-19.1c-2.3,3.8-48.6,51.6-50.4,51.6c-1.8,0-22.7-34.8-25.3-38c0,0-31.1-3-32.5-1.6c0,0,40.1,55.2,38.8,57.5c-2,3.3-45.5,34.9-56,40.5c-21.1,11.1-38.5,6.4-38.5,6.4s30.2-25.5,40.3-45.5c5-9.8,23.1-42.2-16.6-60.4c-23.6-10.8-44.4-1.6-63.6,26.8c-21.1,31-4.3,75.7-4.3,75.7s-23.6,16.7-44.6,1.3c-15.4-11.2-26.2-49.6-28.8-85.2c-3.9-52.6,6.8-158.4,6.8-158.4l-47.3-13.9c0,0,6,51.3-5.2,93.9c-26.9,102.3-97,128.4-104.6,129.3c-7.6,0.9-7.6-52.3-59.1-145C122.7,136.8,60,68.7,60.9,65.5c0.9-3.2,81.3-26.5,150.3-28.4c96.8-2.7,185.3,3,191.5,9.3c6.3,6.4-25.5,16.6,6.7,31.4c15.1,6.9,27.3-5.9,32.9-13.5c2.3-3.2,2.1-7.6-0.4-10.5C430.3,40.4,387.4,7.2,249,11.9C76.6,17.8,15.7,44.2,12.1,50.1s107.1,130.9,138,206.3c24.7,60.2,32.3,97.3,31.4,101.4c-0.9,4.1-44.4,1.4-44.4,1.4l13,21.4l35.4-1c0,0,3.9,24.3-1.8,42.7c-7.9,25.4-22.8,37.7-22.8,42.3l30.9,17.7c0,0,19.5-14.3,25.5-54.6c3-20.2,0-47.7,0-47.7s30.1-8.8,60.5-31.4c30.2-22.5,52.4-60,52.4-60s16.5,73.6,37.7,94.9c25.9,25.9,59,26.5,94,11.5c8.1,3.9,15.5,6.6,22.1,8.5c19.5,5.7,40.4,2.5,57.6-8.5c16.4-10.4,41-30.3,55.5-43.4c2.7-2.4,37.2,42.7,83.1,37.6c30.9-3.4,42.8-19,55.6-39c6.6-10.2,13.7,20.7,45.9,32.5c18.4,6.7,37.5,0.2,44.3-11C837,354,814.7,337.9,806,352.8"/>
+     </g>
+    </svg>
+    <div class="brand-divider"></div>
+    <div class="brand-module">Vehicle Checks</div>
+   </div>
+  </div>
+
+  <div class="page-title">
+   <div class="eyebrow">Daily Walkaround</div>
+   <h1>VW Transporter Check</h1>
+   <div class="sub">Complete before first use each day. All items must be checked before submitting.</div>
+  </div>
+
+  <div class="progress-bar">
+   <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+   <div class="progress-text"><strong id="progressCount">0</strong>/<span id="progressTotal">0</span> checked</div>
+  </div>
+
+  <div class="card">
+   <div class="card-title">Vehicle &amp; Driver Details</div>
+   <div class="field-grid cols-3">
+    <div class="field">
+     <label>Driver Name</label>
+     <input type="text" id="driverName" placeholder="e.g. J Williams">
+    </div>
+    <div class="field">
+     <label>Registration</label>
+     <input type="text" id="regNumber" placeholder="e.g. WV14 ABC" style="text-transform:uppercase">
+    </div>
+    <div class="field">
+     <label>Mileage</label>
+     <input type="number" id="mileage" placeholder="e.g. 48210">
+    </div>
+   </div>
+   <div class="field-grid cols-3" style="margin-top:14px">
+    <div class="field">
+     <label>Check Date</label>
+     <input type="date" id="checkDate">
+    </div>
+    <div class="field" style="grid-column: span 2;">
+     <label>Base / Depot</label>
+     <input type="text" id="depot" placeholder="e.g. Bilston, West Midlands">
+    </div>
+   </div>
+  </div>
+
+  <div id="categoriesRoot"></div>
+
+  <div class="card defects-card" id="defectsCard">
+   <div class="card-title">Defects &amp; Actions Taken</div>
+   <div class="defects-list" id="defectsList"></div>
+   <textarea id="defectsNotes" placeholder="Describe each defect and any action taken (e.g. reported to workshop, vehicle taken off road)…"></textarea>
+  </div>
+
+  <div class="card">
+   <div class="card-title">Declaration</div>
+   <div class="declaration">
+    <input type="checkbox" id="declarationCheck">
+    <label for="declarationCheck">I confirm I have carried out this daily safety check on the vehicle above in accordance with company procedure, and the information given is accurate.</label>
+   </div>
+  </div>
+
+  <button class="btn-primary" id="submitBtn" onclick="submitCheck()" disabled>Submit Daily Check</button>
+ </div>
+
+ <div class="app success-screen" id="successScreen">
+  <div class="success-icon">✓</div>
+  <h2>Check Submitted</h2>
+  <p>Your daily safety check has been recorded.</p>
+  <div class="success-ref" id="successRef">—</div>
+  <div>
+   <button class="btn-primary" style="max-width:280px;margin:0 auto" onclick="resetForm()">Start New Check</button>
+  </div>
+ </div>
+
+<script>
+var SCRIPT_URL = 'PASTE_YOUR_DEPLOYMENT_URL_HERE';
+
+var CATEGORIES = [
+  { name: 'Exterior', icon: '🚐', items: [
+    'Bodywork & Paintwork',
+    'Windscreen (Chips/Cracks)',
+    'Lights & Indicators',
+    'Mirrors',
+    'Tyres & Wheels',
+    'Number Plates'
+  ]},
+  { name: 'Cab & Controls', icon: '🎛️', items: [
+    'Seatbelts',
+    'Horn',
+    'Wipers & Washers',
+    'Dashboard Warning Lights',
+    'Handbrake',
+    'Steering',
+    'Brakes'
+  ]},
+  { name: 'Load Area', icon: '📦', items: [
+    'Sliding Door',
+    'Tailgate / Rear Doors',
+    'Load Area Condition',
+    'Load Restraints',
+    'Bulkhead (If Fitted)'
+  ]},
+  { name: 'Fluids', icon: '🛢️', items: [
+    'Engine Oil Level',
+    'Coolant Level',
+    'AdBlue Level',
+    'Screen Wash Level'
+  ]},
+  { name: 'Documents & Safety Equipment', icon: '📋', items: [
+    'MOT Valid',
+    'Insurance Valid',
+    'First Aid Kit',
+    'Warning Triangle',
+    'Fire Extinguisher (If Carried)'
+  ]}
+];
+
+var results = {}; // { itemName: 'pass'|'fail'|'na' }
+var allItems = [];
+CATEGORIES.forEach(function(c){ c.items.forEach(function(i){ allItems.push(i); }); });
+
+function esc(s) {
+  return (s||'').replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; });
+}
+function safeId(s) { return s.replace(/[^a-zA-Z0-9]/g,'_'); }
+
+function buildCategories() {
+  var root = document.getElementById('categoriesRoot');
+  var html = '';
+  CATEGORIES.forEach(function(cat){
+    html += '<div class="category">' +
+      '<div class="category-header">' +
+        '<span class="category-icon">' + cat.icon + '</span>' +
+        '<span class="category-name">' + esc(cat.name) + '</span>' +
+        '<span class="category-status" id="catstatus_' + safeId(cat.name) + '"></span>' +
+      '</div>';
+    cat.items.forEach(function(item){
+      var id = safeId(item);
+      html += '<div class="check-item">' +
+        '<span class="check-item-name">' + esc(item) + '</span>' +
+        '<div class="check-toggle">' +
+          '<button type="button" class="check-btn pass" id="pass_' + id + '" onclick="setResult(\'' + esc(item).replace(/'/g,"\\'") + '\',\'pass\')">Pass</button>' +
+          '<button type="button" class="check-btn fail" id="fail_' + id + '" onclick="setResult(\'' + esc(item).replace(/'/g,"\\'") + '\',\'fail\')">Fail</button>' +
+          '<button type="button" class="check-btn na" id="na_' + id + '" onclick="setResult(\'' + esc(item).replace(/'/g,"\\'") + '\',\'na\')">N/A</button>' +
+        '</div>' +
+      '</div>';
+    });
+    html += '</div>';
+  });
+  root.innerHTML = html;
+  document.getElementById('progressTotal').textContent = allItems.length;
+}
+
+function setResult(item, status) {
+  results[item] = status;
+  var id = safeId(item);
+  ['pass','fail','na'].forEach(function(s){
+    document.getElementById(s + '_' + id).classList.toggle('active', s === status);
+  });
+  updateProgress();
+  updateDefects();
+  updateSubmitState();
+}
+
+function updateProgress() {
+  var checked = Object.keys(results).length;
+  document.getElementById('progressCount').textContent = checked;
+  document.getElementById('progressFill').style.width = (allItems.length ? (checked / allItems.length * 100) : 0) + '%';
+
+  CATEGORIES.forEach(function(cat){
+    var done = cat.items.filter(function(i){ return results[i]; }).length;
+    var el = document.getElementById('catstatus_' + safeId(cat.name));
+    if (el) el.textContent = done + '/' + cat.items.length;
+  });
+}
+
+function updateDefects() {
+  var fails = allItems.filter(function(i){ return results[i] === 'fail'; });
+  var card = document.getElementById('defectsCard');
+  var list = document.getElementById('defectsList');
+  if (fails.length) {
+    card.classList.add('show');
+    list.innerHTML = fails.map(function(f){ return '<span>⚠ ' + esc(f) + '</span>'; }).join('');
+  } else {
+    card.classList.remove('show');
+    list.innerHTML = '';
+  }
+}
+
+function updateSubmitState() {
+  var allChecked = allItems.every(function(i){ return results[i]; });
+  var hasFails = allItems.some(function(i){ return results[i] === 'fail'; });
+  var defectsNotesFilled = document.getElementById('defectsNotes').value.trim().length > 0;
+  var declared = document.getElementById('declarationCheck').checked;
+  var driverOk = document.getElementById('driverName').value.trim().length > 0;
+  var regOk = document.getElementById('regNumber').value.trim().length > 0;
+
+  var ready = allChecked && declared && driverOk && regOk && (!hasFails || defectsNotesFilled);
+  document.getElementById('submitBtn').disabled = !ready;
+}
+
+document.getElementById('declarationCheck').addEventListener('change', updateSubmitState);
+document.getElementById('defectsNotes').addEventListener('input', updateSubmitState);
+['driverName','regNumber','mileage','checkDate','depot'].forEach(function(id){
+  document.getElementById(id).addEventListener('input', updateSubmitState);
+});
+
+function generateRef() {
+  return 'VWT-' + Date.now();
+}
+
+function submitCheck() {
+  var btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.textContent = 'Submitting…';
+
+  var ref = generateRef();
+  var payload = {
+    action: 'submitCheck',
+    checkRef: ref,
+    driverName: document.getElementById('driverName').value.trim(),
+    regNumber: document.getElementById('regNumber').value.trim().toUpperCase(),
+    mileage: document.getElementById('mileage').value.trim(),
+    checkDate: document.getElementById('checkDate').value,
+    depot: document.getElementById('depot').value.trim(),
+    results: results,
+    itemOrder: allItems,
+    defectsNotes: document.getElementById('defectsNotes').value.trim(),
+    hasDefects: allItems.some(function(i){ return results[i] === 'fail'; })
+  };
+
+  var formBody = new URLSearchParams();
+  formBody.append('payload', JSON.stringify(payload));
+
+  fetch(SCRIPT_URL, { method: 'POST', body: formBody })
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if (data.success) {
+        document.getElementById('successRef').textContent = ref;
+        document.getElementById('formScreen').classList.add('hidden');
+        document.getElementById('successScreen').classList.add('active');
+      } else {
+        alert('Submission failed: ' + (data.error || 'Unknown error'));
+        btn.disabled = false;
+        btn.textContent = 'Submit Daily Check';
+      }
+    })
+    .catch(function(err){
+      alert('Connection error — please try again.');
+      console.error(err);
+      btn.disabled = false;
+      btn.textContent = 'Submit Daily Check';
+    });
+}
+
+function resetForm() {
+  results = {};
+  document.getElementById('driverName').value = '';
+  document.getElementById('regNumber').value = '';
+  document.getElementById('mileage').value = '';
+  document.getElementById('depot').value = '';
+  document.getElementById('defectsNotes').value = '';
+  document.getElementById('declarationCheck').checked = false;
+  document.getElementById('checkDate').valueAsDate = new Date();
+  buildCategories();
+  updateProgress();
+  updateDefects();
+  updateSubmitState();
+  document.getElementById('successScreen').classList.remove('active');
+  document.getElementById('formScreen').classList.remove('hidden');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+document.getElementById('checkDate').valueAsDate = new Date();
+buildCategories();
+updateProgress();
+updateSubmitState();
+</script>
