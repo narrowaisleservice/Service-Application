@@ -1,0 +1,1103 @@
+<meta>
+ 
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ 
+ <title>
+  Flexi Parts Return
+ </title>
+ <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&amp;family=Syne:wght@700;800&amp;family=DM+Sans:wght@400;500;600&amp;family=Barlow+Condensed:wght@800&amp;display=swap" rel="stylesheet">
+ <style>
+  :root {
+  --red: #E8001D;
+  --red-dim: rgba(232,0,29,0.08);
+  --red-mid: rgba(232,0,29,0.3);
+  --bg: #FFFFFF;
+  --surface: #FFFFFF;
+  --surface2: #F5F5F5;
+  --border: rgba(0,0,0,0.1);
+  --border-hover: rgba(0,0,0,0.25);
+  --text: #101010;
+  --muted: #707070;
+  --mono: 'DM Mono', monospace;
+  --head: 'Syne', sans-serif;
+  --body: 'DM Sans', sans-serif;
+}
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--body);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+body::before {
+  content:'';
+  position:fixed;
+  inset:0;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(232,0,29,0.06) 0%, transparent 60%),
+    repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(0,0,0,0.025) 39px, rgba(0,0,0,0.025) 40px),
+    repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(0,0,0,0.025) 39px, rgba(0,0,0,0.025) 40px);
+  pointer-events:none;
+  z-index:0;
+}
+.app {
+  position: relative;
+  z-index: 1;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 40px 20px 80px;
+}
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 48px;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.brand-mark {
+  width: 36px;
+  height: 36px;
+  background: var(--red);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.brand-mark svg { width:20px; height:20px; fill:#fff; }
+.brand-name {
+  font-family: var(--head);
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+.brand-name span { color: var(--red); }
+.step-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.step-pip {
+  width: 28px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--surface2);
+  transition: background 0.4s ease, width 0.4s ease;
+}
+.step-pip.done { background: var(--red); }
+.step-pip.active { background: var(--red); width: 48px; }
+.page-title {
+  margin-bottom: 40px;
+}
+.page-title .eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--red);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.page-title h1 {
+  font-family: 'Barlow Condensed', var(--head);
+  font-size: clamp(48px, 8vw, 72px);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -1px;
+  text-transform: uppercase;
+  color: #101010 !important;
+}
+.step-panel {
+  display: none;
+  animation: fadeSlide 0.4s ease both;
+}
+.step-panel.active { display: block; }
+@keyframes fadeSlide {
+  from { opacity:0; transform:translateY(16px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+}
+.card-title {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+.field-grid {
+  display: grid;
+  gap: 16px;
+}
+.field-grid.cols-3 { grid-template-columns: repeat(3,1fr); }
+.field-grid.cols-2 { grid-template-columns: repeat(2,1fr); }
+@media (max-width: 560px) {
+  .field-grid.cols-3, .field-grid.cols-2 { grid-template-columns: 1fr; }
+}
+.field { display: flex; flex-direction: column; gap: 8px; }
+.field label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+.field input,
+.field select,
+.field textarea {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 13px 16px;
+  color: var(--text);
+  font-family: var(--body);
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  -webkit-appearance: none;
+}
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  border-color: var(--red);
+  box-shadow: 0 0 0 3px rgba(232,0,29,0.12);
+}
+.field select {
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23707070' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 40px;
+}
+.field select option,
+.field select optgroup { background: #FFFFFF; color: #101010; }
+.field textarea {
+  min-height: 90px;
+  resize: vertical;
+  font-family: var(--body);
+  line-height: 1.5;
+}
+.type-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+@media (max-width: 400px) { .type-grid { grid-template-columns: 1fr; } }
+.type-btn {
+  position: relative;
+  padding: 16px 12px;
+  background: var(--surface2);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  color: var(--muted);
+  font-family: var(--body);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s ease;
+  letter-spacing: 0.5px;
+}
+.type-btn:hover {
+  border-color: var(--border-hover);
+  color: var(--text);
+}
+.type-btn .type-icon {
+  display: block;
+  font-size: 22px;
+  margin-bottom: 6px;
+  line-height: 1;
+}
+.type-btn.active {
+  border-color: var(--red);
+  background: var(--red-dim);
+  color: var(--text);
+}
+.type-btn.active::after {
+  content:'';
+  position:absolute;
+  top:8px; right:8px;
+  width:8px; height:8px;
+  border-radius:50%;
+  background: var(--red);
+}
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 24px 0;
+}
+.parts-list { display:flex; flex-direction:column; gap:10px; }
+.part-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  animation: fadeSlide 0.3s ease both;
+  transition: border-color 0.2s;
+}
+.part-item:hover { border-color: var(--border-hover); }
+.part-type-tag {
+  flex-shrink: 0;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-weight: 500;
+}
+.tag-disposal { background: rgba(220,38,38,0.1); color: #B91C1C; }
+.tag-refurb   { background: rgba(37,99,235,0.1); color: #1D4ED8; }
+.tag-warranty { background: rgba(180,83,9,0.1);  color: #92400E; }
+.part-text { flex: 1; min-width: 0; }
+.part-desc {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.part-meta {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 3px;
+}
+.part-remove {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  line-height: 1;
+  transition: all 0.2s;
+}
+.part-remove:hover {
+  background: rgba(232,0,29,0.1);
+  border-color: var(--red);
+  color: var(--red);
+}
+.empty-parts {
+  text-align: center;
+  padding: 32px;
+  color: var(--muted);
+  font-size: 14px;
+  border: 2px dashed var(--border);
+  border-radius: 12px;
+}
+.parts-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.parts-count {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+.count-badge {
+  display: inline-block;
+  background: var(--red);
+  color: #fff;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 9px;
+  border-radius: 20px;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 24px;
+  border-radius: 10px;
+  font-family: var(--body);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+  letter-spacing: 0.2px;
+}
+.btn-primary {
+  background: var(--red);
+  color: #fff;
+  width: 100%;
+  font-size: 16px;
+  padding: 16px;
+  border-radius: 12px;
+  margin-top: 8px;
+}
+.btn-primary:hover:not(:disabled) {
+  background: #ff1a30;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(232,0,29,0.25);
+}
+.btn-primary:disabled {
+  background: var(--surface2);
+  color: var(--muted);
+  cursor: not-allowed;
+}
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 12px 20px;
+}
+.btn-ghost:hover {
+  border-color: var(--border-hover);
+  color: var(--text);
+}
+.btn-outline {
+  background: transparent;
+  border: 2px solid var(--red);
+  color: var(--red);
+  width: 100%;
+  padding: 13px;
+  border-radius: 12px;
+  margin-top: 4px;
+}
+.btn-outline:hover {
+  background: var(--red-dim);
+}
+.btn-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 24px;
+}
+.btn-row .btn { flex: 1; }
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.summary-row:last-child { border-bottom: none; }
+.summary-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+.summary-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  text-align: right;
+  max-width: 60%;
+}
+.return-ref {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  background: var(--red-dim);
+  border: 1px solid var(--red-mid);
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+.return-ref-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--red);
+  text-transform: uppercase;
+}
+.return-ref-num {
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+}
+.success-screen {
+  display: none;
+  text-align: center;
+  padding: 60px 20px;
+  animation: fadeSlide 0.5s ease both;
+}
+.success-screen.active { display: block; }
+.success-icon {
+  width: 72px;
+  height: 72px;
+  background: rgba(34,197,94,0.12);
+  border: 2px solid rgba(34,197,94,0.4);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 24px;
+  font-size: 32px;
+}
+.success-screen h2 {
+  font-family: var(--head);
+  font-size: 36px;
+  font-weight: 800;
+  letter-spacing: -1px;
+  margin-bottom: 10px;
+}
+.success-screen p {
+  color: var(--muted);
+  font-size: 15px;
+  margin-bottom: 32px;
+}
+.success-ref {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--red);
+  background: var(--red-dim);
+  border: 1px solid var(--red-mid);
+  border-radius: 8px;
+  padding: 10px 20px;
+  display: inline-block;
+  margin-bottom: 32px;
+}
+.parts-scroll {
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.parts-scroll::-webkit-scrollbar { width: 4px; }
+.parts-scroll::-webkit-scrollbar-track { background: transparent; }
+.parts-scroll::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 2px; }
+.step-nav-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--muted);
+  text-transform: uppercase;
+  text-align: center;
+  margin-top: 20px;
+}
+ </style>
+ <div class="app">
+  <div class="topbar">
+   <div class="brand">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 841.9 497.3" style="height:32px;width:auto;display:block;">
+     <style>
+      .st0{fill:#101010;}
+     </style>
+     <g>
+      <path class="st0" d="M724.9,251.8l9.8-4.4c0.7-0.3,1.5-0.2,2.1,0.2l21.4,13.9c1.4,0.9,1.4,3.1-0.1,3.9l-8.5,4.9c-0.7,0.4-1.6,0.4-2.3-0.1l-22.7-14.4C723.1,254.8,723.2,252.5,724.9,251.8">
+      </path>
+      <path class="st0" d="M465.5,354.3c-3.9-1.9-6.2-15.3,4.1-34.8c8-15.1,17.6-20.8,22.6-22.6c5.2-1.9,8.9-0.1,10,1c5.6,5.8,0.6,20-6.5,31.4C487.1,343.2,471.1,357,465.5,354.3 M806,352.8c-8.6,14.7-20.3,14-29.1,8.3c-7.7-5-13.3-26-16.2-34.6c-3.1-9-11.7-19.9-21.8-19.9c-13.1,0-30.8,36.5-35.8,42.1c-11.6,12.8-38.3,28-60.3,14.1c-12.1-7.6-28.3-29-28.3-29s49.6-49.4,51.6-52.3l-18.8-19.1c-2.3,3.8-48.6,51.6-50.4,51.6c-1.8,0-22.7-34.8-25.3-38c0,0-31.1-3-32.5-1.6c0,0,40.1,55.2,38.8,57.5c-2,3.3-45.5,34.9-56,40.5c-21.1,11.1-38.5,6.4-38.5,6.4s30.2-25.5,40.3-45.5c5-9.8,23.1-42.2-16.6-60.4c-23.6-10.8-44.4-1.6-63.6,26.8c-21.1,31-4.3,75.7-4.3,75.7s-23.6,16.7-44.6,1.3c-15.4-11.2-26.2-49.6-28.8-85.2c-3.9-52.6,6.8-158.4,6.8-158.4l-47.3-13.9c0,0,6,51.3-5.2,93.9c-26.9,102.3-97,128.4-104.6,129.3c-7.6,0.9-7.6-52.3-59.1-145C122.7,136.8,60,68.7,60.9,65.5c0.9-3.2,81.3-26.5,150.3-28.4c96.8-2.7,185.3,3,191.5,9.3c6.3,6.4-25.5,16.6,6.7,31.4c15.1,6.9,27.3-5.9,32.9-13.5c2.3-3.2,2.1-7.6-0.4-10.5C430.3,40.4,387.4,7.2,249,11.9C76.6,17.8,15.7,44.2,12.1,50.1s107.1,130.9,138,206.3c24.7,60.2,32.3,97.3,31.4,101.4c-0.9,4.1-44.4,1.4-44.4,1.4l13,21.4l35.4-1c0,0,3.9,24.3-1.8,42.7c-7.9,25.4-22.8,37.7-22.8,42.3l30.9,17.7c0,0,19.5-14.3,25.5-54.6c3-20.2,0-47.7,0-47.7s30.1-8.8,60.5-31.4c30.2-22.5,52.4-60,52.4-60s16.5,73.6,37.7,94.9c25.9,25.9,59,26.5,94,11.5c8.1,3.9,15.5,6.6,22.1,8.5c19.5,5.7,40.4,2.5,57.6-8.5c16.4-10.4,41-30.3,55.5-43.4c2.7-2.4,37.2,42.7,83.1,37.6c30.9-3.4,42.8-19,55.6-39c6.6-10.2,13.7,20.7,45.9,32.5c18.4,6.7,37.5,0.2,44.3-11C837,354,814.7,337.9,806,352.8">
+      </path>
+     </g>
+    </svg>
+   </div>
+   <div class="step-indicator">
+    <div class="step-pip active" id="pip0">
+    </div>
+    <div class="step-pip" id="pip1">
+    </div>
+    <div class="step-pip" id="pip2">
+    </div>
+   </div>
+  </div>
+  <!-- STEP 1 -->
+  <div class="step-panel active" id="step-0">
+   <div class="page-title">
+    <div class="eyebrow">
+     Step 01 / 03
+    </div>
+    <h1>
+     Job Details
+    </h1>
+   </div>
+   <div class="card">
+    <div class="card-title">
+     Who &amp; What
+    </div>
+    <div class="field-grid cols-3">
+     <div class="field">
+      <label>
+       Raised By
+      </label>
+      <select id="engineerName">
+       <option value="">
+        Select…
+       </option>
+       <optgroup label="Controllers">
+        <option value="Karen Bell">
+         Karen Bell
+        </option>
+        <option value="Jane Robbins">
+         Jane Robbins
+        </option>
+        <option value="Phil Grant">
+         Phil Grant
+        </option>
+        <option value="Lee Burt">
+         Lee Burt
+        </option>
+       </optgroup>
+       <optgroup label="Engineers">
+        <option value="Aaron Dyson">
+         Aaron Dyson
+        </option>
+        <option value="Brett Stockton">
+         Brett Stockton
+        </option>
+        <option value="David Williams">
+         David Williams
+        </option>
+        <option value="Graham Denman">
+         Graham Denman
+        </option>
+        <option value="Kevin Deakin">
+         Kevin Deakin
+        </option>
+        <option value="Lance Duncan">
+         Lance Duncan
+        </option>
+        <option value="Lewis Lockwood">
+         Lewis Lockwood
+        </option>
+        <option value="Mick Thornley">
+         Mick Thornley
+        </option>
+        <option value="Mike Adams">
+         Mike Adams
+        </option>
+        <option value="Pete King">
+         Pete King
+        </option>
+        <option value="Rob Appleyard">
+         Rob Appleyard
+        </option>
+        <option value="Rob Lucas">
+         Rob Lucas
+        </option>
+        <option value="Tom Barker">
+         Tom Barker
+        </option>
+       </optgroup>
+      </select>
+     </div>
+     <div class="field">
+      <label>
+       Job Number
+      </label>
+      <input type="text" id="jobNumber" placeholder="JOB-12345">
+     </div>
+     <div class="field">
+      <label>
+       Return Date
+      </label>
+      <input type="date" id="returnDate">
+     </div>
+    </div>
+   </div>
+   <div class="card">
+    <div class="card-title">
+     Pickup Address
+    </div>
+    <div class="field-grid">
+     <div class="field">
+      <label>
+       Company / Site Name
+      </label>
+      <input type="text" id="pickupCompany" placeholder="e.g. Acme Warehousing Ltd">
+     </div>
+     <div class="field">
+      <label>
+       Address Line 1
+      </label>
+      <input type="text" id="pickupLine1" placeholder="e.g. Unit 4, Industrial Way">
+     </div>
+     <div class="field">
+      <label>
+       Address Line 2 (optional)
+      </label>
+      <input type="text" id="pickupLine2" placeholder="e.g. Lye">
+     </div>
+    </div>
+    <div class="field-grid cols-3" style="margin-top:16px">
+     <div class="field">
+      <label>
+       Town / City
+      </label>
+      <input type="text" id="pickupCity" placeholder="e.g. Stourbridge">
+     </div>
+     <div class="field">
+      <label>
+       County (optional)
+      </label>
+      <input type="text" id="pickupCounty" placeholder="e.g. West Midlands">
+     </div>
+     <div class="field">
+      <label>
+       Postcode
+      </label>
+      <input type="text" id="pickupPostcode" placeholder="e.g. DY9 8EL" style="text-transform:uppercase">
+     </div>
+    </div>
+    <div class="field" style="margin-top:16px">
+     <label>
+      Special Access / Instructions (optional)
+     </label>
+     <input type="text" id="pickupAccess" placeholder="e.g. Ring buzzer on arrival, forklift available on site…">
+    </div>
+   </div>
+   <div class="card">
+    <div class="card-title">
+     Additional Notes
+    </div>
+    <div class="field">
+     <textarea id="additionalNotes" placeholder="Anything else relevant to this return…">     </textarea>
+    </div>
+   </div>
+   <button class="btn btn-primary" onclick="goStep(1)" id="step1Btn">
+    Continue — Add Parts →
+   </button>
+   <div class="step-nav-label">
+    Next: add your parts to return
+   </div>
+  </div>
+  <!-- STEP 2 -->
+  <div class="step-panel" id="step-1">
+   <div class="page-title">
+    <div class="eyebrow">
+     Step 02 / 03
+    </div>
+    <h1>
+     Add Parts
+    </h1>
+   </div>
+   <div class="card">
+    <div class="card-title">
+     Return Type
+    </div>
+    <div class="type-grid">
+     <button class="type-btn" id="btn-disposal" onclick="selectType('disposal')">
+      <span class="type-icon">
+       🗑️
+      </span>
+      Disposal
+     </button>
+     <button class="type-btn" id="btn-refurb" onclick="selectType('refurb')">
+      <span class="type-icon">
+       🔧
+      </span>
+      Refurb
+     </button>
+     <button class="type-btn" id="btn-warranty" onclick="selectType('warranty')">
+      <span class="type-icon">
+       📋
+      </span>
+      Warranty
+     </button>
+    </div>
+    <div class="field-grid cols-2">
+     <div class="field" style="grid-column:1 / -1">
+      <label>
+       Part Description
+      </label>
+      <input type="text" id="partDescription" placeholder="e.g. Hydraulic pump, controller board…" oninput="updateAddBtn()">
+     </div>
+     <div class="field">
+      <label>
+       Quantity
+      </label>
+      <input type="number" id="partQuantity" min="1" value="1">
+     </div>
+     <div class="field">
+      <label>
+       Reason (optional)
+      </label>
+      <input type="text" id="returnReason" placeholder="Failed, worn, damaged…">
+     </div>
+    </div>
+    <button class="btn btn-outline" onclick="addPart()" id="addPartBtn" disabled="">
+     + Add Part to Return
+    </button>
+   </div>
+   <div class="card">
+    <div class="parts-header">
+     <span class="parts-count">
+      Parts to Return
+      <span class="count-badge" id="partBadge">
+       0
+      </span>
+     </span>
+    </div>
+    <div class="parts-scroll">
+     <div class="parts-list" id="partsList">
+      <div class="empty-parts">
+       No parts added yet — select a type above and add your first part.
+      </div>
+     </div>
+    </div>
+   </div>
+   <div class="btn-row">
+    <button class="btn btn-ghost" onclick="goStep(0)">
+     ← Back
+    </button>
+    <button class="btn btn-primary" onclick="goStep(2)" id="step2Btn" disabled="" style="flex:2">
+     Review &amp; Submit →
+    </button>
+   </div>
+   <div class="step-nav-label">
+    Next: review everything before sending
+   </div>
+  </div>
+  <!-- STEP 3 -->
+  <div class="step-panel" id="step-2">
+   <div class="page-title">
+    <div class="eyebrow">
+     Step 03 / 03
+    </div>
+    <h1>
+     Review
+    </h1>
+   </div>
+   <div class="card" id="reviewCard">
+   </div>
+   <div class="card">
+    <div class="card-title">
+     Parts Summary
+    </div>
+    <div class="parts-list" id="reviewParts">
+    </div>
+   </div>
+   <div class="btn-row">
+    <button class="btn btn-ghost" onclick="goStep(1)">
+     ← Edit
+    </button>
+    <button class="btn btn-primary" onclick="submitReturn()" style="flex:2">
+     🚀 Submit Return
+    </button>
+   </div>
+   <div class="step-nav-label">
+    This will open your email client and download a PDF
+   </div>
+  </div>
+  <!-- SUCCESS -->
+  <div class="success-screen" id="successScreen">
+   <div class="success-icon">
+    ✓
+   </div>
+   <h2>
+    Return Submitted
+   </h2>
+   <p>
+    Your email client has opened with the return details.
+    <br>
+    A PDF has been downloaded for your records.
+   </p>
+   <div class="success-ref" id="successRef">
+    —
+   </div>
+   <button class="btn btn-primary" onclick="resetAll()" style="max-width:280px;margin:0 auto">
+    Start New Return
+   </button>
+  </div>
+ </div>
+ <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
+ </script>
+ <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js">
+ </script>
+ <script>
+  const RECIPIENT = 'j.williams@narrowaisle.co.uk';
+let parts = [];
+let selectedType = '';
+let currentStep = 0;
+document.getElementById('returnDate').valueAsDate = new Date();
+function goStep(n) {
+  if (n === 1) {
+    const eng  = document.getElementById('engineerName').value;
+    const job  = document.getElementById('jobNumber').value.trim();
+    const date = document.getElementById('returnDate').value;
+    if (!eng || !job || !date) {
+      highlight(['engineerName','jobNumber','returnDate']);
+      return;
+    }
+  }
+  if (n === 2) {
+    if (parts.length === 0) {
+      alert('Please add at least one part before continuing.');
+      return;
+    }
+    buildReview();
+  }
+  document.getElementById('step-' + currentStep).classList.remove('active');
+  currentStep = n;
+  document.getElementById('step-' + n).classList.add('active');
+  updatePips();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function updatePips() {
+  for (let i = 0; i < 3; i++) {
+    const pip = document.getElementById('pip' + i);
+    pip.className = 'step-pip';
+    if (i < currentStep) pip.classList.add('done');
+    if (i === currentStep) pip.classList.add('active');
+  }
+}
+function highlight(ids) {
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el.value) {
+      el.style.borderColor = 'var(--red)';
+      el.style.boxShadow = '0 0 0 3px rgba(232,0,29,0.2)';
+      setTimeout(() => { el.style.borderColor = ''; el.style.boxShadow = ''; }, 2000);
+    }
+  });
+}
+function selectType(type) {
+  selectedType = type;
+  document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-' + type).classList.add('active');
+  updateAddBtn();
+}
+function updateAddBtn() {
+  const desc = document.getElementById('partDescription').value.trim();
+  document.getElementById('addPartBtn').disabled = !(selectedType && desc);
+}
+function addPart() {
+  const desc   = document.getElementById('partDescription').value.trim();
+  const qty    = parseInt(document.getElementById('partQuantity').value) || 1;
+  const reason = document.getElementById('returnReason').value.trim();
+  if (!selectedType || !desc) return;
+  parts.push({ desc, qty, type: selectedType, reason: reason || null });
+  renderParts();
+  clearPartForm();
+}
+function clearPartForm() {
+  document.getElementById('partDescription').value = '';
+  document.getElementById('partQuantity').value = '1';
+  document.getElementById('returnReason').value = '';
+  selectedType = '';
+  document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('addPartBtn').disabled = true;
+}
+function removePart(i) {
+  parts.splice(i, 1);
+  renderParts();
+}
+function renderParts() {
+  const list     = document.getElementById('partsList');
+  const badge    = document.getElementById('partBadge');
+  const step2Btn = document.getElementById('step2Btn');
+  badge.textContent = parts.length;
+  step2Btn.disabled = parts.length === 0;
+  if (parts.length === 0) {
+    list.innerHTML = '<div class="empty-parts">No parts added yet — select a type above and add your first part.</div>';
+    return;
+  }
+  list.innerHTML = parts.map((p, i) => `
+    <div class="part-item">
+      <span class="part-type-tag tag-${p.type}">${p.type.toUpperCase()}</span>
+      <div class="part-text">
+        <div class="part-desc">${p.desc}</div>
+        <div class="part-meta">Qty: ${p.qty}${p.reason ? ' · ' + p.reason : ''}</div>
+      </div>
+      <button class="part-remove" onclick="removePart(${i})" title="Remove">×</button>
+    </div>
+  `).join('');
+}
+function buildReview() {
+  const eng      = document.getElementById('engineerName').value;
+  const job      = document.getElementById('jobNumber').value.trim();
+  const date     = document.getElementById('returnDate').value;
+  const notes    = document.getElementById('additionalNotes').value.trim();
+  const total    = parts.reduce((s,p) => s + p.qty, 0);
+  const company  = document.getElementById('pickupCompany').value.trim();
+  const line1    = document.getElementById('pickupLine1').value.trim();
+  const line2    = document.getElementById('pickupLine2').value.trim();
+  const city     = document.getElementById('pickupCity').value.trim();
+  const county   = document.getElementById('pickupCounty').value.trim();
+  const postcode = document.getElementById('pickupPostcode').value.trim().toUpperCase();
+  const access   = document.getElementById('pickupAccess').value.trim();
+  const addrParts = [company, line1, line2, city, county, postcode].filter(Boolean);
+  const addrStr   = addrParts.join(', ');
+  document.getElementById('reviewCard').innerHTML = `
+    <div class="card-title">Job Details</div>
+    <div class="summary-row"><span class="summary-label">Raised By</span><span class="summary-value">${eng}</span></div>
+    <div class="summary-row"><span class="summary-label">Job Number</span><span class="summary-value">${job}</span></div>
+    <div class="summary-row"><span class="summary-label">Return Date</span><span class="summary-value">${formatDate(date)}</span></div>
+    <div class="summary-row"><span class="summary-label">Total Parts</span><span class="summary-value">${parts.length} items · ${total} units</span></div>
+    ${addrStr ? `<div class="summary-row"><span class="summary-label">Pickup Address</span><span class="summary-value">${addrStr}</span></div>` : ''}
+    ${access  ? `<div class="summary-row"><span class="summary-label">Access Info</span><span class="summary-value">${access}</span></div>` : ''}
+    ${notes   ? `<div class="summary-row"><span class="summary-label">Notes</span><span class="summary-value">${notes}</span></div>` : ''}
+  `;
+  document.getElementById('reviewParts').innerHTML = parts.map(p => `
+    <div class="part-item">
+      <span class="part-type-tag tag-${p.type}">${p.type.toUpperCase()}</span>
+      <div class="part-text">
+        <div class="part-desc">${p.desc}</div>
+        <div class="part-meta">Qty: ${p.qty}${p.reason ? ' · ' + p.reason : ''}</div>
+      </div>
+    </div>
+  `).join('');
+}
+function formatDate(d) {
+  if (!d) return '—';
+  const [y,m,day] = d.split('-');
+  return `${day}/${m}/${y}`;
+}
+function submitReturn() {
+  const eng      = document.getElementById('engineerName').value;
+  const job      = document.getElementById('jobNumber').value.trim();
+  const date     = document.getElementById('returnDate').value;
+  const notes    = document.getElementById('additionalNotes').value.trim();
+  const company  = document.getElementById('pickupCompany').value.trim();
+  const line1    = document.getElementById('pickupLine1').value.trim();
+  const line2    = document.getElementById('pickupLine2').value.trim();
+  const city     = document.getElementById('pickupCity').value.trim();
+  const county   = document.getElementById('pickupCounty').value.trim();
+  const postcode = document.getElementById('pickupPostcode').value.trim().toUpperCase();
+  const access   = document.getElementById('pickupAccess').value.trim();
+  const addrLines = [company, line1, line2, city, county, postcode].filter(Boolean);
+  const ref   = 'RET-' + Date.now();
+  const now   = new Date().toLocaleString('en-GB');
+  const total = parts.reduce((s,p) => s + p.qty, 0);
+  let body = `FLEXI PARTS RETURN REQUEST\n`;
+  body += `Return Reference: ${ref}\n`;
+  body += `Submitted: ${now}\n\n`;
+  body += `RAISED BY  : ${eng}\n`;
+  body += `JOB NUMBER : ${job}\n`;
+  body += `RETURN DATE: ${formatDate(date)}\n\n`;
+  if (addrLines.length) {
+    body += `PICKUP ADDRESS\n${'─'.repeat(50)}\n`;
+    addrLines.forEach(l => { body += `${l}\n`; });
+    if (access) body += `Access: ${access}\n`;
+    body += `\n`;
+  }
+  body += `PARTS TO RETURN\n${'─'.repeat(50)}\n`;
+  parts.forEach((p, i) => {
+    body += `${i+1}. ${p.desc}\n`;
+    body += `   Type    : ${p.type.toUpperCase()}\n`;
+    body += `   Quantity: ${p.qty}\n`;
+    body += `   Reason  : ${p.reason || 'Not specified'}\n`;
+    body += `${'─'.repeat(50)}\n`;
+  });
+  body += `\nTOTAL: ${parts.length} items (${total} units)\n`;
+  if (notes) body += `\nNOTES:\n${notes}\n`;
+  body += `\n---\nGenerated by Flexi Quick Return System`;
+  window.location.href = `mailto:${RECIPIENT}?subject=${encodeURIComponent('Parts Return — ' + ref)}&body=${encodeURIComponent(body)}`;
+  setTimeout(() => generatePDF(ref, eng, job, date, notes, addrLines, access), 400);
+  document.getElementById('step-2').classList.remove('active');
+  document.getElementById('successScreen').classList.add('active');
+  document.getElementById('successRef').textContent = ref;
+}
+function generatePDF(ref, eng, job, date, notes, addrLines, access) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  doc.setFillColor(232, 0, 29);
+  doc.rect(0, 0, 210, 28, 'F');
+  doc.setTextColor(255,255,255);
+  doc.setFontSize(16);
+  doc.setFont(undefined, 'bold');
+  doc.text('FLEXI PARTS RETURN', 14, 17);
+  doc.setFontSize(10);
+  doc.setFont(undefined, 'normal');
+  doc.text(ref, 196, 17, { align: 'right' });
+  doc.setTextColor(0,0,0);
+  let y = 40;
+  doc.setFontSize(10);
+  doc.setFont(undefined, 'bold');
+  doc.text('Raised By:', 14, y);  doc.setFont(undefined, 'normal'); doc.text(eng, 55, y); y += 7;
+  doc.setFont(undefined, 'bold');
+  doc.text('Job Number:', 14, y);  doc.setFont(undefined, 'normal'); doc.text(job, 55, y); y += 7;
+  doc.setFont(undefined, 'bold');
+  doc.text('Return Date:', 14, y); doc.setFont(undefined, 'normal'); doc.text(formatDate(date), 55, y); y += 7;
+  doc.setFont(undefined, 'bold');
+  doc.text('Submitted:', 14, y);   doc.setFont(undefined, 'normal'); doc.text(new Date().toLocaleString('en-GB'), 55, y);
+  if (addrLines && addrLines.length) {
+    y += 12;
+    doc.setFont(undefined, 'bold');
+    doc.setFontSize(11);
+    doc.text('Pickup Address', 14, y);
+    y += 6;
+    doc.setFont(undefined, 'normal');
+    doc.setFontSize(10);
+    addrLines.forEach(l => { doc.text(l, 14, y); y += 6; });
+    if (access) { doc.setFont(undefined, 'italic'); doc.text('Access: ' + access, 14, y); y += 6; doc.setFont(undefined, 'normal'); }
+  }
+  y += 14;
+  doc.setFont(undefined, 'bold');
+  doc.setFontSize(12);
+  doc.text('Parts to Return', 14, y);
+  y += 4;
+  doc.autoTable({
+    startY: y,
+    head: [['#', 'Description', 'Type', 'Qty', 'Reason']],
+    body: parts.map((p, i) => [i + 1, p.desc, p.type.toUpperCase(), p.qty, p.reason || '—']),
+    theme: 'grid',
+    headStyles: { fillColor: [232,0,29], textColor:[255,255,255], fontStyle:'bold', fontSize:10 },
+    bodyStyles: { fontSize: 10 },
+    alternateRowStyles: { fillColor: [248,248,248] },
+    columnStyles: { 0:{cellWidth:10}, 2:{cellWidth:24}, 3:{cellWidth:12} }
+  });
+  y = doc.lastAutoTable.finalY + 8;
+  const total = parts.reduce((s,p) => s + p.qty, 0);
+  doc.setFontSize(10);
+  doc.setFont(undefined, 'bold');
+  doc.text(`Total: ${parts.length} items · ${total} units`, 14, y);
+  if (notes) {
+    y += 10;
+    doc.setFont(undefined, 'bold');
+    doc.text('Notes:', 14, y);
+    y += 6;
+    doc.setFont(undefined, 'normal');
+    doc.text(doc.splitTextToSize(notes, 182), 14, y);
+  }
+  doc.setFontSize(8);
+  doc.setTextColor(150,150,150);
+  doc.text('Flexi Quick Return System — Narrow Aisle Ltd', 105, 288, { align:'center' });
+  doc.save(`Flexi_Return_${ref}.pdf`);
+}
+function resetAll() {
+  parts = [];
+  selectedType = '';
+  currentStep = 0;
+  document.getElementById('engineerName').value = '';
+  document.getElementById('jobNumber').value = '';
+  document.getElementById('returnDate').valueAsDate = new Date();
+  document.getElementById('additionalNotes').value = '';
+  document.getElementById('pickupCompany').value = '';
+  document.getElementById('pickupLine1').value = '';
+  document.getElementById('pickupLine2').value = '';
+  document.getElementById('pickupCity').value = '';
+  document.getElementById('pickupCounty').value = '';
+  document.getElementById('pickupPostcode').value = '';
+  document.getElementById('pickupAccess').value = '';
+  renderParts();
+  clearPartForm();
+  document.getElementById('successScreen').classList.remove('active');
+  document.getElementById('step-0').classList.add('active');
+  updatePips();
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+ </script>
