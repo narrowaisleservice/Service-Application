@@ -349,7 +349,7 @@
     .controls { grid-template-columns: 1fr; }
     .sort-select-wrap { justify-content: flex-start; }
     td:nth-child(2), th:nth-child(2),
-    td:nth-child(5), th:nth-child(5) { display: none; }
+    td:nth-child(6), th:nth-child(6) { display: none; }
     .app { padding: 0 16px 60px; }
   }
  </style>
@@ -420,10 +420,11 @@
       <th data-col="postcode">Post Code <span class="arrow"></span></th>
       <th data-col="phone">Phone <span class="arrow"></span></th>
       <th data-col="website">Website <span class="arrow"></span></th>
+      <th data-col="location">Location <span class="arrow"></span></th>
      </tr>
     </thead>
     <tbody id="tableBody">
-     <tr><td colspan="5" style="padding:40px 16px;text-align:center;color:var(--muted);font-family:var(--mono);font-size:12px;">Loading contacts…</td></tr>
+     <tr><td colspan="6" style="padding:40px 16px;text-align:center;color:var(--muted);font-family:var(--mono);font-size:12px;">Loading contacts…</td></tr>
     </tbody>
     <div id="emptyState" class="empty-state" style="display:none;">
      <div class="icon">◎</div>
@@ -437,7 +438,7 @@
  </div>
  <script>
   // ===== Point this at your Apps Script /exec URL =====
-  const API_URL = 'https://script.google.com/macros/s/AKfycbweBc6FkZANninOHpRO9ld_N04G7DefThXNxVELFq1YYduFbEx1Ha7qmK_c6zjPDlSX/exec';
+  const API_URL = 'https://script.google.com/macros/s/AKfycbyOaF0JM2JOJZfsMOogyGiCIC5cLPazDzCi_em3U_vDVaIi5ZPsgBq_1kAVPEg7deQQRQ/exec';
 
   const PAGE_SIZE = 50;
   let DATA = [];
@@ -460,6 +461,23 @@
     if (!u) return '';
     return /^https?:\/\//i.test(u) ? u : 'https://' + u;
   }
+  // Strips junk labels baked into cell text, e.g. "Postcode: TN25 6GE" -> "TN25 6GE"
+  function stripLabel(s) {
+    return (s||'').replace(/^\s*(address|postcode|post code|phone|tel|mobile|website|site)\s*:\s*/i, '').trim();
+  }
+  // Parses the pipe-separated Site Notes field into { Region, County, Nearest, 'Grid Ref', Map }
+  function parseSiteNotes(notes) {
+    if (!notes) return null;
+    const parts = {};
+    notes.split('|').forEach(seg => {
+      const idx = seg.indexOf(':');
+      if (idx === -1) return;
+      const k = seg.slice(0, idx).trim();
+      const v = seg.slice(idx+1).trim();
+      if (k) parts[k] = v;
+    });
+    return Object.keys(parts).length ? parts : null;
+  }
 
   async function loadData() {
     const tbody = document.getElementById('tableBody');
@@ -468,7 +486,7 @@
       if (!res.ok) throw new Error('Request failed: ' + res.status);
       DATA = await res.json();
     } catch (err) {
-      tbody.innerHTML = `<tr><td colspan="5" style="padding:40px 16px;text-align:center;color:var(--red);font-family:var(--mono);font-size:12px;">Couldn't load contacts — check API_URL / deployment.<br>${esc(String(err.message||err))}</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6" style="padding:40px 16px;text-align:center;color:var(--red);font-family:var(--mono);font-size:12px;">Couldn't load contacts — check API_URL / deployment.<br>${esc(String(err.message||err))}</td></tr>`;
       return;
     }
     document.getElementById('totalCount').textContent = DATA.length.toLocaleString();
@@ -487,7 +505,8 @@
         (r['Address']||'').toLowerCase().includes(q) ||
         (r['Post Code']||'').toLowerCase().includes(q) ||
         (r['Phone Number']||'').toLowerCase().includes(q) ||
-        (r['Website']||'').toLowerCase().includes(q)
+        (r['Website']||'').toLowerCase().includes(q) ||
+        (r['Site Notes']||'').toLowerCase().includes(q)
       );
     }
     d.sort((a,b) => {
@@ -524,16 +543,32 @@
     tbody.innerHTML = page.map(r => {
       const company = r['Company Name'] || 'Unknown';
       const init = initials(company);
-      const address = r['Address'] ? `<span class="address-text" title="${esc(r['Address'])}">${highlight(r['Address'],q)}</span>` : '<span class="no-data">—</span>';
-      const postcode = r['Post Code'] ? `<span class="postcode-tag">${highlight(r['Post Code'],q)}</span>` : '<span class="no-data">—</span>';
-      const phone = r['Phone Number'] ? `<a class="phone-link" href="tel:${r['Phone Number'].replace(/\s/g,'')}">${highlight(r['Phone Number'],q)}</a>` : '<span class="no-data">—</span>';
+      const addressClean = stripLabel(r['Address']);
+      const postcodeClean = stripLabel(r['Post Code']);
+      const phoneClean = stripLabel(r['Phone Number']);
+      const address = addressClean ? `<span class="address-text" title="${esc(addressClean)}">${highlight(addressClean,q)}</span>` : '<span class="no-data">—</span>';
+      const postcode = postcodeClean ? `<span class="postcode-tag">${highlight(postcodeClean,q)}</span>` : '<span class="no-data">—</span>';
+      const phone = phoneClean ? `<a class="phone-link" href="tel:${phoneClean.replace(/\s/g,'')}">${highlight(phoneClean,q)}</a>` : '<span class="no-data">—</span>';
       const website = r['Website'] ? `<a class="website-link" href="${esc(fullUrl(r['Website']))}" target="_blank" rel="noopener" title="${esc(r['Website'])}">${highlight(cleanUrl(r['Website']),q)}</a>` : '<span class="no-data">—</span>';
+
+      const notesObj = parseSiteNotes(r['Site Notes']);
+      let location = '<span class="no-data">—</span>';
+      if (notesObj) {
+        const label = notesObj['Nearest'] || notesObj['County'] || notesObj['Region'] || '';
+        const tip = [notesObj['Region'],notesObj['County'],notesObj['Nearest'],notesObj['Grid Ref']?('Grid Ref: '+notesObj['Grid Ref']):''].filter(Boolean).join(' · ');
+        const mapUrl = notesObj['Map'];
+        location = (label ? `<span class="address-text" title="${esc(tip)}">${esc(label)}</span>` : '')
+          + (mapUrl ? ` <a class="website-link" href="${esc(mapUrl)}" target="_blank" rel="noopener">📍 Map</a>` : '');
+        if (!location.trim()) location = '<span class="no-data">—</span>';
+      }
+
       return `<tr>
         <td><div class="company-cell"><div class="avatar">${esc(init)}</div><span class="company-text">${highlight(company,q)}</span></div></td>
         <td>${address}</td>
         <td>${postcode}</td>
         <td>${phone}</td>
         <td>${website}</td>
+        <td>${location}</td>
       </tr>`;
     }).join('');
 
