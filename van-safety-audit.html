@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#df0a1e">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&family=DM+Sans:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>Van Safety Audit - Narrow Aisle Service Portal</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { background: white !important; color-scheme: light only; }
+    body {
+        font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        color: #101010;
+        min-height: 100vh;
+    }
+
+    .header {
+        background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+        border-bottom: 3px solid #df0a1e;
+        padding: 24px 32px;
+        position: sticky;
+        top: 0;
+        z-index: 50;
+    }
+
+    .back-link { font-size: 12px; color: #707070; text-decoration: none; font-weight: 600; }
+    .back-link:hover { color: #df0a1e; }
+
+    .header-title { font-family: 'IBM Plex Sans', sans-serif; font-size: 28px; font-weight: 700; margin-top: 4px; }
+    .header-subtitle { font-size: 13px; color: #707070; margin-top: 2px; }
+
+    .content { max-width: 1000px; margin: 0 auto; padding: 32px; }
+
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 16px;
+        margin-bottom: 32px;
+    }
+
+    .stat-card {
+        background: white;
+        border: 1px solid #e8e8e8;
+        border-radius: 12px;
+        padding: 20px;
+        border-top: 3px solid #df0a1e;
+    }
+
+    .stat-label {
+        font-family: 'DM Mono', monospace;
+        font-size: 10px;
+        font-weight: 500;
+        color: #606060;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+    }
+
+    .stat-value {
+        font-family: 'IBM Plex Sans', sans-serif;
+        font-size: 28px;
+        font-weight: 700;
+        color: #101010;
+    }
+
+    .panel {
+        background: white;
+        border: 1px solid #e8e8e8;
+        border-radius: 12px;
+        padding: 28px;
+        margin-bottom: 24px;
+    }
+
+    .panel-title {
+        font-family: 'IBM Plex Sans', sans-serif;
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 20px;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin-bottom: 28px;
+    }
+
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group.full { grid-column: 1 / -1; }
+
+    label {
+        font-family: 'DM Mono', monospace;
+        font-size: 10px;
+        font-weight: 500;
+        color: #606060;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    input, select, textarea {
+        font-family: 'DM Sans', sans-serif;
+        font-size: 14px;
+        padding: 12px 14px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        color: #101010;
+        background: white;
+    }
+
+    input:focus, select:focus, textarea:focus {
+        outline: none;
+        border-color: #df0a1e;
+    }
+
+    textarea { resize: vertical; min-height: 60px; }
+
+    .section-block { margin-bottom: 28px; }
+
+    .section-title {
+        font-family: 'IBM Plex Sans', sans-serif;
+        font-size: 15px;
+        font-weight: 700;
+        color: #df0a1e;
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #f0f0f0;
+    }
+
+    .check-item {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px 0;
+        border-bottom: 1px solid #f5f5f5;
+    }
+
+    .check-label { font-size: 14px; flex: 1; min-width: 200px; }
+
+    .check-buttons { display: flex; gap: 8px; }
+
+    .check-btn {
+        font-family: 'IBM Plex Sans', sans-serif;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        padding: 10px 18px;
+        border-radius: 8px;
+        border: 2px solid #ddd;
+        background: white;
+        color: #707070;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        min-width: 64px;
+    }
+
+    .check-btn[data-value="Pass"].active { background: #4caf50; border-color: #4caf50; color: white; }
+    .check-btn[data-value="Fail"].active { background: #df0a1e; border-color: #df0a1e; color: white; }
+    .check-btn[data-value="N/A"].active { background: #909090; border-color: #909090; color: white; }
+
+    .fail-comment {
+        display: none;
+        width: 100%;
+        margin-top: 8px;
+    }
+    .fail-comment.show { display: block; }
+
+    .fail-comment input {
+        width: 100%;
+        border-color: #df0a1e;
+    }
+
+    .submit-btn {
+        padding: 14px 32px;
+        background: #df0a1e;
+        border: none;
+        border-radius: 8px;
+        color: white;
+        font-family: 'IBM Plex Sans', sans-serif;
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .submit-btn:hover { background: #c3161e; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(223,10,30,0.3); }
+    .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    .validation-msg {
+        font-size: 13px;
+        color: #df0a1e;
+        margin-bottom: 16px;
+        display: none;
+    }
+    .validation-msg.show { display: block; }
+
+    .table-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .search-input { flex: 1; min-width: 200px; }
+
+    .audit-card {
+        background: white;
+        border: 1px solid #e8e8e8;
+        border-left: 4px solid #df0a1e;
+        border-radius: 10px;
+        padding: 18px 22px;
+        margin-bottom: 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .audit-card.pass { border-left-color: #4caf50; }
+
+    .audit-card:hover { box-shadow: 0 8px 24px rgba(223,10,30,0.1); transform: translateY(-2px); }
+
+    .audit-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+        margin-bottom: 6px;
+    }
+
+    .audit-van { font-family: 'IBM Plex Sans', sans-serif; font-size: 15px; font-weight: 700; }
+    .audit-date { font-family: 'DM Mono', monospace; font-size: 12px; color: #707070; white-space: nowrap; }
+
+    .audit-meta { font-size: 13px; color: #707070; display: flex; gap: 16px; flex-wrap: wrap; align-items: center; }
+    .audit-meta span strong { color: #101010; font-weight: 600; }
+
+    .result-badge {
+        font-family: 'DM Mono', monospace;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        padding: 4px 10px;
+        border-radius: 20px;
+        background: #4caf50;
+        color: white;
+    }
+    .result-badge.fail { background: #df0a1e; }
+
+    .audit-detail {
+        display: none;
+        margin-top: 14px;
+        padding-top: 14px;
+        border-top: 1px solid #f0f0f0;
+        font-size: 13px;
+    }
+    .audit-card.expanded .audit-detail { display: block; }
+
+    .detail-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 6px 0;
+        border-bottom: 1px solid #f8f8f8;
+    }
+    .detail-item .result-tag { font-weight: 700; }
+    .detail-item .result-tag.Pass { color: #4caf50; }
+    .detail-item .result-tag.Fail { color: #df0a1e; }
+    .detail-item .result-tag.N\/A { color: #909090; }
+
+    .empty-state, .loading-state {
+        text-align: center;
+        padding: 40px;
+        color: #909090;
+        font-size: 14px;
+    }
+
+    .toast {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        padding: 14px 22px;
+        border-radius: 8px;
+        color: white;
+        font-size: 13px;
+        font-weight: 600;
+        opacity: 0;
+        transform: translateY(10px);
+        transition: all 0.3s ease;
+        pointer-events: none;
+        z-index: 300;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.success { background: #4caf50; }
+    .toast.error { background: #df0a1e; }
+
+    @media (max-width: 640px) {
+        .header { padding: 16px 20px; }
+        .header-title { font-size: 22px; }
+        .content { padding: 16px; }
+        .check-item { flex-direction: column; align-items: flex-start; }
+        .check-buttons { width: 100%; }
+        .check-btn { flex: 1; }
+    }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <a class="back-link" href="portal-hub-professional.html">&larr; Back to Portal</a>
+    <div class="header-title">Van Safety Audit</div>
+    <div class="header-subtitle">VW Transporter fleet safety checklist</div>
+</div>
+
+<div class="content">
+
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-label">This Month</div>
+            <div class="stat-value" id="statMonth">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Total Audits</div>
+            <div class="stat-value" id="statTotal">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Fails Logged</div>
+            <div class="stat-value" id="statFails">0</div>
+        </div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-title">New Audit</div>
+        <form id="auditForm">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="vanReg">Van Registration</label>
+                    <input type="text" id="vanReg" placeholder="e.g. AB12 CDE" required style="text-transform:uppercase;">
+                </div>
+                <div class="form-group">
+                    <label for="vanNumber">Van / Fleet Number</label>
+                    <input type="text" id="vanNumber" placeholder="e.g. Van 7">
+                </div>
+                <div class="form-group">
+                    <label for="date">Date</label>
+                    <input type="date" id="date" required>
+                </div>
+                <div class="form-group">
+                    <label for="mileage">Mileage</label>
+                    <input type="number" id="mileage" placeholder="Optional">
+                </div>
+            </div>
+
+            <div id="checklistWrap"></div>
+
+            <div class="form-grid" style="margin-top:8px;">
+                <div class="form-group full">
+                    <label for="generalNotes">General Notes</label>
+                    <textarea id="generalNotes" placeholder="Optional — anything else worth flagging"></textarea>
+                </div>
+            </div>
+
+            <div class="validation-msg" id="validationMsg">Please mark every item before submitting.</div>
+            <button type="submit" class="submit-btn" id="submitBtn">Submit Audit</button>
+        </form>
+    </div>
+
+    <div class="panel">
+        <div class="table-toolbar">
+            <div class="panel-title" style="margin-bottom:0;">Audit History</div>
+            <input type="text" class="search-input" id="searchInput" placeholder="Search van reg, number...">
+        </div>
+        <div id="auditsWrap">
+            <div class="loading-state">Loading audits...</div>
+        </div>
+    </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+    if (!localStorage.getItem('portalUser')) {
+        window.location.href = 'login.html';
+    }
+    const portalName = localStorage.getItem('portalName') || 'Engineer';
+
+    // ---- Set this to your deployed Apps Script Web App URL ----
+    const GAS_URL = 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE';
+
+    const CHECKLIST = [
+        {
+            section: 'Tyres & Wheels',
+            items: [
+                'Tyre tread depth & condition (all wheels)',
+                'Tyre pressures correct',
+                'Wheel nuts secure, no damage',
+                'Spare wheel / puncture kit present & serviceable'
+            ]
+        },
+        {
+            section: 'Lights & Visibility',
+            items: [
+                'Headlights, sidelights & indicators working',
+                'Brake lights & reversing lights working',
+                'Windscreen free of cracks/chips in view',
+                'Wipers & washers working',
+                'Mirrors secure & undamaged'
+            ]
+        },
+        {
+            section: 'Safety Equipment',
+            items: [
+                'Fire extinguisher present & in-date',
+                'First aid kit present & stocked',
+                'Warning triangle present',
+                'Hi-vis vest(s) present'
+            ]
+        },
+        {
+            section: 'Cab & Controls',
+            items: [
+                'Seatbelts functional (all seats)',
+                'Horn working',
+                'Handbrake holds effectively',
+                'No unexpected dashboard warning lights',
+                'Fluid levels OK (oil / screenwash / coolant)'
+            ]
+        },
+        {
+            section: 'Load Area & Racking',
+            items: [
+                'Racking/shelving secure & undamaged',
+                'Load restraints/straps present & serviceable',
+                'Bulkhead intact and secure',
+                'No loose or unsecured items in load area'
+            ]
+        },
+        {
+            section: 'Documentation',
+            items: [
+                'MOT valid',
+                'Insurance valid',
+                'Road tax valid',
+                'Service up to date'
+            ]
+        }
+    ];
+
+    function buildChecklist() {
+        const wrap = document.getElementById('checklistWrap');
+        wrap.innerHTML = CHECKLIST.map((section, sIdx) => `
+            <div class="section-block">
+                <div class="section-title">${section.section}</div>
+                ${section.items.map((item, iIdx) => {
+                    const id = `item-${sIdx}-${iIdx}`;
+                    return `
+                        <div class="check-item">
+                            <div class="check-label">${item}</div>
+                            <div class="check-buttons" data-id="${id}" data-label="${item}">
+                                <button type="button" class="check-btn" data-value="Pass">Pass</button>
+                                <button type="button" class="check-btn" data-value="Fail">Fail</button>
+                                <button type="button" class="check-btn" data-value="N/A">N/A</button>
+                            </div>
+                            <div class="fail-comment" id="comment-${id}">
+                                <input type="text" placeholder="What's wrong with it?">
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        `).join('');
+
+        wrap.querySelectorAll('.check-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const group = this.closest('.check-buttons');
+                group.querySelectorAll('.check-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+
+                const id = group.dataset.id;
+                const commentBox = document.getElementById(`comment-${id}`);
+                if (this.dataset.value === 'Fail') {
+                    commentBox.classList.add('show');
+                } else {
+                    commentBox.classList.remove('show');
+                }
+            });
+        });
+    }
+
+    buildChecklist();
+    document.getElementById('date').valueAsDate = new Date();
+
+    let allAudits = [];
+
+    function showToast(message, type) {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.className = 'toast show ' + type;
+        setTimeout(() => { toast.className = 'toast ' + type; }, 3000);
+    }
+
+    function collectItems() {
+        const items = [];
+        let allAnswered = true;
+        document.querySelectorAll('.check-buttons').forEach(group => {
+            const activeBtn = group.querySelector('.check-btn.active');
+            const label = group.dataset.label;
+            if (!activeBtn) {
+                allAnswered = false;
+                return;
+            }
+            const result = activeBtn.dataset.value;
+            const id = group.dataset.id;
+            const comment = result === 'Fail'
+                ? document.querySelector(`#comment-${id} input`).value
+                : '';
+            items.push({ label, result, comment });
+        });
+        return { items, allAnswered };
+    }
+
+    document.getElementById('auditForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const { items, allAnswered } = collectItems();
+        const validationMsg = document.getElementById('validationMsg');
+
+        if (!allAnswered) {
+            validationMsg.classList.add('show');
+            return;
+        }
+        validationMsg.classList.remove('show');
+
+        const btn = document.getElementById('submitBtn');
+        btn.disabled = true;
+        btn.textContent = 'Submitting...';
+
+        const data = {
+            date: document.getElementById('date').value,
+            vanReg: document.getElementById('vanReg').value.toUpperCase(),
+            vanNumber: document.getElementById('vanNumber').value,
+            mileage: document.getElementById('mileage').value,
+            auditor: portalName,
+            generalNotes: document.getElementById('generalNotes').value,
+            items: items
+        };
+
+        fetch(`${GAS_URL}?data=${encodeURIComponent(JSON.stringify(data))}`)
+            .then(r => r.json())
+            .then(res => {
+                if (res.success) {
+                    showToast(res.failCount > 0 ? `Submitted — ${res.failCount} fail(s) logged` : 'Submitted — all pass', 'success');
+                    document.getElementById('auditForm').reset();
+                    document.getElementById('date').valueAsDate = new Date();
+                    buildChecklist();
+                    loadAudits();
+                } else {
+                    showToast('Something went wrong', 'error');
+                }
+            })
+            .catch(() => showToast('Could not reach the server', 'error'))
+            .finally(() => {
+                btn.disabled = false;
+                btn.textContent = 'Submit Audit';
+            });
+    });
+
+    function renderStats(audits) {
+        const now = new Date();
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+        let monthCount = 0, totalFails = 0;
+        audits.forEach(a => {
+            const d = new Date(a['Date']);
+            if (d >= monthStart) monthCount++;
+            totalFails += Number(a['FailCount']) || 0;
+        });
+
+        document.getElementById('statMonth').textContent = monthCount;
+        document.getElementById('statTotal').textContent = audits.length;
+        document.getElementById('statFails').textContent = totalFails;
+    }
+
+    function formatDate(val) {
+        if (!val) return '';
+        const d = new Date(val);
+        if (isNaN(d)) return val;
+        return d.toLocaleDateString('en-GB');
+    }
+
+    function renderAudits(audits) {
+        const wrap = document.getElementById('auditsWrap');
+        if (!audits.length) {
+            wrap.innerHTML = '<div class="empty-state">No audits logged yet.</div>';
+            return;
+        }
+
+        wrap.innerHTML = audits.map(a => {
+            const failCount = Number(a['FailCount']) || 0;
+            const passClass = failCount === 0 ? 'pass' : '';
+            const badgeClass = failCount === 0 ? '' : 'fail';
+            const badgeText = failCount === 0 ? 'All Pass' : `${failCount} Fail${failCount === 1 ? '' : 's'}`;
+
+            const itemRows = (a.items || []).map(i => `
+                <div class="detail-item">
+                    <span>${i.label}${i.comment ? ' — ' + i.comment : ''}</span>
+                    <span class="result-tag ${i.result}">${i.result}</span>
+                </div>
+            `).join('');
+
+            return `
+                <div class="audit-card ${passClass}">
+                    <div class="audit-top">
+                        <div class="audit-van">${a['VanReg'] || 'Unknown'} ${a['VanNumber'] ? '(' + a['VanNumber'] + ')' : ''}</div>
+                        <div class="audit-date">${formatDate(a['Date'])}</div>
+                    </div>
+                    <div class="audit-meta">
+                        <span><strong>Auditor:</strong> ${a['Auditor'] || '—'}</span>
+                        ${a['Mileage'] ? `<span><strong>Mileage:</strong> ${a['Mileage']}</span>` : ''}
+                        <span class="result-badge ${badgeClass}">${badgeText}</span>
+                    </div>
+                    <div class="audit-detail">
+                        ${a['GeneralNotes'] ? `<p style="margin-bottom:10px;"><strong>Notes:</strong> ${a['GeneralNotes']}</p>` : ''}
+                        ${itemRows}
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        wrap.querySelectorAll('.audit-card').forEach(card => {
+            card.addEventListener('click', () => card.classList.toggle('expanded'));
+        });
+    }
+
+    document.getElementById('searchInput').addEventListener('input', function () {
+        const term = this.value.trim().toLowerCase();
+        const filtered = term
+            ? allAudits.filter(a => (a['VanReg'] + ' ' + a['VanNumber']).toLowerCase().includes(term))
+            : allAudits;
+        renderAudits(filtered);
+    });
+
+    function loadAudits() {
+        fetch(`${GAS_URL}?action=list`)
+            .then(r => r.json())
+            .then(res => {
+                allAudits = res.audits || [];
+                renderStats(allAudits);
+                renderAudits(allAudits);
+            })
+            .catch(() => {
+                document.getElementById('auditsWrap').innerHTML = '<div class="empty-state">Could not load audits. Check the connection.</div>';
+            });
+    }
+
+    loadAudits();
+</script>
+</body>
+</html>
