@@ -263,10 +263,25 @@
                 const officeExts = ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'];
                 if (officeExts.includes(card.dataset.ext)) {
                     openDoc(card.dataset.url, card.dataset.title);
+                } else if (card.dataset.ext === 'html') {
+                    // raw.githubusercontent.com always serves files as text/plain,
+                    // so opening the raw URL directly shows source code instead of
+                    // rendering it. Open a blank tab immediately (so the popup isn't
+                    // blocked), then fetch the content and write it in so it renders.
+                    const win = window.open('', '_blank');
+                    fetch(card.dataset.url)
+                        .then(r => r.text())
+                        .then(html => {
+                            const withBase = html.replace(/<head>/i, `<head><base href="${card.dataset.url}">`);
+                            win.document.open();
+                            win.document.write(withBase);
+                            win.document.close();
+                        })
+                        .catch(() => {
+                            win.location.href = card.dataset.url; // fallback if fetch fails
+                        });
                 } else {
-                    // PDFs, HTML, etc. render natively when the browser opens
-                    // them directly — no viewer trickery needed, and it avoids
-                    // GitHub's block on framing raw.githubusercontent.com.
+                    // PDFs, etc. render natively when the browser opens them directly.
                     window.open(card.dataset.url, '_blank');
                 }
             });
