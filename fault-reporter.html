@@ -36,7 +36,19 @@
             padding: 32px 24px;
             color: white;
             text-align: center;
+            position: relative;
         }
+
+        .back-link {
+            position: absolute;
+            top: 16px;
+            left: 20px;
+            font-size: 12px;
+            color: rgba(255,255,255,0.85);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .back-link:hover { color: white; }
 
         .header h1 {
             font-family: 'IBM Plex Sans', sans-serif;
@@ -134,10 +146,13 @@
         }
 
         .priority-btn.active {
-            background: currentColor;
             color: white;
-            border-color: currentColor;
         }
+
+        .priority-btn.critical.active { background: #ff6b6b; border-color: #ff6b6b; }
+        .priority-btn.high.active { background: #ffa940; border-color: #ffa940; }
+        .priority-btn.medium.active { background: #faad14; border-color: #faad14; }
+        .priority-btn.low.active { background: #52c41a; border-color: #52c41a; }
 
         .form-group.inline {
             display: grid;
@@ -195,6 +210,11 @@
             background: #e0e0e0;
         }
 
+        .btn-cancel:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
         .success-message {
             display: none;
             background: #d4edda;
@@ -220,7 +240,7 @@
         .loading {
             display: none;
             text-align: center;
-            padding: 20px;
+            padding: 40px 20px;
         }
 
         .spinner {
@@ -290,35 +310,34 @@
 <body>
     <div class="container">
         <div class="header">
+            <a class="back-link" href="portal-hub-professional.html">&larr; Back to Portal</a>
             <h1>Report Fault</h1>
             <p>Report a truck issue quickly and easily</p>
         </div>
 
         <div class="form-area">
-            <div class="success-message" id="successMsg">
-                ✅ Fault reported successfully!
-            </div>
+            <div class="success-message" id="successMsg"></div>
             <div class="error-message" id="errorMsg"></div>
 
             <form id="faultForm">
                 <div class="form-group inline">
                     <div class="form-group">
                         <label for="truckId">Truck ID / Registration</label>
-                        <input type="text" id="truckId" name="truckId" placeholder="e.g. FLX-001" required>
+                        <input type="text" id="truckId" name="truckId" placeholder="e.g. FLX-001" autocomplete="off" required>
                     </div>
                     <div class="form-group">
                         <label for="reportedBy">Your Name</label>
-                        <input type="text" id="reportedBy" name="reportedBy" placeholder="Your name" required>
+                        <input type="text" id="reportedBy" name="reportedBy" placeholder="Your name" autocomplete="name" required>
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label>Priority Level</label>
-                    <div class="priority-buttons">
-                        <button type="button" class="priority-btn critical" data-priority="Critical">🔴 Critical</button>
-                        <button type="button" class="priority-btn high" data-priority="High">🟠 High</button>
-                        <button type="button" class="priority-btn medium active" data-priority="Medium">🟡 Medium</button>
-                        <button type="button" class="priority-btn low" data-priority="Low">🟢 Low</button>
+                    <label id="priorityLabel">Priority Level</label>
+                    <div class="priority-buttons" role="group" aria-labelledby="priorityLabel">
+                        <button type="button" class="priority-btn critical" data-priority="Critical" aria-pressed="false">🔴 Critical</button>
+                        <button type="button" class="priority-btn high" data-priority="High" aria-pressed="false">🟠 High</button>
+                        <button type="button" class="priority-btn medium active" data-priority="Medium" aria-pressed="true">🟡 Medium</button>
+                        <button type="button" class="priority-btn low" data-priority="Low" aria-pressed="false">🟢 Low</button>
                     </div>
                     <input type="hidden" id="priority" name="priority" value="Medium">
                 </div>
@@ -334,7 +353,7 @@
                 </div>
 
                 <div class="button-group">
-                    <button type="button" class="btn btn-cancel" onclick="resetForm()">Clear</button>
+                    <button type="button" class="btn btn-cancel" id="clearBtn" onclick="resetForm()">Clear</button>
                     <button type="submit" class="btn btn-submit" id="submitBtn">Submit Fault Report</button>
                 </div>
             </form>
@@ -354,16 +373,23 @@
         const priorityInput = document.getElementById('priority');
         const form = document.getElementById('faultForm');
         const submitBtn = document.getElementById('submitBtn');
+        const clearBtn = document.getElementById('clearBtn');
         const loading = document.getElementById('loading');
         const successMsg = document.getElementById('successMsg');
         const errorMsg = document.getElementById('errorMsg');
+
+        let errorHideTimer = null;
 
         // Priority button handlers
         priorityButtons.forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
-                priorityButtons.forEach(b => b.classList.remove('active'));
+                priorityButtons.forEach(b => {
+                    b.classList.remove('active');
+                    b.setAttribute('aria-pressed', 'false');
+                });
                 btn.classList.add('active');
+                btn.setAttribute('aria-pressed', 'true');
                 priorityInput.value = btn.dataset.priority;
             });
         });
@@ -371,18 +397,29 @@
         // Form submission
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            submitBtn.disabled = true;
-            loading.style.display = 'block';
+
             successMsg.style.display = 'none';
             errorMsg.style.display = 'none';
+            if (errorHideTimer) clearTimeout(errorHideTimer);
+
+            submitBtn.disabled = true;
+            clearBtn.disabled = true;
+            priorityButtons.forEach(b => b.disabled = true);
+            form.style.display = 'none';
+            loading.style.display = 'block';
+
+            const truckId = document.getElementById('truckId').value.trim().toUpperCase();
+            const reportedBy = document.getElementById('reportedBy').value.trim();
+            const description = document.getElementById('description').value.trim();
+            const notes = document.getElementById('notes').value.trim();
 
             const formData = {
                 action: 'addFault',
-                truckId: document.getElementById('truckId').value,
-                reportedBy: document.getElementById('reportedBy').value,
+                truckId: truckId,
+                reportedBy: reportedBy,
                 priority: priorityInput.value,
-                description: document.getElementById('description').value,
-                notes: document.getElementById('notes').value
+                description: description,
+                notes: notes
             };
 
             try {
@@ -394,31 +431,42 @@
                 const result = await response.json();
 
                 if (result.success) {
+                    resetForm();
                     successMsg.innerHTML = `
-                        ✅ Fault reported successfully!<br>
-                        <strong>Fault ID:</strong> ${result.faultId}
+                        ✅ Fault reported successfully!
+                        <div class="fault-id">
+                            <div class="fault-id-label">Fault ID</div>
+                            <div class="fault-id-value">${result.faultId}</div>
+                        </div>
                     `;
                     successMsg.style.display = 'block';
-                    resetForm();
-                    setTimeout(() => {
-                        successMsg.style.display = 'none';
-                    }, 5000);
                 } else {
                     throw new Error(result.error || 'Failed to submit fault');
                 }
             } catch (error) {
-                errorMsg.textContent = '❌ Error: ' + error.message;
+                errorMsg.textContent = '❌ Error: ' + error.message + ' — please try again.';
                 errorMsg.style.display = 'block';
+                errorHideTimer = setTimeout(() => {
+                    errorMsg.style.display = 'none';
+                }, 8000);
             } finally {
                 loading.style.display = 'none';
+                form.style.display = 'block';
                 submitBtn.disabled = false;
+                clearBtn.disabled = false;
+                priorityButtons.forEach(b => b.disabled = false);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             }
         });
 
         function resetForm() {
             form.reset();
-            priorityButtons.forEach(b => b.classList.remove('active'));
+            priorityButtons.forEach(b => {
+                b.classList.remove('active');
+                b.setAttribute('aria-pressed', 'false');
+            });
             priorityButtons[2].classList.add('active'); // Default to Medium
+            priorityButtons[2].setAttribute('aria-pressed', 'true');
             priorityInput.value = 'Medium';
         }
     </script>
