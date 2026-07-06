@@ -212,6 +212,8 @@
     document.title = pageTitle + ' - Narrow Aisle Service Portal';
 
     let allDocs = [];
+    // Cache resolved HTML titles so we don't re-fetch every time the grid re-renders (e.g. on search)
+    const titleCache = {};
 
     function iconFor(filename) {
         const ext = filename.split('.').pop().toLowerCase();
@@ -225,6 +227,16 @@
         return filename.replace(/\.[^/.]+$/, '').replace(/[-_]+/g, ' ').trim();
     }
 
+    // Pulls the real document name out of a page's <title> tag, e.g.
+    // "2026-020 – Use of Ladders and Steps | Narrow Aisle Ltd Risk Assessment"
+    // becomes "Use of Ladders and Steps"
+    function extractTitleFromHtml(html) {
+        const match = html.match(/<title>([^<]*)<\/title>/i);
+        if (!match) return null;
+        let title = match[1].split('–').pop().split('|')[0].trim();
+        return title || null;
+    }
+
     function renderDocs(list) {
         const grid = document.getElementById('docGrid');
         document.getElementById('resultCount').textContent = `${list.length} document${list.length === 1 ? '' : 's'}`;
@@ -234,13 +246,17 @@
             return;
         }
 
-        grid.innerHTML = list.map(d => `
-            <div class="doc-card" data-url="${d.download_url}" data-title="${cleanTitle(d.name)}" data-ext="${d.name.split('.').pop().toLowerCase()}">
+        grid.innerHTML = list.map(d => {
+            const ext = d.name.split('.').pop().toLowerCase();
+            const title = (ext === 'html' && titleCache[d.name]) ? titleCache[d.name] : cleanTitle(d.name);
+            return `
+            <div class="doc-card" data-url="${d.download_url}" data-title="${title}" data-ext="${ext}" data-name="${d.name}">
                 <div class="doc-icon">${iconFor(d.name)}</div>
-                <div class="doc-title">${cleanTitle(d.name)}</div>
-                <div class="doc-type">.${d.name.split('.').pop().toUpperCase()}</div>
+                <div class="doc-title">${title}</div>
+                <div class="doc-type">.${ext.toUpperCase()}</div>
             </div>
-        `).join('');
+        `;
+        }).join('');
 
         grid.querySelectorAll('.doc-card').forEach(card => {
             card.addEventListener('click', () => {
@@ -254,6 +270,23 @@
                     window.open(card.dataset.url, '_blank');
                 }
             });
+        });
+
+        // Upgrade HTML docs with their real in-file title, then re-render once resolved
+        grid.querySelectorAll('.doc-card[data-ext="html"]').forEach(card => {
+            const name = card.dataset.name;
+            if (titleCache[name]) return; // already resolved
+            fetch(card.dataset.url)
+                .then(r => r.text())
+                .then(html => {
+                    const realTitle = extractTitleFromHtml(html);
+                    if (realTitle) {
+                        titleCache[name] = realTitle;
+                        card.dataset.title = realTitle;
+                        card.querySelector('.doc-title').textContent = realTitle;
+                    }
+                })
+                .catch(() => {}); // silent fallback to filename if fetch fails
         });
     }
 
@@ -272,7 +305,11 @@
     document.getElementById('searchInput').addEventListener('input', function () {
         const term = this.value.trim().toLowerCase();
         const filtered = term
-            ? allDocs.filter(d => d.name.toLowerCase().includes(term))
+            ? allDocs.filter(d => {
+                const ext = d.name.split('.').pop().toLowerCase();
+                const resolvedTitle = (ext === 'html' && titleCache[d.name]) ? titleCache[d.name] : cleanTitle(d.name);
+                return d.name.toLowerCase().includes(term) || resolvedTitle.toLowerCase().includes(term);
+            })
             : allDocs;
         renderDocs(filtered);
     });
