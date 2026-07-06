@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#df0a1e">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&family=DM+Sans:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>Management Dashboard - Narrow Aisle Service Portal</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { background: white !important; color-scheme: light only; }
+    body {
+        font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        color: #101010;
+        min-height: 100vh;
+    }
+
+    .header {
+        background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+        border-bottom: 3px solid #df0a1e;
+        padding: 24px 32px;
+        position: sticky;
+        top: 0;
+        z-index: 50;
+    }
+
+    .back-link { font-size: 12px; color: #707070; text-decoration: none; font-weight: 600; }
+    .back-link:hover { color: #df0a1e; }
+
+    .header-title { font-family: 'IBM Plex Sans', sans-serif; font-size: 28px; font-weight: 700; margin-top: 4px; }
+    .header-subtitle { font-size: 13px; color: #707070; margin-top: 2px; }
+
+    .content { max-width: 1200px; margin: 0 auto; padding: 32px; }
+
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 16px;
+        margin-bottom: 32px;
+    }
+
+    .stat-card {
+        background: #fafafa;
+        border: 1px solid #eee;
+        border-radius: 12px;
+        padding: 20px;
+    }
+
+    .stat-value {
+        font-family: 'IBM Plex Sans', sans-serif;
+        font-size: 32px;
+        font-weight: 700;
+        color: #df0a1e;
+        line-height: 1;
+    }
+
+    .stat-label {
+        font-family: 'DM Mono', monospace;
+        font-size: 11px;
+        color: #707070;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        margin-top: 8px;
+    }
+
+    .section-title {
+        font-family: 'IBM Plex Sans', sans-serif;
+        font-size: 16px;
+        font-weight: 700;
+        margin: 8px 0 16px;
+        color: #101010;
+    }
+
+    .module-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 16px;
+    }
+
+    .module-card {
+        background: white;
+        border: 1px solid #e8e8e8;
+        border-radius: 12px;
+        padding: 22px;
+        text-decoration: none;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        transition: all 0.2s ease;
+        position: relative;
+    }
+
+    .module-card:hover {
+        border-color: #df0a1e;
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(223,10,30,0.12);
+    }
+
+    .module-card.disabled {
+        cursor: default;
+        opacity: 0.85;
+    }
+    .module-card.disabled:hover {
+        border-color: #e8e8e8;
+        transform: none;
+        box-shadow: none;
+    }
+
+    .module-icon { font-size: 28px; }
+
+    .module-title {
+        font-family: 'IBM Plex Sans', sans-serif;
+        font-size: 16px;
+        font-weight: 700;
+    }
+
+    .module-desc {
+        font-size: 13px;
+        color: #707070;
+        line-height: 1.4;
+    }
+
+    .module-badge {
+        position: absolute;
+        top: 18px;
+        right: 18px;
+        font-family: 'DM Mono', monospace;
+        font-size: 10px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        padding: 4px 8px;
+        border-radius: 4px;
+    }
+
+    .module-badge.live {
+        background: #e6f7e6;
+        color: #2e7d32;
+    }
+
+    .module-badge.soon {
+        background: #f5f5f5;
+        color: #909090;
+    }
+
+    @media (max-width: 640px) {
+        .header { padding: 16px 20px; }
+        .header-title { font-size: 22px; }
+        .content { padding: 16px; }
+    }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <a class="back-link" href="portal-hub-professional.html">&larr; Back to Portal</a>
+    <div class="header-title">Management Dashboard</div>
+    <div class="header-subtitle">Assets, jobs, technicians and routing at a glance</div>
+</div>
+
+<div class="content">
+
+    <div class="stats-row" id="statsRow">
+        <div class="stat-card">
+            <div class="stat-value">—</div>
+            <div class="stat-label">Open Work Orders</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">—</div>
+            <div class="stat-label">Engineers Active</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">—</div>
+            <div class="stat-label">Assets Due Calibration</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">—</div>
+            <div class="stat-label">Warranties Expiring Soon</div>
+        </div>
+    </div>
+
+    <div class="section-title">Modules</div>
+    <div class="module-grid">
+
+        <a class="module-card" href="fault-tracker.html">
+            <span class="module-badge live">Live</span>
+            <div class="module-icon">📋</div>
+            <div class="module-title">Work Order Management</div>
+            <div class="module-desc">Create, assign, and track jobs and tasks. Currently backed by the Fault Tracker — rename/extend once scope is confirmed.</div>
+        </a>
+
+        <a class="module-card" href="service-history.html">
+            <span class="module-badge live">Live</span>
+            <div class="module-icon">⏱️</div>
+            <div class="module-title">Job Tracking</div>
+            <div class="module-desc">Status and time spent across jobs, pulled from Opera 3 job history.</div>
+        </a>
+
+        <a class="module-card disabled" href="#">
+            <span class="module-badge soon">Coming soon</span>
+            <div class="module-icon">🧰</div>
+            <div class="module-title">Asset Tracking</div>
+            <div class="module-desc">Track tools and hydraulic jacks — location, condition, who has them.</div>
+        </a>
+
+        <a class="module-card disabled" href="#">
+            <span class="module-badge soon">Coming soon</span>
+            <div class="module-icon">📏</div>
+            <div class="module-title">Calibration Management</div>
+            <div class="module-desc">Track calibration due dates and certificates for tools and equipment.</div>
+        </a>
+
+        <a class="module-card disabled" href="#">
+            <span class="module-badge soon">Coming soon</span>
+            <div class="module-icon">🗺️</div>
+            <div class="module-title">Routing</div>
+            <div class="module-desc">Plan daily routes to optimise scheduling and provide directions.</div>
+        </a>
+
+        <a class="module-card disabled" href="#">
+            <span class="module-badge soon">Coming soon</span>
+            <div class="module-icon">👷</div>
+            <div class="module-title">Technician Management</div>
+            <div class="module-desc">Oversee technicians and track their assigned work orders.</div>
+        </a>
+
+        <a class="module-card disabled" href="#">
+            <span class="module-badge soon">Coming soon</span>
+            <div class="module-icon">🛡️</div>
+            <div class="module-title">Warranty Tracking</div>
+            <div class="module-desc">Track warranty duration, expiry, and obligations per asset.</div>
+        </a>
+
+        <a class="module-card disabled" href="#">
+            <span class="module-badge soon">Coming soon</span>
+            <div class="module-icon">🗂️</div>
+            <div class="module-title">Job Management</div>
+            <div class="module-desc">Higher-level job/project view sitting above individual work orders.</div>
+        </a>
+
+    </div>
+</div>
+
+<script>
+    if (!localStorage.getItem('portalUser')) {
+        window.location.href = 'login.html';
+    }
+
+    // Stats row is placeholder only — wire this up once each module has a real
+    // GAS endpoint to pull counts from. Example pattern for when ready:
+    //
+    // fetch(SOME_GAS_URL + '?action=stats')
+    //   .then(r => r.json())
+    //   .then(data => {
+    //       document.querySelectorAll('.stat-value')[0].textContent = data.openWorkOrders;
+    //       ...
+    //   });
+</script>
+</body>
+</html>
