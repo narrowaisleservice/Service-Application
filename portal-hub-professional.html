@@ -226,6 +226,37 @@
             margin-bottom: 40px;
         }
 
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: #fafafa;
+            border: 1px solid #eee;
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .stat-value {
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 32px;
+            font-weight: 700;
+            color: #df0a1e;
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 11px;
+            color: #707070;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            margin-top: 8px;
+        }
+
         .card {
             background: white;
             border: 1px solid #e8e8e8;
@@ -542,8 +573,13 @@
         </div>
 
         <div class="nav-section">
+            <div class="nav-section-title">Overview</div>
+            <div class="nav-item active" data-section="dashboard">📊 Dashboard</div>
+        </div>
+
+        <div class="nav-section">
             <div class="nav-section-title">Field Service</div>
-            <div class="nav-item active" data-section="field-service">📦 Field Service</div>
+            <div class="nav-item" data-section="field-service">📦 Field Service</div>
             <div class="nav-item" data-section="technical-docs">📘 Manuals</div>
             <div class="nav-item" data-section="customer-info">👥 Customer Info</div>
             <div class="nav-item" data-section="troubleshooting">🔍 Troubleshooting</div>
@@ -613,6 +649,26 @@
         document.getElementById('profileTime').textContent = portalLoginTime || '—';
 
         const sections = {
+            'dashboard': {
+                title: 'Management Dashboard',
+                subtitle: 'Assets, jobs, technicians and routing at a glance',
+                stats: [
+                    { value: '—', label: 'Open Work Orders' },
+                    { value: '—', label: 'Engineers Active' },
+                    { value: '—', label: 'Assets Due Calibration' },
+                    { value: '—', label: 'Warranties Expiring Soon' }
+                ],
+                cards: [
+                    { title: 'Work Order Management', desc: 'Create, assign, and track jobs and tasks. Currently backed by the Fault Tracker.', icon: '📋', link: 'fault-tracker.html', badge: 'Featured' },
+                    { title: 'Job Tracking', desc: 'Status and time spent across jobs, pulled from Opera 3 job history.', icon: '⏱️', link: 'service-history.html', badge: 'Featured' },
+                    { title: 'Asset Tracking', desc: 'Track tools and hydraulic jacks — location, condition, who has them.', icon: '🧰', link: '#', badge: '' },
+                    { title: 'Calibration Management', desc: 'Track calibration due dates and certificates for tools and equipment.', icon: '📏', link: '#', badge: '' },
+                    { title: 'Routing', desc: 'Plan daily routes to optimise scheduling and provide directions.', icon: '🗺️', link: '#', badge: '' },
+                    { title: 'Technician Management', desc: 'Oversee technicians and track their assigned work orders.', icon: '👷', link: '#', badge: '' },
+                    { title: 'Warranty Tracking', desc: 'Track warranty duration, expiry, and obligations per asset.', icon: '🛡️', link: '#', badge: '' },
+                    { title: 'Job Management', desc: 'Higher-level job/project view sitting above individual work orders.', icon: '🗂️', link: '#', badge: '' }
+                ]
+            },
             'field-service': {
                 title: 'Field Service',
                 subtitle: 'Essential tools for your daily work',
@@ -715,18 +771,30 @@
             }
         };
 
-        let currentSection = 'field-service';
+        let currentSection = 'dashboard';
         loadSection(currentSection);
 
         function loadSection(sectionId) {
-            const section = sections[sectionId] || sections['daily-work'];
+            const section = sections[sectionId] || sections['dashboard'];
             document.getElementById('headerSubtitle').textContent = section.subtitle;
-            
+
+            const statsHtml = section.stats ? `
+                <div class="stats-row">
+                    ${section.stats.map(stat => `
+                        <div class="stat-card">
+                            <div class="stat-value">${stat.value}</div>
+                            <div class="stat-label">${stat.label}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            ` : '';
+
             const html = `
                 <div class="section-header">
                     <div class="section-title">${section.title}</div>
                     <div class="section-subtitle">${section.subtitle}</div>
                 </div>
+                ${statsHtml}
                 <div class="cards-grid">
                     ${section.cards.map(card => `
                         <div class="card" onclick="if('${card.link}' !== '#') window.location.href = '${card.link}'">
