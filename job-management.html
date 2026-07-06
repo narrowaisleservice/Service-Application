@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#df0a1e">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&family=DM+Sans:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>Job Management - Narrow Aisle Service Portal</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { background: white !important; color-scheme: light only; }
+    body {
+        font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        color: #101010;
+        min-height: 100vh;
+    }
+
+    .header {
+        background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+        border-bottom: 3px solid #df0a1e;
+        padding: 20px 28px;
+        position: sticky;
+        top: 0;
+        z-index: 50;
+    }
+    .back-link { font-size: 12px; color: #707070; text-decoration: none; font-weight: 600; }
+    .back-link:hover { color: #df0a1e; }
+    .header-title { font-family: 'IBM Plex Sans', sans-serif; font-size: 24px; font-weight: 700; margin-top: 4px; }
+    .header-subtitle { font-size: 13px; color: #707070; margin-top: 2px; }
+
+    .toolbar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 28px;
+        border-bottom: 1px solid #eee;
+        flex-wrap: wrap;
+    }
+
+    .date-nav { display: flex; align-items: center; gap: 8px; }
+    .date-nav button {
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        width: 32px;
+        height: 32px;
+        cursor: pointer;
+        font-size: 14px;
+        color: #101010;
+    }
+    .date-nav button:hover { border-color: #df0a1e; color: #df0a1e; }
+    .date-nav input[type="date"] {
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        padding: 7px 10px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 13px;
+    }
+    .today-btn {
+        background: #f0f0f0;
+        border: none;
+        border-radius: 6px;
+        padding: 8px 14px;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: 'IBM Plex Sans', sans-serif;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+    .today-btn:hover { background: #e0e0e0; }
+
+    .spacer { flex: 1; }
+
+    .btn-new {
+        padding: 10px 20px;
+        background: #df0a1e;
+        border: none;
+        border-radius: 8px;
+        color: white;
+        font-family: 'IBM Plex Sans', sans-serif;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        cursor: pointer;
+    }
+    .btn-new:hover { background: #c3161e; }
+
+    .legend { display: flex; gap: 14px; padding: 10px 28px; flex-wrap: wrap; font-size: 11px; color: #707070; }
+    .legend-item { display: flex; align-items: center; gap: 6px; }
+    .legend-swatch { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+
+    /* ── Scheduler ── */
+    .scheduler-wrap { overflow-x: auto; padding: 0 28px 8px; }
+    .scheduler {
+        display: grid;
+        grid-template-columns: 160px 1fr;
+        min-width: 1200px;
+        border: 1px solid #eee;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .eng-header, .time-header {
+        background: #fafafa;
+        border-bottom: 2px solid #df0a1e;
+        font-family: 'IBM Plex Sans', sans-serif;
+        font-weight: 700;
+        font-size: 12px;
+        padding: 10px 12px;
+        display: flex;
+        align-items: center;
+    }
+    .time-header {
+        position: relative;
+        height: 36px;
+        padding: 0;
+    }
+    .time-label {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        display: flex;
+        align-items: center;
+        font-size: 11px;
+        color: #707070;
+        font-family: 'DM Mono', monospace;
+        border-left: 1px solid #eee;
+        padding-left: 6px;
+    }
+
+    .eng-col { border-right: 1px solid #eee; }
+    .eng-name {
+        padding: 0 12px;
+        height: 74px;
+        display: flex;
+        align-items: center;
+        font-size: 13px;
+        font-weight: 600;
+        border-bottom: 1px solid #f2f2f2;
+    }
+
+    .timeline-col { position: relative; }
+    .eng-row {
+        position: relative;
+        height: 74px;
+        border-bottom: 1px solid #f2f2f2;
+        background-image: repeating-linear-gradient(to right, #f5f5f5 0, #f5f5f5 1px, transparent 1px, transparent var(--hour-px));
+    }
+
+    .job-block {
+        position: absolute;
+        top: 8px;
+        bottom: 8px;
+        border-radius: 6px;
+        padding: 5px 8px;
+        color: white;
+        font-size: 11px;
+        line-height: 1.3;
+        overflow: hidden;
+        cursor: pointer;
+        border-left: 4px solid transparent;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+    }
+    .job-block:hover { filter: brightness(1.08); }
+    .job-block .jb-title { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .job-block .jb-sub { opacity: 0.85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .now-line {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: #df0a1e;
+        z-index: 5;
+        pointer-events: none;
+    }
+
+    .empty-roster {
+        padding: 40px 20px;
+        text-align: center;
+        color: #909090;
+        font-size: 13px;
+    }
+
+    /* ── Unallocated panel ── */
+    .unalloc-section { padding: 24px 28px 40px; }
+    .unalloc-title {
+        font-family: 'IBM Plex Sans', sans-serif;
+        font-size: 16px;
+        font-weight: 700;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .unalloc-count {
+        font-family: 'DM Mono', monospace;
+        font-size: 11px;
+        background: #f0f0f0;
+        color: #707070;
+        padding: 3px 8px;
+        border-radius: 10px;
+    }
+
+    .unalloc-table { width: 100%; border-collapse: collapse; }
+    .unalloc-table th {
+        text-align: left;
+        font-family: 'DM Mono', monospace;
+        font-size: 10px;
+        color: #707070;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        padding: 8px 12px;
+        border-bottom: 2px solid #eee;
+    }
+    .unalloc-table td {
+        padding: 12px;
+        font-size: 13px;
+        border-bottom: 1px solid #f2f2f2;
+    }
+    .unalloc-table tr.job-row { cursor: pointer; }
+    .unalloc-table tr.job-row:hover { background: #fafafa; }
+
+    .priority-pill { font-size: 11px; font-weight: 700; }
+    .priority-pill.critical { color: #ff6b6b; }
+    .priority-pill.high { color: #ffa940; }
+    .priority-pill.medium { color: #faad14; }
+    .priority-pill.low { color: #52c41a; }
+
+    .status-badge {
+        font-family: 'DM Mono', monospace;
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        padding: 5px 9px;
+        border-radius: 6px;
+        color: white;
+        display: inline-block;
+    }
+    .status-badge.new { background: #909090; }
+    .status-badge.scheduled { background: #2f80ed; }
+    .status-badge.in-progress { background: #faad14; }
+    .status-badge.on-hold { background: #ffa940; }
+    .status-badge.completed { background: #52c41a; }
+    .status-badge.cancelled { background: #c0c0c0; color: #707070; }
+
+    .empty-state, .loading-state, .error-state {
+        text-align: center;
+        padding: 30px 20px;
+        color: #909090;
+        font-size: 13px;
+    }
+    .error-state { color: #df0a1e; }
+
+    /* ── Modals ── */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 300;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+        background: white;
+        border-radius: 12px;
+        width: 100%;
+        max-width: 560px;
+        max-height: 90vh;
+        overflow-y: auto;
+        padding: 28px;
+    }
+    .modal-title {
+        font-family: 'IBM Plex Sans', sans-serif;
+        font-size: 20px;
+        font-weight: 700;
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .modal-close { background: none; border: none; font-size: 22px; cursor: pointer; color: #707070; line-height: 1; }
+    .modal-close:hover { color: #df0a1e; }
+
+    .form-group { margin-bottom: 16px; }
+    .form-group.inline { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .form-group.inline3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+    .form-group.inline .form-group, .form-group.inline3 .form-group { margin-bottom: 0; }
+
+    .form-group label {
+        display: block;
+        font-family: 'IBM Plex Sans', sans-serif;
+        font-size: 12px;
+        font-weight: 700;
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+    .form-group input, .form-group select, .form-group textarea {
+        width: 100%;
+        padding: 10px 14px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 14px;
+        color: #101010;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #df0a1e; }
+    .form-group textarea { resize: vertical; min-height: 70px; }
+
+    .priority-buttons { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .priority-btn {
+        padding: 10px 6px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        background: white;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 12px;
+        text-align: center;
+    }
+    .priority-btn.critical { border-color: #ff6b6b; color: #ff6b6b; }
+    .priority-btn.high { border-color: #ffa940; color: #ffa940; }
+    .priority-btn.medium { border-color: #faad14; color: #faad14; }
+    .priority-btn.low { border-color: #52c41a; color: #52c41a; }
+    .priority-btn.active { color: white; }
+    .priority-btn.critical.active { background: #ff6b6b; }
+    .priority-btn.high.active { background: #ffa940; }
+    .priority-btn.medium.active { background: #faad14; }
+    .priority-btn.low.active { background: #52c41a; }
+
+    .modal-actions { display: flex; gap: 12px; margin-top: 8px; }
+    .btn {
+        flex: 1;
+        padding: 13px 20px;
+        border: none;
+        border-radius: 8px;
+        font-family: 'IBM Plex Sans', sans-serif;
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        cursor: pointer;
+    }
+    .btn-submit { background: #df0a1e; color: white; }
+    .btn-submit:hover { background: #c3161e; }
+    .btn-submit:disabled { background: #ccc; cursor: not-allowed; }
+    .btn-cancel { background: #f0f0f0; color: #101010; }
+    .btn-cancel:hover { background: #e0e0e0; }
+
+    .modal-error {
+        display: none;
+        background: #f8d7da;
+        border: 1px solid #f5c6cb;
+        color: #721c24;
+        padding: 12px 14px;
+        border-radius: 8px;
+        margin-bottom: 16px;
+        font-size: 13px;
+    }
+
+    .detail-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-size: 13px; }
+    .detail-row .label { color: #707070; }
+    .detail-row .value { font-weight: 600; text-align: right; }
+
+    @media (max-width: 640px) {
+        .header, .toolbar, .legend, .unalloc-section { padding-left: 16px; padding-right: 16px; }
+        .form-group.inline, .form-group.inline3 { grid-template-columns: 1fr; }
+    }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <a class="back-link" href="portal-hub-professional.html">&larr; Back to Portal</a>
+    <div class="header-title">Job Management</div>
+    <div class="header-subtitle">Daily engineer schedule and job assignment</div>
+</div>
+
+<div class="toolbar">
+    <div class="date-nav">
+        <button id="prevDayBtn">‹</button>
+        <input type="date" id="dateInput">
+        <button id="nextDayBtn">›</button>
+    </div>
+    <button class="today-btn" id="todayBtn">Today</button>
+    <div class="spacer"></div>
+    <button class="btn-new" id="newJobBtn">+ New Job</button>
+</div>
+
+<div class="legend">
+    <div class="legend-item"><span class="legend-swatch" style="background:#2f6f6f"></span>Breakdown</div>
+    <div class="legend-item"><span class="legend-swatch" style="background:#2f80ed"></span>Planned Maintenance</div>
+    <div class="legend-item"><span class="legend-swatch" style="background:#7b2fbe"></span>Installation</div>
+    <div class="legend-item"><span class="legend-swatch" style="background:#0aa5b8"></span>Inspection</div>
+    <div class="legend-item"><span class="legend-swatch" style="background:#faad14"></span>Parts Fitting</div>
+    <div class="legend-item"><span class="legend-swatch" style="background:#707070"></span>Other</div>
+    <div class="legend-item" style="margin-left:12px;">Block left edge = priority (red/orange/amber/green)</div>
+</div>
+
+<div class="scheduler-wrap">
+    <div id="schedulerContainer" style="min-width:1200px;">
+        <div class="loading-state">Loading schedule...</div>
+    </div>
+</div>
+
+<div class="unalloc-section">
+    <div class="unalloc-title">Unallocated Jobs <span class="unalloc-count" id="unallocCount">0</span></div>
+    <div id="unallocTableWrap">
+        <div class="loading-state">Loading...</div>
+    </div>
+</div>
+
+<!-- New Job Modal -->
+<div class="modal-overlay" id="newJobModal">
+    <div class="modal">
+        <div class="modal-title">New Job <button class="modal-close" id="newJobClose">&times;</button></div>
+        <div class="modal-error" id="newJobError"></div>
+        <form id="newJobForm">
+            <div class="form-group inline">
+                <div class="form-group">
+                    <label for="njCustomer">Customer / Site</label>
+                    <input type="text" id="njCustomer" required>
+                </div>
+                <div class="form-group">
+                    <label for="njEquipment">Equipment / Truck ID</label>
+                    <input type="text" id="njEquipment">
+                </div>
+            </div>
+            <div class="form-group inline">
+                <div class="form-group">
+                    <label for="njJobType">Job Type</label>
+                    <select id="njJobType" required>
+                        <option value="">Select type...</option>
+                        <option>Breakdown</option>
+                        <option>Planned Maintenance</option>
+                        <option>Installation</option>
+                        <option>Inspection</option>
+                        <option>Parts Fitting</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="njEngineer">Assigned Engineer</label>
+                    <select id="njEngineer">
+                        <option value="">Unassigned</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Priority</label>
+                <div class="priority-buttons" id="njPriorityButtons">
+                    <button type="button" class="priority-btn critical" data-priority="Critical">Critical</button>
+                    <button type="button" class="priority-btn high" data-priority="High">High</button>
+                    <button type="button" class="priority-btn medium active" data-priority="Medium">Medium</button>
+                    <button type="button" class="priority-btn low" data-priority="Low">Low</button>
+                </div>
+                <input type="hidden" id="njPriority" value="Medium">
+            </div>
+            <div class="form-group inline3">
+                <div class="form-group">
+                    <label for="njScheduledDate">Scheduled Date</label>
+                    <input type="date" id="njScheduledDate">
+                </div>
+                <div class="form-group">
+                    <label for="njStartTime">Start Time</label>
+                    <input type="time" id="njStartTime">
+                </div>
+                <div class="form-group">
+                    <label for="njEndTime">End Time</label>
+                    <input type="time" id="njEndTime">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="njDescription">Description</label>
+                <textarea id="njDescription" placeholder="What does this job involve?"></textarea>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-cancel" id="newJobCancel">Cancel</button>
+                <button type="submit" class="btn btn-submit" id="newJobSubmit">Create Job</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit / Assign Modal -->
+<div class="modal-overlay" id="editJobModal">
+    <div class="modal">
+        <div class="modal-title"><span id="editJobId">Job</span><button class="modal-close" id="editJobClose">&times;</button></div>
+        <div class="modal-error" id="editJobError"></div>
+        <div id="editJobDetails"></div>
+        <form id="editJobForm">
+            <div class="form-group inline">
+                <div class="form-group">
+                    <label for="ejEngineer">Assigned Engineer</label>
+                    <select id="ejEngineer">
+                        <option value="">Unassigned</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="ejStatus">Status</label>
+                    <select id="ejStatus">
+                        <option>New</option>
+                        <option>Scheduled</option>
+                        <option>In Progress</option>
+                        <option>On Hold</option>
+                        <option>Completed</option>
+                        <option>Cancelled</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group inline3">
+                <div class="form-group">
+                    <label for="ejScheduledDate">Scheduled Date</label>
+                    <input type="date" id="ejScheduledDate">
+                </div>
+                <div class="form-group">
+                    <label for="ejStartTime">Start Time</label>
+                    <input type="time" id="ejStartTime">
+                </div>
+                <div class="form-group">
+                    <label for="ejEndTime">End Time</label>
+                    <input type="time" id="ejEndTime">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="ejNotes">Notes</label>
+                <textarea id="ejNotes" placeholder="Updates, progress notes..."></textarea>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-cancel" id="editJobCancel">Close</button>
+                <button type="submit" class="btn btn-submit" id="editJobSubmit">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    if (!localStorage.getItem('portalUser')) {
+        window.location.href = 'login.html';
+    }
+
+    // UPDATE THIS with your GAS deployment URL once you've created and deployed the backend
+    const GAS_URL = "PASTE_YOUR_GAS_DEPLOYMENT_URL_HERE";
+
+    const HOUR_START = 7;
+    const HOUR_END = 19;
+    const HOUR_PX = 90;
+    const timelineWidth = (HOUR_END - HOUR_START) * HOUR_PX;
+
+    const JOB_TYPE_COLORS = {
+        'Breakdown': '#2f6f6f',
+        'Planned Maintenance': '#2f80ed',
+        'Installation': '#7b2fbe',
+        'Inspection': '#0aa5b8',
+        'Parts Fitting': '#faad14',
+        'Other': '#707070'
+    };
+    const PRIORITY_COLORS = { Critical: '#ff6b6b', High: '#ffa940', Medium: '#faad14', Low: '#52c41a' };
+
+    let allJobs = [];
+    let engineers = [];
+    let currentDate = new Date().toISOString().slice(0, 10);
+    let currentEditId = null;
+
+    document.getElementById('dateInput').value = currentDate;
+
+    function statusClass(status) { return (status || 'new').toLowerCase().replace(/\s+/g, '-'); }
+    function priorityClass(priority) { return (priority || 'medium').toLowerCase(); }
+
+    function timeToDecimal(t) {
+        if (!t) return null;
+        const parts = t.split(':').map(Number);
+        return parts[0] + (parts[1] || 0) / 60;
+    }
+
+    function formatDate(d) {
+        if (!d) return '—';
+        const date = new Date(d);
+        if (isNaN(date)) return d;
+        return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+
+    function loadAll() {
+        Promise.all([
+            fetch(`${GAS_URL}?action=list`).then(r => r.json()),
+            fetch(`${GAS_URL}?action=engineers`).then(r => r.json())
+        ]).then(([jobsRes, engRes]) => {
+            if (!jobsRes.success) throw new Error(jobsRes.error || 'Could not load jobs');
+            allJobs = jobsRes.jobs || [];
+            engineers = (engRes.success && engRes.engineers) ? engRes.engineers : [];
+            populateEngineerSelects();
+            renderScheduler();
+            renderUnallocated();
+        }).catch(err => {
+            document.getElementById('schedulerContainer').innerHTML = `<div class="error-state">${err.message}. Check GAS_URL is set and deployed.</div>`;
+            document.getElementById('unallocTableWrap').innerHTML = '';
+        });
+    }
+
+    function populateEngineerSelects() {
+        ['njEngineer', 'ejEngineer'].forEach(id => {
+            const sel = document.getElementById(id);
+            sel.innerHTML = '<option value="">Unassigned</option>' +
+                engineers.map(name => `<option value="${name}">${name}</option>`).join('');
+        });
+    }
+
+    function renderScheduler() {
+        const container = document.getElementById('schedulerContainer');
+
+        if (!engineers.length) {
+            container.innerHTML = '<div class="empty-roster">No engineers configured yet — add names (one per row) to the "Engineers" tab in your Google Sheet.</div>';
+            return;
+        }
+
+        let timeLabels = '';
+        for (let h = HOUR_START; h < HOUR_END; h++) {
+            timeLabels += `<div class="time-label" style="left:${(h - HOUR_START) * HOUR_PX}px; width:${HOUR_PX}px;">${String(h).padStart(2, '0')}:00</div>`;
+        }
+
+        const dayJobs = allJobs.filter(j =>
+            j.scheduledDate && String(j.scheduledDate).slice(0, 10) === currentDate &&
+            j.assignedEngineer && j.startTime && j.endTime
+        );
+
+        const isToday = currentDate === new Date().toISOString().slice(0, 10);
+        const now = new Date();
+        const nowDecimal = now.getHours() + now.getMinutes() / 60;
+        const nowLeft = (nowDecimal - HOUR_START) * HOUR_PX;
+        const showNowLine = isToday && nowDecimal >= HOUR_START && nowDecimal <= HOUR_END;
+
+        let engNamesHtml = '';
+        let engRowsHtml = '';
+
+        engineers.forEach(eng => {
+            engNamesHtml += `<div class="eng-name">${eng}</div>`;
+
+            const jobsForEng = dayJobs.filter(j => j.assignedEngineer === eng);
+            const blocks = jobsForEng.map(j => {
+                const start = timeToDecimal(j.startTime);
+                const end = timeToDecimal(j.endTime);
+                if (start === null || end === null || end <= start) return '';
+                const left = Math.max(0, (start - HOUR_START) * HOUR_PX);
+                const width = Math.min(timelineWidth - left, (end - start) * HOUR_PX);
+                const bg = JOB_TYPE_COLORS[j.jobType] || JOB_TYPE_COLORS['Other'];
+                const borderColor = PRIORITY_COLORS[j.priority] || '#909090';
+                return `
+                    <div class="job-block" data-job-id="${j.jobId}"
+                         style="left:${left}px; width:${width}px; background:${bg}; border-left-color:${borderColor};">
+                        <div class="jb-title">${j.customer || j.jobId}</div>
+                        <div class="jb-sub">${j.jobType || ''} · ${j.startTime}–${j.endTime}</div>
+                    </div>
+                `;
+            }).join('');
+
+            const nowLine = showNowLine ? `<div class="now-line" style="left:${nowLeft}px;"></div>` : '';
+            engRowsHtml += `<div class="eng-row" style="--hour-px:${HOUR_PX}px;">${blocks}${nowLine}</div>`;
+        });
+
+        container.innerHTML = `
+            <div class="scheduler">
+                <div class="eng-col">
+                    <div class="eng-header">Engineers</div>
+                    ${engNamesHtml}
+                </div>
+                <div class="timeline-col">
+                    <div class="time-header" style="width:${timelineWidth}px;">${timeLabels}</div>
+                    ${engRowsHtml}
+                </div>
+            </div>
+        `;
+
+        container.querySelectorAll('.job-block').forEach(block => {
+            block.addEventListener('click', () => openEditModal(block.dataset.jobId));
+        });
+    }
+
+    function renderUnallocated() {
+        const list = allJobs.filter(j => !j.assignedEngineer || !j.startTime || !j.endTime || !j.scheduledDate);
+        document.getElementById('unallocCount').textContent = list.length;
+        const wrap = document.getElementById('unallocTableWrap');
+
+        if (!list.length) {
+            wrap.innerHTML = '<div class="empty-state">Nothing unallocated — everything is scheduled.</div>';
+            return;
+        }
+
+        wrap.innerHTML = `
+            <table class="unalloc-table">
+                <thead>
+                    <tr>
+                        <th>Job ID</th><th>Type</th><th>Customer / Site</th>
+                        <th>Priority</th><th>Status</th><th>Due</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${list.map(j => `
+                        <tr class="job-row" data-job-id="${j.jobId}">
+                            <td>${j.jobId}</td>
+                            <td>${j.jobType || '—'}</td>
+                            <td>${j.customer || '—'}</td>
+                            <td><span class="priority-pill ${priorityClass(j.priority)}">${j.priority || '—'}</span></td>
+                            <td><span class="status-badge ${statusClass(j.status)}">${j.status || 'New'}</span></td>
+                            <td>${formatDate(j.scheduledDate)}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+
+        wrap.querySelectorAll('.job-row').forEach(row => {
+            row.addEventListener('click', () => openEditModal(row.dataset.jobId));
+        });
+    }
+
+    // ── Date navigation ──
+    function setDate(d) {
+        currentDate = d;
+        document.getElementById('dateInput').value = d;
+        renderScheduler();
+    }
+    document.getElementById('dateInput').addEventListener('change', (e) => setDate(e.target.value));
+    document.getElementById('prevDayBtn').addEventListener('click', () => {
+        const d = new Date(currentDate); d.setDate(d.getDate() - 1);
+        setDate(d.toISOString().slice(0, 10));
+    });
+    document.getElementById('nextDayBtn').addEventListener('click', () => {
+        const d = new Date(currentDate); d.setDate(d.getDate() + 1);
+        setDate(d.toISOString().slice(0, 10));
+    });
+    document.getElementById('todayBtn').addEventListener('click', () => setDate(new Date().toISOString().slice(0, 10)));
+
+    // ── New Job modal ──
+    const newJobModal = document.getElementById('newJobModal');
+    const njPriorityButtons = document.querySelectorAll('#njPriorityButtons .priority-btn');
+    const njPriorityInput = document.getElementById('njPriority');
+
+    document.getElementById('newJobBtn').addEventListener('click', () => {
+        document.getElementById('newJobForm').reset();
+        njPriorityButtons.forEach(b => b.classList.remove('active'));
+        njPriorityButtons[2].classList.add('active');
+        njPriorityInput.value = 'Medium';
+        document.getElementById('njScheduledDate').value = currentDate;
+        document.getElementById('newJobError').style.display = 'none';
+        newJobModal.classList.add('show');
+    });
+    document.getElementById('newJobClose').addEventListener('click', () => newJobModal.classList.remove('show'));
+    document.getElementById('newJobCancel').addEventListener('click', () => newJobModal.classList.remove('show'));
+
+    njPriorityButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            njPriorityButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            njPriorityInput.value = btn.dataset.priority;
+        });
+    });
+
+    document.getElementById('newJobForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const submitBtn = document.getElementById('newJobSubmit');
+        const errorBox = document.getElementById('newJobError');
+        errorBox.style.display = 'none';
+        submitBtn.disabled = true;
+
+        const payload = {
+            action: 'addJob',
+            customer: document.getElementById('njCustomer').value.trim(),
+            equipment: document.getElementById('njEquipment').value.trim(),
+            jobType: document.getElementById('njJobType').value,
+            priority: njPriorityInput.value,
+            assignedEngineer: document.getElementById('njEngineer').value,
+            status: 'New',
+            scheduledDate: document.getElementById('njScheduledDate').value,
+            startTime: document.getElementById('njStartTime').value,
+            endTime: document.getElementById('njEndTime').value,
+            description: document.getElementById('njDescription').value.trim()
+        };
+
+        try {
+            const response = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
+            const result = await response.json();
+            if (!result.success) throw new Error(result.error || 'Failed to create job');
+            newJobModal.classList.remove('show');
+            loadAll();
+        } catch (err) {
+            errorBox.textContent = '❌ ' + err.message;
+            errorBox.style.display = 'block';
+        } finally {
+            submitBtn.disabled = false;
+        }
+    });
+
+    // ── Edit / Assign modal ──
+    const editJobModal = document.getElementById('editJobModal');
+
+    function openEditModal(jobId) {
+        const job = allJobs.find(j => j.jobId === jobId);
+        if (!job) return;
+        currentEditId = jobId;
+
+        document.getElementById('editJobId').textContent = job.jobId;
+        document.getElementById('editJobError').style.display = 'none';
+
+        document.getElementById('editJobDetails').innerHTML = `
+            <div class="detail-row"><span class="label">Customer / Site</span><span class="value">${job.customer || '—'}</span></div>
+            <div class="detail-row"><span class="label">Equipment</span><span class="value">${job.equipment || '—'}</span></div>
+            <div class="detail-row"><span class="label">Job Type</span><span class="value">${job.jobType || '—'}</span></div>
+            <div class="detail-row"><span class="label">Priority</span><span class="value">${job.priority || '—'}</span></div>
+            <div class="detail-row"><span class="label">Description</span><span class="value">${job.description || '—'}</span></div>
+        `;
+
+        document.getElementById('ejEngineer').value = job.assignedEngineer || '';
+        document.getElementById('ejStatus').value = job.status || 'New';
+        document.getElementById('ejScheduledDate').value = job.scheduledDate ? String(job.scheduledDate).slice(0, 10) : '';
+        document.getElementById('ejStartTime').value = job.startTime || '';
+        document.getElementById('ejEndTime').value = job.endTime || '';
+        document.getElementById('ejNotes').value = job.notes || '';
+
+        editJobModal.classList.add('show');
+    }
+
+    document.getElementById('editJobClose').addEventListener('click', () => editJobModal.classList.remove('show'));
+    document.getElementById('editJobCancel').addEventListener('click', () => editJobModal.classList.remove('show'));
+
+    document.getElementById('editJobForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const submitBtn = document.getElementById('editJobSubmit');
+        const errorBox = document.getElementById('editJobError');
+        errorBox.style.display = 'none';
+        submitBtn.disabled = true;
+
+        const payload = {
+            action: 'updateJob',
+            jobId: currentEditId,
+            assignedEngineer: document.getElementById('ejEngineer').value,
+            status: document.getElementById('ejStatus').value,
+            scheduledDate: document.getElementById('ejScheduledDate').value,
+            startTime: document.getElementById('ejStartTime').value,
+            endTime: document.getElementById('ejEndTime').value,
+            notes: document.getElementById('ejNotes').value.trim()
+        };
+
+        try {
+            const response = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
+            const result = await response.json();
+            if (!result.success) throw new Error(result.error || 'Failed to update job');
+            editJobModal.classList.remove('show');
+            loadAll();
+        } catch (err) {
+            errorBox.textContent = '❌ ' + err.message;
+            errorBox.style.display = 'block';
+        } finally {
+            submitBtn.disabled = false;
+        }
+    });
+
+    loadAll();
+</script>
+</body>
+</html>
