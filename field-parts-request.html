@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0">
+<title>Parts Request - Narrow Aisle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --red: #df0a1e;
+    --black: #000000;
+    --bg: #ffffff;
+    --surface: #f5f5f5;
+    --border: #e2e2e2;
+    --text: #111111;
+    --muted: #777777;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; overscroll-behavior: none; }
+  body {
+    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+  }
+  .header {
+    background: var(--black);
+    border-bottom: 3px solid var(--red);
+    padding: 14px 16px;
+    padding-top: max(14px, env(safe-area-inset-top));
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .back-btn {
+    background: var(--red);
+    border: none;
+    color: #fff;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    font-size: 13px;
+    flex-shrink: 0;
+    touch-action: manipulation;
+    min-height: 40px;
+  }
+  .header-text { min-width: 0; }
+  .header h1 { color: #fff; font-size: 17px; font-weight: 800; }
+  .header .sub { color: #bbb; font-size: 12px; font-family: 'DM Mono', monospace; margin-top: 2px; }
+
+  .screen { flex: 1; overflow-y: auto; padding: 16px; padding-bottom: 100px; }
+  .screen.hidden { display: none; }
+
+  label { display: block; font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; margin: 16px 0 6px; }
+  label:first-child { margin-top: 0; }
+  input[type="text"] {
+    width: 100%; padding: 14px; border: 1.5px solid var(--border); border-radius: 10px;
+    font-size: 16px; font-family: 'DM Sans', sans-serif; background: var(--surface); color: var(--text);
+  }
+  input[type="text"]:focus { outline: none; border-color: var(--red); background: #fff; }
+
+  .urgency-row { display: flex; gap: 10px; }
+  .urgency-pill {
+    flex: 1; padding: 14px; text-align: center; border-radius: 10px; border: 1.5px solid var(--border);
+    background: var(--surface); font-weight: 700; font-size: 14px; cursor: pointer; color: var(--text);
+  }
+  .urgency-pill.active { background: var(--red); border-color: var(--red); color: #fff; }
+
+  .btn {
+    width: 100%; padding: 16px; border-radius: 10px; border: none; font-weight: 800;
+    font-size: 15px; cursor: pointer; touch-action: manipulation;
+  }
+  .btn-primary { background: var(--red); color: #fff; }
+  .btn-primary:disabled { background: #f0aab0; }
+  .btn-secondary { background: var(--surface); color: var(--text); border: 1.5px solid var(--border); }
+
+  .continue-wrap { margin-top: 24px; }
+
+  /* Catalog screen */
+  .search-bar { position: sticky; top: 0; background: var(--bg); padding-bottom: 10px; z-index: 5; }
+  .part-list { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+  .part-item {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 12px 14px; border: 1.5px solid var(--border); border-radius: 10px; background: var(--surface);
+  }
+  .part-item .info { min-width: 0; }
+  .part-item .pn { font-family: 'DM Mono', monospace; font-weight: 500; font-size: 13px; color: var(--red); }
+  .part-item .desc { font-size: 14px; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .part-item .cat { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .add-btn {
+    flex-shrink: 0; width: 36px; height: 36px; border-radius: 8px; border: none;
+    background: var(--red); color: #fff; font-size: 20px; font-weight: 700; cursor: pointer;
+  }
+  .qty-controls { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .qty-controls button {
+    width: 32px; height: 32px; border-radius: 8px; border: 1.5px solid var(--border);
+    background: #fff; font-size: 16px; font-weight: 700; cursor: pointer;
+  }
+  .qty-controls span { min-width: 18px; text-align: center; font-weight: 700; }
+
+  .empty-msg { text-align: center; color: var(--muted); padding: 40px 20px; font-size: 14px; }
+
+  /* Basket bar */
+  .basket-bar {
+    position: fixed; left: 0; right: 0; bottom: 0; background: var(--black);
+    padding: 12px 16px; padding-bottom: max(12px, env(safe-area-inset-bottom));
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    border-top: 3px solid var(--red);
+  }
+  .basket-bar.hidden { display: none; }
+  .basket-bar .count { color: #fff; font-weight: 700; font-size: 14px; }
+  .basket-bar button.btn { width: auto; padding: 12px 20px; }
+
+  /* Basket drawer */
+  .drawer-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 50; display: flex; align-items: flex-end;
+  }
+  .drawer-overlay.hidden { display: none; }
+  .drawer {
+    background: #fff; width: 100%; max-height: 80vh; border-radius: 16px 16px 0 0;
+    display: flex; flex-direction: column; padding: 20px; padding-bottom: max(20px, env(safe-area-inset-bottom));
+  }
+  .drawer h2 { font-size: 16px; margin-bottom: 12px; }
+  .drawer-items { overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 8px; }
+  .drawer-item {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 10px; background: var(--surface); border-radius: 10px;
+  }
+  .drawer-item .info { min-width: 0; }
+  .drawer-item .desc { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .drawer-item .pn { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--red); }
+  .remove-btn { background: none; border: none; color: var(--muted); font-size: 18px; cursor: pointer; padding: 4px 8px; }
+  .drawer-actions { display: flex; gap: 10px; margin-top: 16px; }
+
+  /* Confirmation */
+  .confirm-wrap { text-align: center; padding: 60px 20px; }
+  .confirm-wrap .tick { font-size: 48px; color: var(--red); }
+  .confirm-wrap h2 { margin-top: 12px; font-size: 20px; }
+  .confirm-wrap .order-id { font-family: 'DM Mono', monospace; margin-top: 8px; color: var(--muted); }
+
+  .error-banner {
+    background: #fdecec; color: var(--red); border: 1px solid #f5b5bc; padding: 10px 14px;
+    border-radius: 10px; font-size: 13px; margin-bottom: 12px;
+  }
+  .error-banner.hidden { display: none; }
+
+  /* Tablet layout */
+  @media (min-width: 700px) {
+    .screen { max-width: 640px; margin: 0 auto; width: 100%; }
+    .drawer { max-width: 500px; margin: 0 auto; border-radius: 16px; margin-bottom: 20px; }
+    .drawer-overlay { align-items: center; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="header">
+    <button class="back-btn" onclick="window.location.href='portal-hub-professional.html'">← Back</button>
+    <div class="header-text">
+      <h1>Parts Request</h1>
+      <div class="sub" id="headerSub">Field engineer ordering</div>
+    </div>
+  </div>
+
+  <!-- Screen 1: Details -->
+  <div class="screen" id="screenDetails">
+    <div class="error-banner hidden" id="errorDetails"></div>
+    <label for="engineerName">Your Name</label>
+    <input type="text" id="engineerName" placeholder="e.g. John Smith">
+
+    <label for="jobRef">Truck / Job Reference (optional)</label>
+    <input type="text" id="jobRef" placeholder="e.g. FX123456 or job number">
+
+    <label>Urgency</label>
+    <div class="urgency-row">
+      <button class="urgency-pill active" data-urgency="Standard">Standard</button>
+      <button class="urgency-pill" data-urgency="Urgent">Urgent</button>
+    </div>
+
+    <div class="continue-wrap">
+      <button class="btn btn-primary" id="continueBtn">Continue to Parts</button>
+    </div>
+  </div>
+
+  <!-- Screen 2: Catalog -->
+  <div class="screen hidden" id="screenCatalog">
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Search part number or description...">
+    </div>
+    <div class="error-banner hidden" id="errorCatalog"></div>
+    <div id="loadingMsg" class="empty-msg">Loading parts catalog...</div>
+    <div class="part-list" id="partList"></div>
+    <div class="empty-msg hidden" id="noResults">No parts match your search.</div>
+  </div>
+
+  <!-- Screen 3: Confirmation -->
+  <div class="screen hidden" id="screenConfirm">
+    <div class="confirm-wrap">
+      <div class="tick">✓</div>
+      <h2>Request Sent</h2>
+      <div class="order-id" id="confirmOrderId"></div>
+      <div class="continue-wrap">
+        <button class="btn btn-secondary" id="newRequestBtn">New Request</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Basket bar -->
+  <div class="basket-bar hidden" id="basketBar">
+    <span class="count" id="basketCount">0 items</span>
+    <button class="btn btn-primary" id="viewBasketBtn">View Basket</button>
+  </div>
+
+  <!-- Basket drawer -->
+  <div class="drawer-overlay hidden" id="drawerOverlay">
+    <div class="drawer">
+      <h2>Your Request</h2>
+      <div class="drawer-items" id="drawerItems"></div>
+      <div class="drawer-actions">
+        <button class="btn btn-secondary" id="closeDrawerBtn">Keep Browsing</button>
+        <button class="btn btn-primary" id="submitBtn">Submit Request</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // ---- CONFIG ----
+  // Use the SAME Web App URL your existing Flexi Parts System is deployed at —
+  // this now shares that backend rather than needing its own deployment.
+  const GAS_ENDPOINT = 'https://script.google.com/macros/s/AKfycbyapveX6FNKjw8rnLFU_RSi-KwpcMGB-jnxzie6cC3MCBBuiDL_J_xwPaLkf8J-ujvR/exec';
+
+  // ---- STATE ----
+  let allParts = [];
+  let basket = {}; // partNumber -> { partNumber, description, qty }
+  let urgency = 'Standard';
+
+  const el = id => document.getElementById(id);
+
+  // ---- Screen 1: details ----
+  document.querySelectorAll('.urgency-pill').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.urgency-pill').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      urgency = btn.dataset.urgency;
+    });
+  });
+
+  el('continueBtn').addEventListener('click', () => {
+    const name = el('engineerName').value.trim();
+    if (!name) {
+      showError('errorDetails', 'Please enter your name');
+      return;
+    }
+    hideError('errorDetails');
+    el('headerSub').textContent = name;
+    el('screenDetails').classList.add('hidden');
+    el('screenCatalog').classList.remove('hidden');
+    if (allParts.length === 0) loadParts();
+  });
+
+  // ---- Screen 2: catalog ----
+  function loadParts() {
+    el('loadingMsg').classList.remove('hidden');
+    fetch(GAS_ENDPOINT + '?action=getAllParts')
+      .then(r => r.json())
+      .then(res => {
+        el('loadingMsg').classList.add('hidden');
+        if (!res.success) throw new Error(res.error || 'Failed to load parts');
+        allParts = res.parts.map(p => ({
+          partNumber: p['Part Number'] || '',
+          description: p['Description'] || '',
+          category: p['System'] || ''
+        }));
+        renderParts(allParts);
+      })
+      .catch(err => {
+        el('loadingMsg').classList.add('hidden');
+        showError('errorCatalog', 'Could not load parts: ' + err.message);
+      });
+  }
+
+  function renderParts(parts) {
+    const list = el('partList');
+    list.innerHTML = '';
+    el('noResults').classList.toggle('hidden', parts.length !== 0);
+    parts.forEach(p => {
+      const item = document.createElement('div');
+      item.className = 'part-item';
+      const inBasket = basket[p.partNumber];
+      item.innerHTML = `
+        <div class="info">
+          <div class="pn">${escapeHtml(p.partNumber)}</div>
+          <div class="desc">${escapeHtml(p.description)}</div>
+          ${p.category ? `<div class="cat">${escapeHtml(p.category)}</div>` : ''}
+        </div>
+        ${inBasket
+          ? `<div class="qty-controls">
+               <button class="dec">−</button>
+               <span>${inBasket.qty}</span>
+               <button class="inc">+</button>
+             </div>`
+          : `<button class="add-btn">+</button>`}
+      `;
+      if (inBasket) {
+        item.querySelector('.dec').addEventListener('click', () => changeQty(p, -1));
+        item.querySelector('.inc').addEventListener('click', () => changeQty(p, 1));
+      } else {
+        item.querySelector('.add-btn').addEventListener('click', () => changeQty(p, 1));
+      }
+      list.appendChild(item);
+    });
+  }
+
+  function changeQty(part, delta) {
+    const existing = basket[part.partNumber];
+    const newQty = (existing ? existing.qty : 0) + delta;
+    if (newQty <= 0) {
+      delete basket[part.partNumber];
+    } else {
+      basket[part.partNumber] = { partNumber: part.partNumber, description: part.description, qty: newQty };
+    }
+    renderParts(currentFiltered());
+    updateBasketBar();
+  }
+
+  el('searchInput').addEventListener('input', () => renderParts(currentFiltered()));
+
+  function currentFiltered() {
+    const q = el('searchInput').value.trim().toLowerCase();
+    if (!q) return allParts;
+    return allParts.filter(p =>
+      p.partNumber.toLowerCase().includes(q) || p.description.toLowerCase().includes(q)
+    );
+  }
+
+  // ---- Basket ----
+  function updateBasketBar() {
+    const items = Object.values(basket);
+    const totalQty = items.reduce((s, i) => s + i.qty, 0);
+    el('basketBar').classList.toggle('hidden', items.length === 0);
+    el('basketCount').textContent = totalQty + (totalQty === 1 ? ' item' : ' items');
+  }
+
+  el('viewBasketBtn').addEventListener('click', openDrawer);
+  el('closeDrawerBtn').addEventListener('click', closeDrawer);
+
+  function openDrawer() {
+    const items = Object.values(basket);
+    const container = el('drawerItems');
+    container.innerHTML = '';
+    items.forEach(i => {
+      const row = document.createElement('div');
+      row.className = 'drawer-item';
+      row.innerHTML = `
+        <div class="info">
+          <div class="pn">${escapeHtml(i.partNumber)} × ${i.qty}</div>
+          <div class="desc">${escapeHtml(i.description)}</div>
+        </div>
+        <button class="remove-btn">✕</button>
+      `;
+      row.querySelector('.remove-btn').addEventListener('click', () => {
+        delete basket[i.partNumber];
+        renderParts(currentFiltered());
+        updateBasketBar();
+        openDrawer();
+      });
+      container.appendChild(row);
+    });
+    el('drawerOverlay').classList.remove('hidden');
+  }
+  function closeDrawer() { el('drawerOverlay').classList.add('hidden'); }
+
+  el('submitBtn').addEventListener('click', submitOrder);
+
+  function submitOrder() {
+    const items = Object.values(basket);
+    if (items.length === 0) return;
+    el('submitBtn').disabled = true;
+    el('submitBtn').textContent = 'Sending...';
+
+    const payload = {
+      action: 'submitEngineerOrder',
+      engineerName: el('engineerName').value.trim(),
+      jobRef: el('jobRef').value.trim(),
+      urgency: urgency,
+      items: items
+    };
+
+    fetch(GAS_ENDPOINT, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    })
+      .then(r => r.json())
+      .then(res => {
+        if (!res.success) throw new Error(res.error || 'Failed to submit');
+        closeDrawer();
+        basket = {};
+        updateBasketBar();
+        el('confirmOrderId').textContent = 'Order ref: ' + res.orderId;
+        el('screenCatalog').classList.add('hidden');
+        el('screenConfirm').classList.remove('hidden');
+      })
+      .catch(err => {
+        alert('Could not submit request: ' + err.message);
+      })
+      .finally(() => {
+        el('submitBtn').disabled = false;
+        el('submitBtn').textContent = 'Submit Request';
+      });
+  }
+
+  el('newRequestBtn').addEventListener('click', () => {
+    el('engineerName').value = '';
+    el('jobRef').value = '';
+    el('searchInput').value = '';
+    urgency = 'Standard';
+    document.querySelectorAll('.urgency-pill').forEach(b => b.classList.remove('active'));
+    document.querySelector('.urgency-pill[data-urgency="Standard"]').classList.add('active');
+    el('screenConfirm').classList.add('hidden');
+    el('screenDetails').classList.remove('hidden');
+    el('headerSub').textContent = 'Field engineer ordering';
+  });
+
+  function showError(id, msg) { el(id).textContent = msg; el(id).classList.remove('hidden'); }
+  function hideError(id) { el(id).classList.add('hidden'); }
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+</script>
+</body>
+</html>
