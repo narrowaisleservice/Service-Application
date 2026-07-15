@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Van Stock Management - Pro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
     <!-- Chart.js for animated charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
     <!-- SheetJS for Excel export -->
@@ -16,8 +19,9 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
-            background: transparent;
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background: #ffffff;
+            color: #111111;
             min-height: 100vh;
             overflow-x: hidden;
         }
@@ -36,7 +40,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.95);
+            background: rgba(255,255,255,0.95);
             z-index: 9999;
             justify-content: center;
             align-items: center;
@@ -59,7 +63,7 @@
             content: '';
             position: absolute;
             border: 4px solid transparent;
-            border-top-color: #8B0000;
+            border-top-color: #df0a1e;
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
@@ -84,7 +88,7 @@
         }
 
         .loading-text {
-            color: white;
+            color: #111111;
             margin-top: 20px;
             font-size: 1.2em;
             animation: pulse 1.5s infinite;
@@ -107,17 +111,18 @@
         }
 
         .toast {
-            background: #2d2d2d;
-            color: white;
+            background: #ffffff;
+            color: #111111;
             padding: 16px 24px;
             border-radius: 12px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+            border: 1px solid #e2e2e2;
             display: flex;
             align-items: center;
             gap: 12px;
             min-width: 300px;
             animation: slideInRight 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            border-left: 4px solid #8B0000;
+            border-left: 4px solid #df0a1e;
         }
 
         .toast.success {
@@ -140,7 +145,7 @@
             margin-left: auto;
             background: none;
             border: none;
-            color: white;
+            color: #777777;
             cursor: pointer;
             font-size: 20px;
             opacity: 0.7;
@@ -182,13 +187,13 @@
         }
 
         .login-box {
-            background: #2d2d2d;
+            background: #ffffff;
             padding: 40px;
             border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.12);
             max-width: 400px;
             width: 100%;
-            border: 1px solid #3d3d3d;
+            border: 1px solid #e2e2e2;
             animation: scaleIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
             position: relative;
             z-index: 1;
@@ -211,7 +216,7 @@
         }
 
         .login-logo h1 {
-            color: #ffffff;
+            color: #101010;
             font-size: 2em;
             margin-bottom: 5px;
             animation: fadeInDown 0.6s;
@@ -261,7 +266,7 @@
         .form-group label {
             display: block;
             margin-bottom: 8px;
-            color: #e0e0e0;
+            color: #444444;
             font-weight: 600;
             font-size: 0.9em;
         }
@@ -270,26 +275,26 @@
         .form-group input {
             width: 100%;
             padding: 14px;
-            border: 2px solid #3d3d3d;
+            border: 2px solid #e2e2e2;
             border-radius: 8px;
             font-size: 1em;
             transition: all 0.3s;
-            background: #1a1a1a;
-            color: #ffffff;
+            background: #f5f5f5;
+            color: #111111;
         }
 
         .form-group select:focus,
         .form-group input:focus {
             outline: none;
-            border-color: #8B0000;
-            box-shadow: 0 0 0 4px rgba(139, 0, 0, 0.2);
+            border-color: #df0a1e;
+            box-shadow: 0 0 0 4px rgba(223, 10, 30, 0.15);
             transform: translateY(-2px);
         }
 
         .btn-primary {
             width: 100%;
             padding: 14px;
-            background: linear-gradient(135deg, #8B0000 0%, #B22222 100%);
+            background: linear-gradient(135deg, #df0a1e 0%, #c3161e 100%);
             color: white;
             border: none;
             border-radius: 8px;
@@ -322,7 +327,7 @@
 
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(139, 0, 0, 0.4);
+            box-shadow: 0 6px 20px rgba(223, 10, 30, 0.3);
         }
 
         .error-message {
@@ -362,14 +367,14 @@
         }
 
         .app-header {
-            background: #2d2d2d;
+            background: #000000;
             color: white;
             padding: 15px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-            border-bottom: 3px solid #8B0000;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            border-bottom: 3px solid #df0a1e;
             position: sticky;
             top: 0;
             z-index: 100;
@@ -389,10 +394,8 @@
 
         .app-header h2 {
             font-size: 1.5em;
-            background: linear-gradient(135deg, #ffffff 0%, #8B0000 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            font-weight: 800;
+            color: #ffffff;
         }
 
         .user-info {
@@ -402,16 +405,16 @@
         }
 
         .user-badge {
-            background: linear-gradient(135deg, #8B0000 0%, #B22222 100%);
+            background: linear-gradient(135deg, #df0a1e 0%, #c3161e 100%);
             padding: 8px 16px;
             border-radius: 20px;
             font-size: 0.9em;
             font-weight: 600;
-            box-shadow: 0 4px 12px rgba(139, 0, 0, 0.3);
+            box-shadow: 0 4px 12px rgba(223, 10, 30, 0.25);
         }
 
         .btn-logout {
-            background: #8B0000;
+            background: #df0a1e;
             color: white;
             border: none;
             padding: 10px 20px;
@@ -423,16 +426,16 @@
         }
 
         .btn-logout:hover {
-            background: #A00000;
+            background: #b30818;
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(139, 0, 0, 0.4);
+            box-shadow: 0 4px 12px rgba(223, 10, 30, 0.3);
         }
 
         /* Navigation */
         .nav-tabs {
-            background: #2d2d2d;
+            background: #ffffff;
             display: flex;
-            border-bottom: 2px solid #3d3d3d;
+            border-bottom: 2px solid #e2e2e2;
             overflow-x: auto;
             position: sticky;
             top: 65px;
@@ -446,7 +449,7 @@
             border-bottom: 3px solid transparent;
             cursor: pointer;
             font-size: 1em;
-            color: #b0b0b0;
+            color: #707070;
             transition: all 0.3s;
             white-space: nowrap;
             position: relative;
@@ -459,7 +462,7 @@
             left: 50%;
             width: 0;
             height: 3px;
-            background: #8B0000;
+            background: #df0a1e;
             transition: all 0.3s;
             transform: translateX(-50%);
         }
@@ -469,12 +472,12 @@
         }
 
         .nav-tab:hover {
-            color: #ffffff;
-            background: #3d3d3d;
+            color: #101010;
+            background: #f5f5f5;
         }
 
         .nav-tab.active {
-            color: #ffffff;
+            color: #df0a1e;
             font-weight: 600;
         }
 
@@ -487,17 +490,17 @@
             padding: 20px;
             max-width: 1400px;
             margin: 0 auto;
-            background: transparent;
+            background: #ffffff;
         }
 
         /* Advanced Search Bar */
         .search-container {
-            background: #2d2d2d;
+            background: #ffffff;
             padding: 20px;
             border-radius: 12px;
             margin-bottom: 20px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-            border: 1px solid #3d3d3d;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            border: 1px solid #e2e2e2;
             animation: slideInUp 0.5s;
         }
 
@@ -526,7 +529,7 @@
         }
 
         .search-group label {
-            color: #b0b0b0;
+            color: #707070;
             font-size: 0.85em;
             font-weight: 600;
             text-transform: uppercase;
@@ -535,10 +538,10 @@
         .search-input,
         .search-select {
             padding: 12px;
-            border: 2px solid #3d3d3d;
+            border: 2px solid #e2e2e2;
             border-radius: 8px;
-            background: #1a1a1a;
-            color: #ffffff;
+            background: #f5f5f5;
+            color: #111111;
             font-size: 1em;
             transition: all 0.3s;
         }
@@ -546,13 +549,13 @@
         .search-input:focus,
         .search-select:focus {
             outline: none;
-            border-color: #8B0000;
-            box-shadow: 0 0 0 3px rgba(139, 0, 0, 0.2);
+            border-color: #df0a1e;
+            box-shadow: 0 0 0 3px rgba(223, 10, 30, 0.15);
         }
 
         .search-btn {
             padding: 12px 24px;
-            background: linear-gradient(135deg, #8B0000 0%, #B22222 100%);
+            background: linear-gradient(135deg, #df0a1e 0%, #c3161e 100%);
             color: white;
             border: none;
             border-radius: 8px;
@@ -564,7 +567,7 @@
 
         .search-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(139, 0, 0, 0.4);
+            box-shadow: 0 4px 12px rgba(223, 10, 30, 0.3);
         }
 
         /* Stats Cards with Animation */
@@ -576,11 +579,11 @@
         }
 
         .stat-card {
-            background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);
+            background: #fafafa;
             padding: 25px;
             border-radius: 16px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-            border: 1px solid #3d3d3d;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.05);
+            border: 1px solid #e8e8e8;
             position: relative;
             overflow: hidden;
             transition: all 0.3s;
@@ -600,14 +603,14 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, rgba(139,0,0,0.1) 0%, transparent 100%);
+            background: linear-gradient(135deg, rgba(223,10,30,0.06) 0%, transparent 100%);
             opacity: 0;
             transition: opacity 0.3s;
         }
 
         .stat-card:hover {
             transform: translateY(-5px) scale(1.02);
-            box-shadow: 0 12px 40px rgba(139, 0, 0, 0.3);
+            box-shadow: 0 12px 40px rgba(223, 10, 30, 0.15);
         }
 
         .stat-card:hover::before {
@@ -615,7 +618,7 @@
         }
 
         .stat-card h3 {
-            color: #b0b0b0;
+            color: #707070;
             font-size: 0.9em;
             margin-bottom: 10px;
             text-transform: uppercase;
@@ -624,13 +627,12 @@
 
         .stat-value {
             font-size: 2.5em;
-            color: #ffffff;
+            color: #101010;
             font-weight: bold;
-            text-shadow: 0 2px 10px rgba(139, 0, 0, 0.3);
         }
 
         .stat-card.alert {
-            border-left: 4px solid #8B0000;
+            border-left: 4px solid #df0a1e;
         }
 
         .stat-card.success {
@@ -650,14 +652,14 @@
         }
 
         .van-card {
-            background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);
+            background: #fafafa;
             padding: 25px;
             border-radius: 16px;
             text-align: center;
             cursor: pointer;
             transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-            border: 3px solid #3d3d3d;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.05);
+            border: 3px solid #e8e8e8;
             position: relative;
             overflow: hidden;
             transform-style: preserve-3d;
@@ -671,7 +673,7 @@
             left: -50%;
             width: 200%;
             height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(139,0,0,0.3), transparent);
+            background: linear-gradient(45deg, transparent, rgba(223,10,30,0.12), transparent);
             transform: rotate(45deg);
             transition: all 0.6s;
         }
@@ -682,8 +684,8 @@
 
         .van-card:hover {
             transform: translateY(-10px) rotateX(5deg) scale(1.05);
-            box-shadow: 0 20px 60px rgba(139, 0, 0, 0.4);
-            border-color: #8B0000;
+            box-shadow: 0 20px 60px rgba(223, 10, 30, 0.2);
+            border-color: #df0a1e;
         }
 
         .van-icon-3d {
@@ -691,7 +693,7 @@
             margin-bottom: 10px;
             display: inline-block;
             transition: all 0.4s;
-            filter: drop-shadow(0 4px 8px rgba(139, 0, 0, 0.3));
+            filter: drop-shadow(0 4px 8px rgba(223, 10, 30, 0.2));
         }
 
         .van-card:hover .van-icon-3d {
@@ -700,30 +702,29 @@
 
         .van-card h4 {
             font-size: 1.3em;
-            color: #ffffff;
+            color: #101010;
             margin-bottom: 10px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
 
         .van-card p {
-            color: #b0b0b0;
+            color: #707070;
             font-size: 0.9em;
             margin: 5px 0;
         }
 
         .van-card .value {
-            color: #8B0000;
+            color: #df0a1e;
             font-weight: bold;
             font-size: 1.2em;
         }
 
         /* Stock Table */
         .stock-table-container {
-            background: #2d2d2d;
+            background: #ffffff;
             border-radius: 16px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.05);
             overflow: hidden;
-            border: 1px solid #3d3d3d;
+            border: 1px solid #e8e8e8;
             animation: slideInUp 0.5s 0.2s both;
         }
 
@@ -733,7 +734,7 @@
         }
 
         .stock-table thead {
-            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            background: #df0a1e;
             color: white;
         }
 
@@ -742,15 +743,15 @@
             text-align: left;
             font-weight: 600;
             font-size: 0.9em;
-            border-bottom: 3px solid #8B0000;
+            border-bottom: 3px solid #b30818;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
         .stock-table td {
             padding: 15px;
-            border-bottom: 1px solid #3d3d3d;
-            color: #e0e0e0;
+            border-bottom: 1px solid #eeeeee;
+            color: #111111;
             transition: all 0.3s;
         }
 
@@ -759,9 +760,9 @@
         }
 
         .stock-table tbody tr:hover {
-            background: linear-gradient(90deg, #3d3d3d 0%, #2d2d2d 100%);
+            background: #fafafa;
             transform: scale(1.01);
-            box-shadow: 0 4px 12px rgba(139, 0, 0, 0.2);
+            box-shadow: 0 4px 12px rgba(223, 10, 30, 0.08);
         }
 
         /* Quantity Controls with Glow */
@@ -774,9 +775,9 @@
         .qty-btn {
             width: 36px;
             height: 36px;
-            border: 2px solid #8B0000;
-            background: #1a1a1a;
-            color: #8B0000;
+            border: 2px solid #df0a1e;
+            background: #ffffff;
+            color: #df0a1e;
             border-radius: 8px;
             cursor: pointer;
             font-weight: bold;
@@ -793,7 +794,7 @@
             width: 0;
             height: 0;
             border-radius: 50%;
-            background: rgba(139, 0, 0, 0.3);
+            background: rgba(223, 10, 30, 0.15);
             transform: translate(-50%, -50%);
             transition: width 0.3s, height 0.3s;
         }
@@ -804,10 +805,10 @@
         }
 
         .qty-btn:hover {
-            background: #8B0000;
+            background: #df0a1e;
             color: white;
             transform: scale(1.1);
-            box-shadow: 0 0 20px rgba(139, 0, 0, 0.5);
+            box-shadow: 0 0 20px rgba(223, 10, 30, 0.3);
         }
 
         .qty-btn:active {
@@ -819,8 +820,7 @@
             text-align: center;
             font-weight: 700;
             font-size: 1.3em;
-            color: #ffffff;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            color: #101010;
         }
 
         /* Status Badges with Pulse */
@@ -836,18 +836,18 @@
         }
 
         .status-low {
-            background: rgba(139, 0, 0, 0.2);
-            color: #ff6b6b;
-            border: 2px solid #8B0000;
+            background: rgba(223, 10, 30, 0.1);
+            color: #c3161e;
+            border: 2px solid #df0a1e;
             animation: pulse-red 2s infinite;
         }
 
         @keyframes pulse-red {
             0%, 100% {
-                box-shadow: 0 0 0 0 rgba(139, 0, 0, 0.7);
+                box-shadow: 0 0 0 0 rgba(223, 10, 30, 0.5);
             }
             50% {
-                box-shadow: 0 0 0 10px rgba(139, 0, 0, 0);
+                box-shadow: 0 0 0 10px rgba(223, 10, 30, 0);
             }
         }
 
@@ -872,16 +872,16 @@
         }
 
         .chart-card {
-            background: #2d2d2d;
+            background: #ffffff;
             padding: 25px;
             border-radius: 16px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-            border: 1px solid #3d3d3d;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.05);
+            border: 1px solid #e8e8e8;
             animation: slideInUp 0.5s;
         }
 
         .chart-card h3 {
-            color: #ffffff;
+            color: #101010;
             margin-bottom: 20px;
             font-size: 1.2em;
         }
@@ -938,27 +938,27 @@
         }
 
         .btn-info {
-            background: linear-gradient(135deg, #8B0000 0%, #B22222 100%);
+            background: linear-gradient(135deg, #df0a1e 0%, #c3161e 100%);
             color: white;
         }
 
         .btn-info:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(139, 0, 0, 0.4);
+            box-shadow: 0 6px 20px rgba(223, 10, 30, 0.3);
         }
 
         /* Empty State */
         .empty-state {
             text-align: center;
             padding: 80px 20px;
-            color: #b0b0b0;
+            color: #707070;
             animation: fadeIn 0.5s;
         }
 
         .empty-state h3 {
             font-size: 1.8em;
             margin-bottom: 10px;
-            color: #ffffff;
+            color: #101010;
         }
 
         /* Responsive */
@@ -983,32 +983,32 @@
         }
 
         ::-webkit-scrollbar-track {
-            background: #1a1a1a;
+            background: #f0f0f0;
         }
 
         ::-webkit-scrollbar-thumb {
-            background: #8B0000;
+            background: #df0a1e;
             border-radius: 5px;
         }
 
         ::-webkit-scrollbar-thumb:hover {
-            background: #A00000;
+            background: #b30818;
         }
 
         /* Audit Management Styles */
         .audit-card {
-            background: #2d2d2d;
+            background: #ffffff;
             padding: 25px;
             border-radius: 12px;
-            border: 1px solid #3d3d3d;
+            border: 1px solid #e8e8e8;
             margin-bottom: 20px;
             transition: all 0.3s;
             animation: slideInUp 0.5s;
         }
 
         .audit-card:hover {
-            border-color: #8B0000;
-            box-shadow: 0 4px 16px rgba(139, 0, 0, 0.2);
+            border-color: #df0a1e;
+            box-shadow: 0 4px 16px rgba(223, 10, 30, 0.12);
         }
 
         .audit-header {
@@ -1017,17 +1017,17 @@
             align-items: center;
             margin-bottom: 20px;
             padding-bottom: 15px;
-            border-bottom: 1px solid #3d3d3d;
+            border-bottom: 1px solid #eeeeee;
         }
 
         .audit-id {
-            color: #8B0000;
+            color: #df0a1e;
             font-weight: 700;
             font-size: 1.1em;
         }
 
         .audit-timestamp {
-            color: #b0b0b0;
+            color: #707070;
             font-size: 0.9em;
         }
 
@@ -1039,19 +1039,19 @@
         }
 
         .audit-info-item {
-            background: #1a1a1a;
+            background: #f5f5f5;
             padding: 12px;
             border-radius: 8px;
         }
 
         .audit-info-label {
-            color: #b0b0b0;
+            color: #707070;
             font-size: 0.85em;
             margin-bottom: 5px;
         }
 
         .audit-info-value {
-            color: #ffffff;
+            color: #101010;
             font-weight: 600;
             font-size: 1.1em;
         }
@@ -1064,20 +1064,20 @@
         }
 
         .audit-stat-box {
-            background: #1a1a1a;
+            background: #f5f5f5;
             padding: 15px;
             border-radius: 8px;
             text-align: center;
         }
 
         .audit-stat-label {
-            color: #b0b0b0;
+            color: #707070;
             font-size: 0.85em;
             margin-bottom: 8px;
         }
 
         .audit-stat-value {
-            color: #ffffff;
+            color: #101010;
             font-size: 1.8em;
             font-weight: 700;
         }
@@ -1091,7 +1091,7 @@
         }
 
         .audit-discrepancies {
-            background: #1a1a1a;
+            background: #f5f5f5;
             padding: 15px;
             border-radius: 8px;
             max-height: 300px;
@@ -1102,8 +1102,9 @@
         .discrepancy-row {
             padding: 10px;
             margin-bottom: 8px;
-            background: #2d2d2d;
+            background: #ffffff;
             border-radius: 6px;
+            border: 1px solid #eeeeee;
             display: grid;
             grid-template-columns: 2fr 1fr 1fr 1fr;
             gap: 10px;
@@ -1120,12 +1121,12 @@
         }
 
         .discrepancy-part {
-            color: #ffffff;
+            color: #101010;
             font-weight: 600;
         }
 
         .discrepancy-value {
-            color: #b0b0b0;
+            color: #707070;
             text-align: center;
         }
 
@@ -1143,11 +1144,11 @@
         }
 
         .audit-notes {
-            background: #1a1a1a;
+            background: #f5f5f5;
             padding: 15px;
             border-radius: 8px;
             margin-bottom: 20px;
-            color: #e0e0e0;
+            color: #333333;
             font-style: italic;
         }
 
@@ -1235,7 +1236,7 @@
         .empty-state {
             text-align: center;
             padding: 60px 20px;
-            color: #b0b0b0;
+            color: #707070;
         }
 
         .empty-state-icon {
@@ -1245,12 +1246,12 @@
         }
 
         .empty-state h3 {
-            color: #ffffff;
+            color: #101010;
             margin-bottom: 10px;
         }
 
         .filter-bar {
-            background: #2d2d2d;
+            background: #ffffff;
             padding: 20px;
             border-radius: 12px;
             margin-bottom: 30px;
@@ -1258,6 +1259,7 @@
             gap: 15px;
             flex-wrap: wrap;
             align-items: center;
+            border: 1px solid #e2e2e2;
         }
 
         .filter-group {
@@ -1267,7 +1269,7 @@
 
         .filter-group label {
             display: block;
-            color: #b0b0b0;
+            color: #707070;
             font-size: 0.9em;
             margin-bottom: 8px;
         }
@@ -1275,16 +1277,16 @@
         .filter-group select {
             width: 100%;
             padding: 10px;
-            border: 2px solid #3d3d3d;
+            border: 2px solid #e2e2e2;
             border-radius: 8px;
-            background: #1a1a1a;
-            color: #ffffff;
+            background: #f5f5f5;
+            color: #111111;
             font-size: 1em;
         }
 
         .filter-group select:focus {
             outline: none;
-            border-color: #8B0000;
+            border-color: #df0a1e;
         }
 
     </style>
@@ -1584,7 +1586,7 @@
                     </div>
                 </div>
 
-                <h3 style="margin-bottom: 20px; color: #ffffff; font-size: 1.5em;">🚐 Select a Van</h3>
+                <h3 style="margin-bottom: 20px; color: #101010; font-size: 1.5em;">🚐 Select a Van</h3>
                 <div class="van-selector" id="vanSelector"></div>
             `;
 
@@ -1626,7 +1628,7 @@
                                 '#FF7F50', '#FF69B4', '#FF1493', '#C71585'
                             ],
                             borderWidth: 2,
-                            borderColor: '#1a1a1a'
+                            borderColor: '#ffffff'
                         }]
                     },
                     options: {
@@ -1660,8 +1662,8 @@
                         datasets: [{
                             label: 'Stock Value (£)',
                             data: valueData,
-                            backgroundColor: 'rgba(139, 0, 0, 0.8)',
-                            borderColor: '#8B0000',
+                            backgroundColor: 'rgba(223, 10, 30, 0.8)',
+                            borderColor: '#df0a1e',
                             borderWidth: 2,
                             borderRadius: 8
                         }]
@@ -1681,13 +1683,13 @@
                                 beginAtZero: true,
                                 ticks: {
                                     callback: (value) => '£' + value,
-                                    color: '#b0b0b0'
+                                    color: '#707070'
                                 },
-                                grid: { color: '#3d3d3d' }
+                                grid: { color: '#e8e8e8' }
                             },
                             x: {
-                                ticks: { color: '#b0b0b0' },
-                                grid: { color: '#3d3d3d' }
+                                ticks: { color: '#707070' },
+                                grid: { color: '#e8e8e8' }
                             }
                         },
                         animation: {
@@ -1729,7 +1731,7 @@
             const vanStock = allVansStock[vanNum];
             content.innerHTML = `
                 <button class="btn btn-info" onclick="loadDashboard()" style="margin-bottom: 20px;">← Back to Dashboard</button>
-                <h2 style="margin-bottom: 20px; color: #ffffff;">🚐 ${getVanDisplay(vanNum)} - Stock Details</h2>
+                <h2 style="margin-bottom: 20px; color: #101010;">🚐 ${getVanDisplay(vanNum)} - Stock Details</h2>
                 
                 <div class="search-container">
                     <div class="search-row">
@@ -2094,7 +2096,7 @@
         async function loadAudit() {
             const content = document.getElementById('mainContent');
             content.innerHTML = `
-                <h2 style="margin-bottom: 20px; color: #ffffff;">📋 Stock Audit Export</h2>
+                <h2 style="margin-bottom: 20px; color: #101010;">📋 Stock Audit Export</h2>
                 <div class="stats-grid">
                     <div class="stat-card">
                         <h3>Select Van</h3>
@@ -2188,7 +2190,7 @@
                 return;
             }
             
-            let html = '<h2 style="color: #ffffff; margin-bottom: 30px;">📋 Pending Stock Check Audits</h2>';
+            let html = '<h2 style="color: #101010; margin-bottom: 30px;">📋 Pending Stock Check Audits</h2>';
             
             audits.forEach((audit, index) => {
                 const discrepancies = audit.parts.filter(p => p.variance !== 0);
@@ -2240,7 +2242,7 @@
                                     <div class="discrepancy-row ${disc.variance < 0 ? 'negative' : 'positive'}">
                                         <div class="discrepancy-part">
                                             ${disc.partNumber}<br>
-                                            <span style="font-size: 0.85em; color: #b0b0b0;">${disc.partDescription}</span>
+                                            <span style="font-size: 0.85em; color: #707070;">${disc.partDescription}</span>
                                         </div>
                                         <div class="discrepancy-value">System: ${disc.systemQty}</div>
                                         <div class="discrepancy-value">Counted: ${disc.actualQty}</div>
@@ -2515,7 +2517,7 @@
             audits.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
             
             let html = `
-                <h2 style="color: #ffffff; margin-bottom: 30px;">📜 Audit History</h2>
+                <h2 style="color: #101010; margin-bottom: 30px;">📜 Audit History</h2>
                 
                 <div class="filter-bar">
                     <div class="filter-group">
