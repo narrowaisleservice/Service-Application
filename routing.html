@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Routing - Narrow Aisle Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  :root {
+    --red: #df0a1e;
+    --red-dark: #b30818;
+    --black: #000000;
+    --bg: #ffffff;
+    --surface: #f5f5f5;
+    --border: #e2e2e2;
+    --text: #111111;
+    --muted: #707070;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; overscroll-behavior: none; }
+  body {
+    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .header {
+    background: var(--black);
+    border-bottom: 3px solid var(--red);
+    padding: 14px 20px;
+    padding-top: max(14px, env(safe-area-inset-top));
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-shrink: 0;
+    z-index: 200;
+  }
+  .back-btn {
+    background: var(--red);
+    border: none;
+    color: #fff;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    font-size: 13px;
+    flex-shrink: 0;
+    min-height: 40px;
+  }
+  .header h1 { color: #fff; font-size: 18px; font-weight: 800; flex: 1; }
+  .header .sub { color: #bbb; font-size: 12px; font-family: 'DM Mono', monospace; margin-top: 2px; }
+
+  .layout {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .panel {
+    width: 100%;
+    padding: 18px;
+    overflow-y: auto;
+    flex-shrink: 0;
+    max-height: 55vh;
+  }
+
+  .map-wrap {
+    flex: 1;
+    min-height: 300px;
+    position: relative;
+    background: var(--surface);
+  }
+  #map { width: 100%; height: 100%; }
+
+  label { display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; margin: 14px 0 6px; }
+  label:first-child { margin-top: 0; }
+
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  input[type="text"], input[type="date"] {
+    width: 100%; padding: 11px 12px; border: 1.5px solid var(--border); border-radius: 8px;
+    font-size: 14px; font-family: 'DM Sans', sans-serif; background: var(--surface); color: var(--text);
+  }
+  input:focus { outline: none; border-color: var(--red); background: #fff; }
+
+  .start-row { display: flex; gap: 8px; }
+  .start-row input { flex: 1; }
+  .locate-btn {
+    flex-shrink: 0; border: 1.5px solid var(--border); background: #fff; border-radius: 8px;
+    padding: 0 12px; cursor: pointer; font-size: 16px;
+  }
+  .locate-btn:hover { border-color: var(--red); }
+
+  .stops-list { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+  .stop-row {
+    display: flex; gap: 6px; align-items: center; background: var(--surface);
+    border: 1.5px solid var(--border); border-radius: 8px; padding: 8px;
+  }
+  .stop-num {
+    flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%; background: var(--red); color: #fff;
+    font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center;
+  }
+  .stop-fields { flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .stop-fields input {
+    border: none; background: transparent; padding: 2px 0; font-size: 13px; width: 100%;
+  }
+  .stop-fields input.addr { font-weight: 600; }
+  .stop-fields input.note { font-size: 12px; color: var(--muted); }
+  .stop-actions { display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; }
+  .stop-actions button {
+    width: 24px; height: 20px; border: none; background: none; color: var(--muted);
+    cursor: pointer; font-size: 12px; line-height: 1;
+  }
+  .stop-actions button:hover { color: var(--red); }
+  .remove-stop { color: var(--muted); background: none; border: none; cursor: pointer; font-size: 16px; flex-shrink: 0; padding: 0 4px; }
+  .remove-stop:hover { color: var(--red); }
+
+  .add-stop-btn {
+    margin-top: 10px; width: 100%; padding: 10px; border: 1.5px dashed var(--border); background: none;
+    border-radius: 8px; color: var(--muted); font-weight: 700; font-size: 13px; cursor: pointer;
+  }
+  .add-stop-btn:hover { border-color: var(--red); color: var(--red); }
+
+  .checkbox-row { display: flex; align-items: center; gap: 8px; margin-top: 14px; }
+  .checkbox-row input { width: 16px; height: 16px; accent-color: var(--red); }
+  .checkbox-row label { margin: 0; text-transform: none; font-size: 13px; font-weight: 500; color: var(--text); }
+
+  .btn {
+    width: 100%; padding: 14px; border-radius: 10px; border: none; font-weight: 800;
+    font-size: 14px; cursor: pointer; margin-top: 18px;
+  }
+  .btn-primary { background: var(--red); color: #fff; }
+  .btn-primary:disabled { background: #f0aab0; cursor: default; }
+
+  .error-banner {
+    background: #fdecec; color: var(--red); border: 1px solid #f5b5bc; padding: 10px 12px;
+    border-radius: 8px; font-size: 12.5px; margin-top: 12px; display: none;
+  }
+  .error-banner.show { display: block; }
+
+  .summary {
+    display: none; margin-top: 18px; padding: 14px; background: var(--surface); border-radius: 10px;
+    border: 1.5px solid var(--border);
+  }
+  .summary.show { display: block; }
+  .summary-stats { display: flex; gap: 16px; }
+  .summary-stat .val { font-size: 20px; font-weight: 800; color: var(--red); font-family: 'DM Mono', monospace; }
+  .summary-stat .lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; }
+
+  .directions-list { display: none; margin-top: 14px; }
+  .directions-list.show { display: block; }
+  .leg { margin-bottom: 12px; }
+  .leg-title { font-size: 12px; font-weight: 800; color: var(--text); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+  .leg-title .badge { background: var(--red); color: #fff; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; display: flex; align-items: center; justify-content: center; }
+  .step { font-size: 12.5px; color: var(--muted); padding: 4px 0 4px 24px; border-left: 2px solid var(--border); margin-left: 8px; }
+  .step .dist { color: var(--text); font-family: 'DM Mono', monospace; font-size: 11px; }
+
+  .marker-badge {
+    background: var(--red); color: #fff; border-radius: 50%; width: 26px; height: 26px;
+    display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12px;
+    border: 2px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  }
+  .marker-badge.start { background: var(--black); }
+
+  /* Desktop: side-by-side layout */
+  @media (min-width: 900px) {
+    .layout { flex-direction: row; }
+    .panel { width: 400px; max-height: none; border-right: 1.5px solid var(--border); }
+    .map-wrap { flex: 1; min-height: 0; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="header">
+    <button class="back-btn" onclick="window.location.href='portal-hub-professional.html'">← Back</button>
+    <div>
+      <h1>🗺️ Routing</h1>
+      <div class="sub" id="headerSub">Multi-stop route planner</div>
+    </div>
+  </div>
+
+  <div class="layout">
+    <div class="panel">
+      <div class="row2">
+        <div>
+          <label for="engineerName">Engineer</label>
+          <input type="text" id="engineerName" placeholder="e.g. Tom Barker">
+        </div>
+        <div>
+          <label for="routeDate">Date</label>
+          <input type="date" id="routeDate">
+        </div>
+      </div>
+
+      <label for="startAddress">Start Location</label>
+      <div class="start-row">
+        <input type="text" id="startAddress" placeholder="Depot address or postcode">
+        <button class="locate-btn" id="locateBtn" title="Use my current location">📍</button>
+      </div>
+
+      <label>Stops</label>
+      <div class="stops-list" id="stopsList"></div>
+      <button class="add-stop-btn" id="addStopBtn">+ Add Stop</button>
+
+      <div class="checkbox-row">
+        <input type="checkbox" id="returnToStart" checked>
+        <label for="returnToStart">Return to start at the end</label>
+      </div>
+
+      <button class="btn btn-primary" id="routeBtn">⚡ Optimise &amp; Route</button>
+
+      <div class="error-banner" id="errorBanner"></div>
+
+      <div class="summary" id="summary">
+        <div class="summary-stats">
+          <div class="summary-stat">
+            <div class="val" id="totalDistance">–</div>
+            <div class="lbl">Miles</div>
+          </div>
+          <div class="summary-stat">
+            <div class="val" id="totalTime">–</div>
+            <div class="lbl">Drive Time</div>
+          </div>
+          <div class="summary-stat">
+            <div class="val" id="totalStops">–</div>
+            <div class="lbl">Stops</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="directions-list" id="directionsList"></div>
+    </div>
+
+    <div class="map-wrap">
+      <div id="map"></div>
+    </div>
+  </div>
+
+<script>
+  // ---- CONFIG ----
+  // Free API key from https://openrouteservice.org/dev/#/signup (instant signup, generous free tier)
+  const ORS_API_KEY = 'PASTE_YOUR_OPENROUTESERVICE_API_KEY_HERE';
+  const GEOCODE_URL = 'https://api.openrouteservice.org/geocode/search';
+  const REVERSE_GEOCODE_URL = 'https://api.openrouteservice.org/geocode/reverse';
+  const OPTIMIZE_URL = 'https://api.openrouteservice.org/optimization';
+  const DIRECTIONS_URL = 'https://api.openrouteservice.org/v2/directions/driving-car/geojson';
+
+  const el = id => document.getElementById(id);
+
+  // ---- STATE ----
+  let stopIdCounter = 0;
+  let stops = []; // { id, address, note, lat, lon }
+  let startCoords = null; // { lat, lon }
+  let map, routeLayer, markerLayer;
+
+  // ---- Map init ----
+  function initMap() {
+    map = L.map('map', { zoomControl: true }).setView([52.5, -2.1], 8); // West Midlands default
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors',
+      maxZoom: 19
+    }).addTo(map);
+    routeLayer = L.layerGroup().addTo(map);
+    markerLayer = L.layerGroup().addTo(map);
+  }
+  initMap();
+
+  el('routeDate').valueAsDate = new Date();
+
+  // ---- Stops UI ----
+  function addStopRow(prefillAddress) {
+    const id = ++stopIdCounter;
+    stops.push({ id, address: prefillAddress || '', note: '', lat: null, lon: null });
+    renderStops();
+    if (!prefillAddress) {
+      setTimeout(() => {
+        const input = document.querySelector(`[data-stop-addr="${id}"]`);
+        if (input) input.focus();
+      }, 50);
+    }
+  }
+
+  function removeStop(id) {
+    stops = stops.filter(s => s.id !== id);
+    renderStops();
+  }
+
+  function moveStop(id, dir) {
+    const idx = stops.findIndex(s => s.id === id);
+    const newIdx = idx + dir;
+    if (newIdx < 0 || newIdx >= stops.length) return;
+    [stops[idx], stops[newIdx]] = [stops[newIdx], stops[idx]];
+    renderStops();
+  }
+
+  function renderStops() {
+    const list = el('stopsList');
+    list.innerHTML = '';
+    stops.forEach((s, i) => {
+      const row = document.createElement('div');
+      row.className = 'stop-row';
+      row.innerHTML = `
+        <div class="stop-num">${i + 1}</div>
+        <div class="stop-fields">
+          <input type="text" class="addr" data-stop-addr="${s.id}" placeholder="Address or postcode" value="${escapeAttr(s.address)}">
+          <input type="text" class="note" data-stop-note="${s.id}" placeholder="Job ref / notes (optional)" value="${escapeAttr(s.note)}">
+        </div>
+        <div class="stop-actions">
+          <button data-up="${s.id}" title="Move up">▲</button>
+          <button data-down="${s.id}" title="Move down">▼</button>
+        </div>
+        <button class="remove-stop" data-remove="${s.id}" title="Remove">✕</button>
+      `;
+      list.appendChild(row);
+    });
+
+    list.querySelectorAll('[data-stop-addr]').forEach(inp => {
+      inp.addEventListener('input', () => {
+        const s = stops.find(x => x.id == inp.dataset.stopAddr);
+        if (s) { s.address = inp.value; s.lat = null; s.lon = null; }
+      });
+    });
+    list.querySelectorAll('[data-stop-note]').forEach(inp => {
+      inp.addEventListener('input', () => {
+        const s = stops.find(x => x.id == inp.dataset.stopNote);
+        if (s) s.note = inp.value;
+      });
+    });
+    list.querySelectorAll('[data-remove]').forEach(btn => {
+      btn.addEventListener('click', () => removeStop(parseInt(btn.dataset.remove)));
+    });
+    list.querySelectorAll('[data-up]').forEach(btn => {
+      btn.addEventListener('click', () => moveStop(parseInt(btn.dataset.up), -1));
+    });
+    list.querySelectorAll('[data-down]').forEach(btn => {
+      btn.addEventListener('click', () => moveStop(parseInt(btn.dataset.down), 1));
+    });
+  }
+
+  el('addStopBtn').addEventListener('click', () => addStopRow());
+  addStopRow(); // start with one empty stop
+
+  function escapeAttr(str) {
+    return String(str || '').replace(/"/g, '&quot;');
+  }
+
+  // ---- Geolocation ----
+  el('locateBtn').addEventListener('click', () => {
+    if (!navigator.geolocation) { showError('Geolocation not supported on this device/browser.'); return; }
+    el('locateBtn').textContent = '⏳';
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      startCoords = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+      try {
+        const label = await reverseGeocode(startCoords.lat, startCoords.lon);
+        el('startAddress').value = label || 'Current Location';
+      } catch (e) {
+        el('startAddress').value = 'Current Location';
+      }
+      el('locateBtn').textContent = '📍';
+    }, () => {
+      showError('Could not get your location — check location permissions.');
+      el('locateBtn').textContent = '📍';
+    });
+  });
+
+  // ---- Geocoding ----
+  async function geocodeAddress(text) {
+    const url = `${GEOCODE_URL}?api_key=${ORS_API_KEY}&text=${encodeURIComponent(text)}&boundary.country=GB&size=1`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Geocoding failed for "' + text + '"');
+    const data = await res.json();
+    if (!data.features || !data.features.length) throw new Error('No match found for "' + text + '"');
+    const [lon, lat] = data.features[0].geometry.coordinates;
+    return { lat, lon };
+  }
+
+  async function reverseGeocode(lat, lon) {
+    const url = `${REVERSE_GEOCODE_URL}?api_key=${ORS_API_KEY}&point.lon=${lon}&point.lat=${lat}&size=1`;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.features && data.features[0] ? data.features[0].properties.label : null;
+  }
+
+  // ---- Main: Optimise & Route ----
+  el('routeBtn').addEventListener('click', runRoute);
+
+  async function runRoute() {
+    hideError();
+    const startText = el('startAddress').value.trim();
+    const validStops = stops.filter(s => s.address.trim());
+
+    if (!startText) { showError('Enter a start location.'); return; }
+    if (validStops.length === 0) { showError('Add at least one stop.'); return; }
+    if (ORS_API_KEY === 'PASTE_YOUR_OPENROUTESERVICE_API_KEY_HERE') {
+      showError('Routing needs an OpenRouteService API key — see the CONFIG section at the top of the script.');
+      return;
+    }
+
+    el('routeBtn').disabled = true;
+    el('routeBtn').textContent = '⏳ Geocoding addresses...';
+
+    try {
+      // Geocode start if needed
+      if (!startCoords) {
+        startCoords = await geocodeAddress(startText);
+      }
+      // Geocode stops that don't have coords yet
+      for (const s of validStops) {
+        if (s.lat === null || s.lon === null) {
+          const c = await geocodeAddress(s.address);
+          s.lat = c.lat; s.lon = c.lon;
+        }
+      }
+
+      el('routeBtn').textContent = '⏳ Optimising order...';
+      const orderedStops = await optimizeStops(startCoords, validStops);
+
+      el('routeBtn').textContent = '⏳ Building route...';
+      const returnToStart = el('returnToStart').checked;
+      const routeData = await getDirections(startCoords, orderedStops, returnToStart);
+
+      renderRoute(startCoords, orderedStops, routeData, returnToStart);
+
+    } catch (err) {
+      showError(err.message || 'Something went wrong building the route.');
+    } finally {
+      el('routeBtn').disabled = false;
+      el('routeBtn').textContent = '⚡ Optimise & Route';
+    }
+  }
+
+  async function optimizeStops(start, stopList) {
+    if (stopList.length === 1) return stopList; // nothing to optimise
+    const body = {
+      jobs: stopList.map((s, i) => ({ id: i + 1, location: [s.lon, s.lat] })),
+      vehicles: [{
+        id: 1,
+        profile: 'driving-car',
+        start: [start.lon, start.lat],
+        end: [start.lon, start.lat]
+      }]
+    };
+    const res = await fetch(OPTIMIZE_URL, {
+      method: 'POST',
+      headers: { 'Authorization': ORS_API_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) throw new Error('Route optimisation failed (' + res.status + ')');
+    const data = await res.json();
+    const jobSteps = data.routes[0].steps.filter(st => st.type === 'job');
+    return jobSteps.map(st => stopList[st.id - 1]);
+  }
+
+  async function getDirections(start, orderedStops, returnToStart) {
+    const coords = [[start.lon, start.lat], ...orderedStops.map(s => [s.lon, s.lat])];
+    if (returnToStart) coords.push([start.lon, start.lat]);
+    const res = await fetch(DIRECTIONS_URL, {
+      method: 'POST',
+      headers: { 'Authorization': ORS_API_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ coordinates: coords })
+    });
+    if (!res.ok) throw new Error('Directions request failed (' + res.status + ')');
+    return await res.json();
+  }
+
+  function renderRoute(start, orderedStops, routeData, returnToStart) {
+    routeLayer.clearLayers();
+    markerLayer.clearLayers();
+
+    const feature = routeData.features[0];
+    const coords = feature.geometry.coordinates.map(c => [c[1], c[0]]);
+    const line = L.polyline(coords, { color: '#df0a1e', weight: 5, opacity: 0.85 }).addTo(routeLayer);
+
+    // Start marker
+    addBadgeMarker(start.lat, start.lon, 'S', true);
+    // Stop markers in order
+    orderedStops.forEach((s, i) => addBadgeMarker(s.lat, s.lon, String(i + 1), false, s.address));
+
+    map.fitBounds(line.getBounds(), { padding: [30, 30] });
+
+    // Summary
+    const summary = feature.properties.summary;
+    const miles = (summary.distance / 1609.34).toFixed(1);
+    const totalMins = Math.round(summary.duration / 60);
+    const hrs = Math.floor(totalMins / 60);
+    const mins = totalMins % 60;
+    el('totalDistance').textContent = miles;
+    el('totalTime').textContent = hrs > 0 ? `${hrs}h ${mins}m` : `${mins}m`;
+    el('totalStops').textContent = orderedStops.length;
+    el('summary').classList.add('show');
+
+    // Turn-by-turn, grouped by leg (leg 0 = start->stop1, etc.)
+    const segments = feature.properties.segments;
+    const dl = el('directionsList');
+    dl.innerHTML = '';
+    const legLabels = ['Start', ...orderedStops.map((s, i) => `Stop ${i + 1}: ${s.address}`)];
+    segments.forEach((seg, i) => {
+      const fromLabel = legLabels[i] || `Leg ${i + 1}`;
+      const toLabel = legLabels[i + 1] || (returnToStart ? 'Back to Start' : `Stop ${i + 1}`);
+      const legDiv = document.createElement('div');
+      legDiv.className = 'leg';
+      const legMiles = (seg.distance / 1609.34).toFixed(1);
+      const legMins = Math.round(seg.duration / 60);
+      legDiv.innerHTML = `<div class="leg-title"><span class="badge">${i + 1}</span> ${fromLabel} → ${toLabel} <span style="color:var(--muted); font-weight:500; margin-left:auto;">${legMiles} mi · ${legMins} min</span></div>`;
+      seg.steps.forEach(step => {
+        if (!step.instruction) return;
+        const stepDiv = document.createElement('div');
+        stepDiv.className = 'step';
+        stepDiv.innerHTML = `${step.instruction} <span class="dist">(${(step.distance / 1609.34).toFixed(1)} mi)</span>`;
+        legDiv.appendChild(stepDiv);
+      });
+      dl.appendChild(legDiv);
+    });
+    dl.classList.add('show');
+  }
+
+  function addBadgeMarker(lat, lon, label, isStart, popupText) {
+    const icon = L.divIcon({
+      className: '',
+      html: `<div class="marker-badge${isStart ? ' start' : ''}">${label}</div>`,
+      iconSize: [26, 26],
+      iconAnchor: [13, 13]
+    });
+    const marker = L.marker([lat, lon], { icon }).addTo(markerLayer);
+    if (popupText) marker.bindPopup(popupText);
+  }
+
+  function showError(msg) {
+    const b = el('errorBanner');
+    b.textContent = msg;
+    b.classList.add('show');
+  }
+  function hideError() {
+    el('errorBanner').classList.remove('show');
+  }
+</script>
+</body>
+</html>
