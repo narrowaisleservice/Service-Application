@@ -950,12 +950,12 @@ function renderSection(id, data){
   }).join('');
   const hasDiag = !!DIAGRAMS[id];
   return `<div class="subsection" id="sub-${id}">
-    <div class="subsection-title" onclick="toggleSubsection('${id}')">
+    <div class="subsection-title collapsed" onclick="toggleSubsection('${id}')">
       <span class="ss-text"><span class="ss-code">${data.title}</span>&nbsp;·&nbsp;${data.subtitle}</span>
       ${hasDiag ? `<button class="ss-diag-btn" onclick="event.stopPropagation(); openDiagramFor('${id}')" title="View diagram">⛶</button>` : ''}
       <span class="ss-toggle">▼</span>
     </div>
-    <div class="parts-table-wrap" id="wrap-${id}">
+    <div class="parts-table-wrap collapsed" id="wrap-${id}">
       <table class="parts-table">
         <thead><tr><th>REF</th><th>FLEXI PART NO.</th><th>SUPPLIER REF</th><th>DESCRIPTION</th><th>QTY</th><th title="VNA · 17N · 17N+ · 20S · 22S+ · 25W+ · MAX22 · MAX25 · MAXEW">MODELS ▸</th><th></th></tr></thead>
         <tbody>${rows}</tbody>
