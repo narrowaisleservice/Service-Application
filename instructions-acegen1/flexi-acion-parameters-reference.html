@@ -1,0 +1,1275 @@
+<meta>
+ 
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ 
+ <title>
+  Flexi ACiON Parameters Reference
+ </title>
+ <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&amp;family=DM+Sans:wght@400;500;700&amp;family=DM+Mono:wght@500&amp;display=swap" rel="stylesheet">
+ <style>
+  :root {
+      --red: #df0a1e;
+      --red-dim: #a80716;
+      --red-glow: rgba(223, 10, 30, 0.25);
+      --red-subtle: rgba(223, 10, 30, 0.06);
+      --bg: #f7f7f8;
+      --bg-card: #ffffff;
+      --bg-elevated: #fafafa;
+      --bg-row-alt: #f5f5f6;
+      --border: #ececec;
+      --border-bright: #d8d8d8;
+      --text: #0a0a0a;
+      --text-muted: #6b6b6b;
+      --text-dim: #9a9a9a;
+      --mono: 'DM Mono', monospace;
+      --display: 'IBM Plex Sans', sans-serif;
+      --ui: 'DM Sans', sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--ui);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(223, 10, 30, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(223, 10, 30, 0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 32px 20px 60px;
+    }
+    /* ── HEADER ── */
+    .header {
+      text-align: center;
+      padding: 40px 0 36px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 36px;
+      position: relative;
+    }
+    .header::after {
+      content: '';
+      position: absolute;
+      bottom: -1px; left: 50%;
+      transform: translateX(-50%);
+      width: 200px; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--red), transparent);
+    }
+    .header-eyebrow {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.3em;
+      color: var(--red);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .header h1 {
+      font-family: var(--display);
+      font-size: clamp(36px, 6vw, 62px);
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      text-transform: uppercase;
+      color: var(--text);
+      line-height: 1;
+    }
+    .header h1 span { color: var(--red); }
+    .header-sub {
+      margin-top: 10px;
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.15em;
+      color: var(--text-muted);
+    }
+    /* ── NOTICE BANNER ── */
+    .notice {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--red);
+      padding: 14px 20px;
+      margin-bottom: 28px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .notice-icon {
+      font-size: 14px;
+      flex-shrink: 0;
+      margin-top: 2px;
+      color: var(--red);
+    }
+    .notice p {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+    .notice strong { color: var(--red); }
+    /* ── SEARCH ── */
+    .search-bar {
+      display: flex;
+      margin-bottom: 28px;
+      border: 1px solid var(--border-bright);
+      background: var(--bg-card);
+      overflow: hidden;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .search-bar:focus-within {
+      border-color: var(--red);
+      box-shadow: 0 0 0 1px var(--red), 0 0 20px var(--red-glow);
+    }
+    .search-prefix {
+      padding: 0 14px;
+      background: var(--red);
+      color: #fff;
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      display: flex;
+      align-items: center;
+      white-space: nowrap;
+    }
+    #searchInput {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 14px;
+      letter-spacing: 0.06em;
+      padding: 13px 16px;
+    }
+    #searchInput::placeholder { color: var(--text-dim); }
+    .search-count {
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-dim);
+      border-left: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    /* ── TABS ── */
+    .tabs {
+      display: flex;
+      gap: 0;
+      margin-bottom: 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .tab-btn {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-bottom: none;
+      color: var(--text-muted);
+      font-family: var(--display);
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 12px 28px;
+      cursor: pointer;
+      transition: all 0.15s;
+      position: relative;
+      top: 1px;
+      margin-right: 4px;
+    }
+    .tab-btn:hover {
+      color: var(--red);
+      background: var(--red-subtle);
+    }
+    .tab-btn.active {
+      background: var(--bg-card);
+      border-color: var(--border);
+      border-bottom-color: var(--bg-card);
+      color: var(--red);
+    }
+    .tab-btn.active::before {
+      content: '';
+      position: absolute;
+      top: -1px; left: -1px; right: -1px;
+      height: 2px;
+      background: var(--red);
+    }
+    /* ── TAB PANELS ── */
+    .tab-panel {
+      display: none;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-top: none;
+      animation: fadeIn 0.15s ease-out;
+    }
+    .tab-panel.active { display: block; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    /* ── PARAM TABLE ── */
+    .param-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .param-table thead th {
+      background: var(--bg-elevated);
+      padding: 11px 16px;
+      text-align: left;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.22em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border);
+      font-weight: 500;
+    }
+    .param-table tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.1s;
+    }
+    .param-table tbody tr:last-child { border-bottom: none; }
+    .param-table tbody tr:nth-child(even) { background: var(--bg-row-alt); }
+    .param-table tbody tr:hover { background: var(--red-subtle); }
+    .param-table td {
+      padding: 11px 16px;
+      vertical-align: top;
+    }
+    .param-name {
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      color: var(--red);
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .param-range {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+    .param-desc {
+      font-size: 13px;
+      color: #4a4a4a;
+      line-height: 1.55;
+      font-family: var(--ui);
+      font-weight: 400;
+    }
+    .param-table tr.hidden { display: none; }
+    /* ── NO RESULTS ── */
+    .no-results {
+      padding: 40px;
+      text-align: center;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text-dim);
+      letter-spacing: 0.1em;
+    }
+    /* ── SET OPTIONS SECTION ── */
+    .set-options {
+      margin: 0;
+      border-top: 1px solid var(--border);
+    }
+    .set-options-header {
+      padding: 12px 16px;
+      background: var(--bg-elevated);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .set-options-header::before {
+      content: '';
+      display: block;
+      width: 8px; height: 8px;
+      background: var(--red);
+      clip-path: polygon(50% 0%,100% 50%,50% 100%,0% 50%);
+      flex-shrink: 0;
+    }
+    .set-options-header span {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.25em;
+      color: var(--red);
+      text-transform: uppercase;
+    }
+    .set-options-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 0;
+    }
+    .set-option-item {
+      padding: 12px 16px;
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .set-option-item:nth-child(even) { background: var(--bg-row-alt); }
+    .set-opt-name {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      color: var(--red);
+    }
+    .set-opt-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+    /* ── WARNING BANNER ── */
+    .warning-banner {
+      padding: 14px 20px;
+      background: var(--red-subtle);
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    .warning-banner p {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .warning-banner strong { color: var(--red); }
+    /* ── FOOTER ── */
+    .footer {
+      text-align: center;
+      margin-top: 48px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      line-height: 2;
+    }
+    @media (max-width: 640px) {
+      .tab-btn { padding: 10px 16px; font-size: 13px; }
+      .param-table .range-col { display: none; }
+    }
+ </style>
+ <div class="container">
+  <!-- HEADER -->
+  <div class="header">
+   <div class="header-eyebrow">
+    Programming Reference &nbsp;/&nbsp; ZUKFlexiACiON &nbsp;/&nbsp; January 2022 Issue 12
+   </div>
+   <h1>
+    Flexi
+    <span>
+     ACiON
+    </span>
+    Parameters
+   </h1>
+   <div class="header-sub">
+    Narrow Aisle Ltd &nbsp;·&nbsp; ACE3 Traction &nbsp;·&nbsp; ACE2 Lift &nbsp;·&nbsp; AC0 Steer
+   </div>
+  </div>
+  <!-- NOTICE -->
+  <div class="notice">
+   <div class="notice-icon">
+    ⚠
+   </div>
+   <p>
+    <strong>
+     Important:
+    </strong>
+    This document contains the complete parameter reference for ACE3 Traction, ACE2 Lift, and AC0 Steer inverters. Parameters marked with warnings should only be modified with authorisation from the Flexi Design Department.
+   </p>
+  </div>
+  <!-- SEARCH -->
+  <div class="search-bar">
+   <div class="search-prefix">
+    SEARCH ›
+   </div>
+   <input type="text" id="searchInput" placeholder="Search parameters — e.g. ACCELER, current, battery..." autocomplete="off" spellcheck="false">
+   <div class="search-count" id="searchCount">
+   </div>
+  </div>
+  <!-- TABS -->
+  <div class="tabs">
+   <button class="tab-btn active" data-tab="ace3">
+    ACE3 Traction
+   </button>
+   <button class="tab-btn" data-tab="ace2">
+    ACE2 Lift
+   </button>
+   <button class="tab-btn" data-tab="ac0">
+    AC0 Steer
+   </button>
+  </div>
+  <!-- ── ACE3 PANEL ── -->
+  <div class="tab-panel active" id="tab-ace3">
+   <table class="param-table" id="table-ace3">
+    <thead>
+     <tr>
+      <th style="width:26%">
+       Parameter
+      </th>
+      <th class="range-col" style="width:22%">
+       Range
+      </th>
+      <th>
+       Description
+      </th>
+     </tr>
+    </thead>
+    <tbody>
+     <tr>
+      <td class="param-name">
+       ACCELER. DELAY
+      </td>
+      <td class="param-range range-col">
+       0.1s ÷ 25.5s (0.1s steps)
+      </td>
+      <td class="param-desc">
+       Acceleration ramp time: speeds motor from 0 Hz to 100 Hz. Software manages ramp based on speed set point.
+      </td>
+     </tr>
+     <tr>
+      <td class="param-name">
+       RELEASE BRAKING
+      </td>
+      <td class="param-range range-col">
+       0.1s ÷ 25.5s (0.1s steps)
+      </td>
+      <td class="param-desc">
+       Deceleration ramp after running request released: time to decelerate from 100 Hz to 0 Hz.
+      </td>
+     </tr>
+     <tr>
+      <td class="param-name">
+       TILLER BRAKING
+      </td>
+      <td class="param-range range-col">
+       0.1s ÷ 25.5s (0.1s steps)
+      </td>
+      <td class="param-desc">
+       Deceleration ramp after tiller/seat switch released: time to decelerate from 100 Hz to 0 Hz.
+      </td>
+     </tr>
+     <tr>
+      <td class="param-name">
+       INVERS. BRAKING
+      </td>
+      <td class="param-range range-col">
+       0.1s ÷ 25.5s (0.1s steps)
+      </td>
+      <td class="param-desc">
+       Deceleration ramp when direction switch toggled during drive: time from 100 Hz to 0 Hz.
+      </td>
+     </tr>
+     <tr>
+      <td class="param-name">
+       DECEL. BRAKING
+      </td>
+      <td class="param-range range-col">
+       0.1s ÷ 25.5s (0.1s steps)
+      </td>
+      <td class="param-desc">
+       Deceleration ramp when accelerator partially released: time from 100 Hz to 0 Hz.
+      </td>
+     </tr>
+     <tr>
+      <td class="param-name">
+       PEDAL BRAKING
+      </td>
+      <td class="param-range range-col">
+       0.1s ÷ 25.5s (0.1s steps)
+      </td>
+      <td class="param-desc">
+       Deceleration ramp when braking pedal pressed: time from 100 Hz to 0 Hz.
+      </td>
+     </tr>
+     <tr>
+      <td class="param-name">
+       SPEED LIMIT BRK.
+      </td>
+      <td class="param-range range-col">
+       0.1s ÷ 25.5s (0.1s steps)
+      </td>
+      <td class="param-desc">
+       Deceleration ramp on speed-reduction request: time from 100 Hz to 0 Hz.
+      </td>
+     </tr>
+     <tr>
+      <td class="param-name">
+       MAX SPEED FORW
+      </td>
+      <td class="param-range range-col">
+       0% ÷ 100% (1% steps)
+      </td>
+      <td class="param-desc">
+       Maximum forward speed as percentage of TOP MAX SPEED.
+      </td>
+     </tr>
+     <tr>
+      <td class="param-name">
+       MAX SPEED BACK
+      </td>
+      <td class="param-range range-col">
+       0% ÷ 100% (1% steps)
+      </td>
+      <td class="param-desc">
+       Maximum backward speed as percentage of TOP MAX SPEED.
+      </td>
+     </tr>
+     <tr>
+      <td class="param-name">
+       SMART STOP SPD
+      </td>
+      <td class="param-range range-col">
+       10% ÷ 100% (1% steps)
+      </td>
+      <td class="param-desc">
+       Maximum speed when Smart Stop active, as percentage of TOP MAX SPEED.
+      </td>
+     </tr>
+     <tr>
+      <td class="param-name">
+       CUTBACK SPEED 1
+      </td>
+      <td class="param-range range-col">
+       10% ÷ 100% (1% steps)
+      </td>
+      <td class="param-desc">
+       Maximum speed when cutback input 1 active, as percentage of TOP MAX SPEED.
+      </td>
+     </tr>
+     <tr>
+      <td class="param-name">
+       FREQUENCY CREEP
+      </td>
+      <td class="param-range range-col">
+       0.6 Hz ÷ 25 Hz (0.1 Hz)
+      </td>
+      <td class="param-desc">
+       Minimum speed when direction switch closed but accelerator at minimum.
+      </td>
+     </tr>
+     <tr>
+      <td class="param-name">
+       MAX. CURRENT TRA
+      </td>
+      <td class="param-range range-col">
+       0% ÷ 100% (1% steps)
+      </td>
+      <td class="param-desc">
+       Maximum current during acceleration as percentage of factory-calibrated maximum.
+      </td>
+     </tr>
+     <tr>
+      <td class="param-name">
+       MAX. CURRENT BRK
+      </td>
+      <td class="param-range range-col">
+       0% ÷ 100% (1% steps)
+      </td>
+      <td class="param-desc">
+       Maximum current during deceleration as percentage of factory-calibrated maximum.
+      </td>
+     </tr>
+     <tr>
+      <td class="param-name">
+       ACC SMOOTH
+      </td>
+      <td class="param-range range-col">
+       1 ÷ 5 (0.1 steps)
+      </td>
+      <td class="param-desc">
+       Acceleration profile: 1 = linear ramp, higher values = smoother parabolic profiles.
+      </td>
+     </tr>
+     <tr>
+      <td class="param-name">
+       INV SMOOTH
+      </td>
+      <td class="param-range range-col">
+       1 ÷ 5 (0.1 steps)
+      </td>
+      <td class="param-desc">
+       Acceleration profile during direction change: 1 = linear, higher = smoother parabolic.
+      </td>
+     </tr>
+     <tr>
+      <td class="param-name">
+       STOP SMOOTH
+      </td>
+      <td class="param-range range-col">
+       3 Hz ÷ 100 Hz (1 Hz)
+      </td>
+      <td class="param-desc">
+       Frequency at which acceleration profile smoothing effect ends.
+      </td>
+     </tr>
+     <tr>
+      <td class="param-name">
+       BRK SMOOTH
+      </td>
+      <td class="param-range range-col">
+       1 ÷ 5 (0.1 steps)
+      </td>
+      <td class="param-desc">
+       Deceleration profile: 1 = linear ramp, higher values = smoother parabolic profiles.
+      </td>
+     </tr>
+     <tr>
+      <td class="param-name">
+       STOP BRK SMOOTH
+      </td>
+      <td class="param-range range-col">
+       3 Hz ÷ 100 Hz (1 Hz)
+      </td>
+      <td class="param-desc">
+       Frequency at which deceleration profile smoothing effect ends.
+      </td>
+     </tr>
+     <tr>
+      <td class="param-name">
+       AUXILIARY TIME
+      </td>
+      <td class="param-range range-col">
+       0s ÷ 10s (0.1s steps)
+      </td>
+      <td class="param-desc">
+       For encoder version: time truck held in place if STOP ON RAMP option is ON.
+      </td>
+     </tr>
+     <tr>
+      <td class="param-name">
+       ROLLING DW SPEED
+      </td>
+      <td class="param-range range-col">
+       1 Hz ÷ 50 Hz (1 Hz)
+      </td>
+      <td class="param-desc">
+       Maximum speed for rolling-down function.
+      </td>
+     </tr>
+    </tbody>
+   </table>
+   <div class="warning-banner">
+    <p>
+     ⚠ &nbsp;
+     <strong>
+      Warning:
+     </strong>
+     ACE3 Special Adjustments and Hardware Settings should NOT be altered without authorisation from Flexi Design Dept.
+    </p>
+   </div>
+  </div>
+  <!-- ── ACE2 PANEL ── -->
+  <div class="tab-panel" id="tab-ace2">
+   <table class="param-table" id="table-ace2">
+    <thead>
+     <tr>
+      <th style="width:26%">
+       Parameter
+      </th>
+      <th class="range-col" style="width:22%">
+       Range
+      </th>
+      <th>
+       Description
+      </th>
+     </tr>
+    </thead>
+    <tbody>
+     <tr>
+      <td class="param-name">
+       ACCELER. DELAY
+      </td>
+      <td class="param-range range-col">
+       0.1s ÷ 25.5s (0.1s steps)
+      </td>
+      <td class="param-desc">
+       Acceleration ramp: time to speed up motor from 0 Hz to 100 Hz.
+      </td>
+     </tr>
+     <tr>
+      <td class="param-name">
+       RELEASE BRAKING
+      </td>
+      <td class="param-range range-col">
+       0.1s ÷ 25.5s (0.1s steps)
+      </td>
+      <td class="param-desc">
+       Deceleration ramp after running request released: time from 100 Hz to 0 Hz.
+      </td>
+     </tr>
+     <tr>
+      <td class="param-name">
+       MAX. CURRENT
+      </td>
+      <td class="param-range range-col">
+       0% ÷ 100% (1% steps)
+      </td>
+      <td class="param-desc">
+       Maximum current applied to motor as percentage of factory-calibrated maximum.
+      </td>
+     </tr>
+     <tr>
+      <td class="param-name">
+       MIN LIFT VALUE
+      </td>
+      <td class="param-range range-col">
+       0.0 ÷ 5.0V
+      </td>
+      <td class="param-desc">
+       Minimum voltage at input A3 (Lift Pot) that will run the pump motor.
+      </td>
+     </tr>
+     <tr>
+      <td class="param-name">
+       MAX LIFT VALUE
+      </td>
+      <td class="param-range range-col">
+       0.0 ÷ 5.0V
+      </td>
+      <td class="param-desc">
+       Maximum voltage at input A3 (Lift Pot) that will run the pump motor.
+      </td>
+     </tr>
+     <tr>
+      <td class="param-name">
+       MAX LOWER VALUE
+      </td>
+      <td class="param-range range-col">
+       0.0 ÷ 5.0V
+      </td>
+      <td class="param-desc">
+       Maximum voltage at input A3 (Lift Pot) that will open the Lower Valve.
+      </td>
+     </tr>
+     <tr>
+      <td class="param-name">
+       LOWER THRESHOLD
+      </td>
+      <td class="param-range range-col">
+       0.0 ÷ 5.0V
+      </td>
+      <td class="param-desc">
+       Minimum voltage at input A3 (Lift Pot) that will open the Lower Valve.
+      </td>
+     </tr>
+     <tr>
+      <td class="param-name">
+       LIFT HEIGHT #1–#12
+      </td>
+      <td class="param-range range-col">
+       0.0 ÷ 10.0V
+      </td>
+      <td class="param-desc">
+       Voltage at input ACE3 B3 (Laser) for Heights #1 through #12.
+      </td>
+     </tr>
+     <tr>
+      <td class="param-name">
+       SET BATTERY
+      </td>
+      <td class="param-range range-col">
+       24V ÷ 48V
+      </td>
+      <td class="param-desc">
+       Nominal battery voltage. Options: 24V, 36V, 48V.
+      </td>
+     </tr>
+     <tr>
+      <td class="param-name">
+       ADJUST BATTERY
+      </td>
+      <td class="param-range range-col">
+       Volt
+      </td>
+      <td class="param-desc">
+       Fine adjustment of battery voltage measured by controller.
+      </td>
+     </tr>
+     <tr>
+      <td class="param-name">
+       THROTTLE 0 ZONE
+      </td>
+      <td class="param-range range-col">
+       0% ÷ 100% (1% steps)
+      </td>
+      <td class="param-desc">
+       Dead band in accelerator input curve.
+      </td>
+     </tr>
+     <tr>
+      <td class="param-name">
+       THROTTLE X MAP
+      </td>
+      <td class="param-range range-col">
+       0% ÷ 100% (1% steps)
+      </td>
+      <td class="param-desc">
+       Lift accelerator input curve (X axis).
+      </td>
+     </tr>
+     <tr>
+      <td class="param-name">
+       THROTTLE Y MAP
+      </td>
+      <td class="param-range range-col">
+       0% ÷ 100% (1% steps)
+      </td>
+      <td class="param-desc">
+       Lift accelerator input curve (Y axis).
+      </td>
+     </tr>
+     <tr>
+      <td class="param-name">
+       BAT. MIN ADJ.
+      </td>
+      <td class="param-range range-col">
+       -12.8% ÷ 12.7% (0.1%)
+      </td>
+      <td class="param-desc">
+       Minimum level of battery-discharge table.
+      </td>
+     </tr>
+     <tr>
+      <td class="param-name">
+       BAT. MAX ADJ.
+      </td>
+      <td class="param-range range-col">
+       -12.8% ÷ 12.7% (0.1%)
+      </td>
+      <td class="param-desc">
+       Maximum level of battery-discharge table.
+      </td>
+     </tr>
+     <tr>
+      <td class="param-name">
+       MC VOLTAGE
+      </td>
+      <td class="param-range range-col">
+       0% ÷ 100% (1% steps)
+      </td>
+      <td class="param-desc">
+       Duty-cycle (TON/TPWM) of PWM applied to main-contactor during first second after activation.
+      </td>
+     </tr>
+     <tr>
+      <td class="param-name">
+       MC VOLTAGE RID
+      </td>
+      <td class="param-range range-col">
+       0% ÷ 100% (1% steps)
+      </td>
+      <td class="param-desc">
+       Percentage of MC VOLTAGE applied to main-contactor after first second.
+      </td>
+     </tr>
+    </tbody>
+   </table>
+   <div class="set-options">
+    <div class="set-options-header">
+     <span>
+      Set Options — ON/OFF Settings
+     </span>
+    </div>
+    <div class="set-options-grid">
+     <div class="set-option-item">
+      <div class="set-opt-name">
+       TILL/SEAT SWITCH
+       <span style="color:var(--text-dim)">
+        (HANDLE ÷ SEAT)
+       </span>
+      </div>
+      <div class="set-opt-desc">
+       Manages input A6 when operator leaves truck
+      </div>
+     </div>
+     <div class="set-option-item">
+      <div class="set-opt-name">
+       HOUR COUNTER
+       <span style="color:var(--text-dim)">
+        (RUNNING ÷ KEY ON)
+       </span>
+      </div>
+      <div class="set-opt-desc">
+       Travel time only vs key switch closed
+      </div>
+     </div>
+     <div class="set-option-item">
+      <div class="set-opt-name">
+       BATTERY CHECK
+       <span style="color:var(--text-dim)">
+        (ON ÷ OFF)
+       </span>
+      </div>
+      <div class="set-opt-desc">
+       Battery discharge level check behaviour
+      </div>
+     </div>
+     <div class="set-option-item">
+      <div class="set-opt-name">
+       SET MOT.TEMPERAT
+       <span style="color:var(--text-dim)">
+        (None ÷ Option#2)
+       </span>
+      </div>
+      <div class="set-opt-desc">
+       Motor temperature sensor type: None, KTY 84-130, PT1000
+      </div>
+     </div>
+     <div class="set-option-item">
+      <div class="set-opt-name">
+       SMART STOP OUT
+      </div>
+      <div class="set-opt-desc">
+       Output driven when Smart Stop input activated
+      </div>
+     </div>
+     <div class="set-option-item">
+      <div class="set-opt-name">
+       HYD MULTI FUNCTION
+      </div>
+      <div class="set-opt-desc">
+       Two hand hydraulic operation — requires restrictors on Tilt and Side Shift
+      </div>
+     </div>
+     <div class="set-option-item">
+      <div class="set-opt-name">
+       HGT CUTOUT
+      </div>
+      <div class="set-opt-desc">
+       Height Cutout system present/absent
+      </div>
+     </div>
+     <div class="set-option-item">
+      <div class="set-opt-name">
+       HGT CUTOUT OVR
+      </div>
+      <div class="set-opt-desc">
+       Override option for Height Cutout
+      </div>
+     </div>
+     <div class="set-option-item">
+      <div class="set-opt-name">
+       HEIGHT SELECTION
+      </div>
+      <div class="set-opt-desc">
+       Height Selection System present/absent
+      </div>
+     </div>
+     <div class="set-option-item">
+      <div class="set-opt-name">
+       OPT. HEIGHT #1–#12
+      </div>
+      <div class="set-opt-desc">
+       Individual HEIGHT CUTOUT button presence for each height
+      </div>
+     </div>
+     <div class="set-option-item">
+      <div class="set-opt-name">
+       TILTING CARRIAGE
+      </div>
+      <div class="set-opt-desc">
+       Tilting Carriage Valve presence — drives ACE3 when Input A5 is high
+      </div>
+     </div>
+    </div>
+   </div>
+   <div class="warning-banner">
+    <p>
+     ⚠ &nbsp;
+     <strong>
+      Warning:
+     </strong>
+     ACE2 Special Adjustments and Hardware Settings should NOT be altered without authorisation from Flexi Design Dept.
+    </p>
+   </div>
+  </div>
+  <!-- ── AC0 PANEL ── -->
+  <div class="tab-panel" id="tab-ac0">
+   <table class="param-table" id="table-ac0">
+    <thead>
+     <tr>
+      <th style="width:26%">
+       Parameter
+      </th>
+      <th class="range-col" style="width:22%">
+       Range
+      </th>
+      <th>
+       Description
+      </th>
+     </tr>
+    </thead>
+    <tbody>
+     <tr>
+      <td class="param-name">
+       ACCELER. DELAY
+      </td>
+      <td class="param-range range-col">
+       Level 0 ÷ Level 9 (1 step)
+      </td>
+      <td class="param-desc">
+       Acceleration ramp: time to speed up motor from 0 Hz to 100 Hz. Level 9 = longest time.
+      </td>
+     </tr>
+     <tr>
+      <td class="param-name">
+       RELEASE BRAKING
+      </td>
+      <td class="param-range range-col">
+       Level 0 ÷ Level 9 (1 step)
+      </td>
+      <td class="param-desc">
+       Deceleration ramp: time to brake motor from 100 Hz to 0 Hz. Level 9 = most abrupt.
+      </td>
+     </tr>
+     <tr>
+      <td class="param-name">
+       MAX. CURRENT
+      </td>
+      <td class="param-range range-col">
+       Level 0 ÷ Level 9 (1 step)
+      </td>
+      <td class="param-desc">
+       Maximum current as percentage of factory-calibrated maximum. Level 9 = maximum current.
+      </td>
+     </tr>
+     <tr>
+      <td class="param-name">
+       HYDRO TIME
+      </td>
+      <td class="param-range range-col">
+       0.3s ÷ 10s (0.1s steps)
+      </td>
+      <td class="param-desc">
+       Time steer motor continues running after SEAT Switch opened.
+      </td>
+     </tr>
+     <tr>
+      <td class="param-name">
+       STEER SPEED
+      </td>
+      <td class="param-range range-col">
+       5 Hz ÷ 200 Hz (1 Hz)
+      </td>
+      <td class="param-desc">
+       Speed motor runs at when steering function requested.
+      </td>
+     </tr>
+     <tr>
+      <td class="param-name">
+       MOTOR OVER TEMP
+      </td>
+      <td class="param-range range-col">
+       Variable
+      </td>
+      <td class="param-desc">
+       Threshold for motor temperature warning.
+      </td>
+     </tr>
+     <tr>
+      <td class="param-name">
+       SET MOTOR TEMP
+      </td>
+      <td class="param-range range-col">
+       Variable
+      </td>
+      <td class="param-desc">
+       Fine adjustment of motor temperature measured by controller.
+      </td>
+     </tr>
+     <tr>
+      <td class="param-name">
+       SET BATTERY
+      </td>
+      <td class="param-range range-col">
+       24V ÷ 48V
+      </td>
+      <td class="param-desc">
+       Nominal battery voltage. Options: 24V, 36V, 48V.
+      </td>
+     </tr>
+     <tr>
+      <td class="param-name">
+       ADJUST BATTERY
+      </td>
+      <td class="param-range range-col">
+       Volt
+      </td>
+      <td class="param-desc">
+       Fine adjustment of battery voltage measured by controller.
+      </td>
+     </tr>
+     <tr>
+      <td class="param-name">
+       ADJUSTMENT #02
+      </td>
+      <td class="param-range range-col">
+       Level 0 ÷ Level 9
+      </td>
+      <td class="param-desc">
+       Minimum level of battery-discharge table for calibration.
+      </td>
+     </tr>
+     <tr>
+      <td class="param-name">
+       ADJUSTMENT #01
+      </td>
+      <td class="param-range range-col">
+       Level 0 ÷ Level 9
+      </td>
+      <td class="param-desc">
+       Maximum level of battery-discharge table for calibration.
+      </td>
+     </tr>
+    </tbody>
+   </table>
+   <div class="set-options">
+    <div class="set-options-header">
+     <span>
+      Set Options — ON/OFF Settings
+     </span>
+    </div>
+    <div class="set-options-grid">
+     <div class="set-option-item">
+      <div class="set-opt-name">
+       TILL/SEAT SWITCH
+       <span style="color:var(--text-dim)">
+        (HANDLE ÷ SEAT)
+       </span>
+      </div>
+      <div class="set-opt-desc">
+       Input opens when operator leaves truck
+      </div>
+     </div>
+     <div class="set-option-item">
+      <div class="set-opt-name">
+       SET INPUT #1
+       <span style="color:var(--text-dim)">
+        (HANDLE ÷ SEAT)
+       </span>
+      </div>
+      <div class="set-opt-desc">
+       Tiller vs seat input management with delay
+      </div>
+     </div>
+     <div class="set-option-item">
+      <div class="set-opt-name">
+       HOUR COUNTER
+       <span style="color:var(--text-dim)">
+        (RUNNING ÷ KEY ON)
+       </span>
+      </div>
+      <div class="set-opt-desc">
+       Travel time only vs key switch closed
+      </div>
+     </div>
+     <div class="set-option-item">
+      <div class="set-opt-name">
+       BATTERY CHECK
+       <span style="color:var(--text-dim)">
+        (ON ÷ OFF)
+       </span>
+      </div>
+      <div class="set-opt-desc">
+       Battery discharge level monitoring behaviour
+      </div>
+     </div>
+     <div class="set-option-item">
+      <div class="set-opt-name">
+       SET MOT.TEMPERAT
+       <span style="color:var(--text-dim)">
+        (None ÷ Option#2)
+       </span>
+      </div>
+      <div class="set-opt-desc">
+       Motor temperature sensor type: None, KTY 84-130, PT1000
+      </div>
+     </div>
+    </div>
+   </div>
+   <div class="warning-banner">
+    <p>
+     ⚠ &nbsp;
+     <strong>
+      Warning:
+     </strong>
+     AC0 Special Adjustments and Hardware Settings should NOT be altered without authorisation from Flexi Design Dept.
+    </p>
+   </div>
+  </div>
+  <div class="footer">
+   Flexi ACiON Complete Parameters Reference &nbsp;·&nbsp; Flexi Narrow Aisle Ltd
+   <br>
+   Publication N°: ZUKFlexiACiON &nbsp;·&nbsp; January 2022 Issue 12 &nbsp;·&nbsp; Internal Use Only
+  </div>
+ </div>
+ <script>
+  // ── TABS ──
+  document.querySelectorAll('.tab-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var target = this.getAttribute('data-tab');
+      document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+      document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
+      this.classList.add('active');
+      document.getElementById('tab-' + target).classList.add('active');
+      updateCount();
+    });
+  });
+  // ── SEARCH ──
+  document.getElementById('searchInput').addEventListener('input', function() {
+    var q = this.value.trim().toLowerCase();
+    var tables = ['ace3', 'ace2', 'ac0'];
+    tables.forEach(function(id) {
+      var rows = document.querySelectorAll('#table-' + id + ' tbody tr');
+      rows.forEach(function(row) {
+        var text = row.textContent.toLowerCase();
+        row.classList.toggle('hidden', q.length > 0 && text.indexOf(q) === -1);
+      });
+    });
+    // Auto-switch to first tab that has visible results
+    if (q.length > 0) {
+      var switched = false;
+      tables.forEach(function(id) {
+        if (switched) return;
+        var visible = document.querySelectorAll('#table-' + id + ' tbody tr:not(.hidden)').length;
+        if (visible > 0) {
+          document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+          document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
+          document.querySelector('[data-tab="' + id + '"]').classList.add('active');
+          document.getElementById('tab-' + id).classList.add('active');
+          switched = true;
+        }
+      });
+    }
+    updateCount();
+  });
+  function updateCount() {
+    var activePanel = document.querySelector('.tab-panel.active');
+    if (!activePanel) return;
+    var total = activePanel.querySelectorAll('tbody tr').length;
+    var visible = activePanel.querySelectorAll('tbody tr:not(.hidden)').length;
+    var q = document.getElementById('searchInput').value.trim();
+    var countEl = document.getElementById('searchCount');
+    if (q) {
+      countEl.textContent = visible + ' / ' + total + ' shown';
+    } else {
+      countEl.textContent = total + ' parameters';
+    }
+  }
+  // Init count
+  updateCount();
+ </script>
