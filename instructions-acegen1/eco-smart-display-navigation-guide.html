@@ -1,0 +1,1182 @@
+<meta>
+ 
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ 
+ <title>
+  ECO Smart Display Navigation Guide
+ </title>
+ <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&amp;family=DM+Sans:wght@400;500;700&amp;family=DM+Mono:wght@500&amp;display=swap" rel="stylesheet">
+ <style>
+  :root {
+      --red: #df0a1e;
+      --red-dim: #a80716;
+      --red-glow: rgba(223, 10, 30, 0.25);
+      --red-subtle: rgba(223, 10, 30, 0.06);
+      --green: #16a34a;
+      --green-subtle: rgba(22, 163, 74, 0.08);
+      --green-dim: rgba(22, 163, 74, 0.3);
+      --amber: #d97706;
+      --amber-subtle: rgba(217, 119, 6, 0.08);
+      --amber-dim: rgba(217, 119, 6, 0.25);
+      --blue: #0284c7;
+      --blue-subtle: rgba(2, 132, 199, 0.06);
+      --blue-dim: rgba(2, 132, 199, 0.2);
+      --bg: #f7f7f8;
+      --bg-card: #ffffff;
+      --bg-elevated: #fafafa;
+      --border: #ececec;
+      --border-bright: #d8d8d8;
+      --text: #0a0a0a;
+      --text-muted: #6b6b6b;
+      --text-dim: #9a9a9a;
+      --mono: 'DM Mono', monospace;
+      --display: 'IBM Plex Sans', sans-serif;
+      --ui: 'DM Sans', sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--ui);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(223, 10, 30, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(223, 10, 30, 0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 32px 20px 60px;
+    }
+    /* ── HEADER ── */
+    .header {
+      text-align: center;
+      padding: 40px 0 36px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 28px;
+      position: relative;
+    }
+    .header::after {
+      content: '';
+      position: absolute;
+      bottom: -1px; left: 50%;
+      transform: translateX(-50%);
+      width: 200px; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--red), transparent);
+    }
+    .header-eyebrow {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.3em;
+      color: var(--red);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .header h1 {
+      font-family: var(--display);
+      font-size: clamp(32px, 5vw, 56px);
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      text-transform: uppercase;
+      color: var(--text);
+      line-height: 1;
+    }
+    .header h1 span { color: var(--red); }
+    .header-sub {
+      margin-top: 10px;
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.15em;
+      color: var(--text-muted);
+    }
+    /* ── TABS ── */
+    .tab-bar {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 14px;
+    }
+    .tab-btn {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-bright);
+      color: var(--text-muted);
+      font-family: var(--display);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 8px 20px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .tab-btn:hover {
+      border-color: var(--red);
+      color: var(--red);
+      background: var(--red-subtle);
+    }
+    .tab-btn.active {
+      background: var(--red);
+      border-color: var(--red);
+      color: #fff;
+    }
+    /* ── TAB SECTIONS ── */
+    .tab-section { display: none; animation: fadeIn 0.25s ease-out; }
+    .tab-section.active { display: block; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .section-heading {
+      font-family: var(--display);
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      color: var(--text);
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+      position: relative;
+    }
+    .section-heading::after {
+      content: '';
+      position: absolute;
+      bottom: -1px; left: 0;
+      width: 80px; height: 1px;
+      background: var(--red);
+    }
+    /* ── ALERTS ── */
+    .alert {
+      padding: 14px 20px;
+      margin-bottom: 14px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .alert.critical {
+      background: var(--red-subtle);
+      border: 1px solid rgba(223, 10, 30, 0.25);
+      border-left: 3px solid var(--red);
+      color: #4a4a4a;
+    }
+    .alert.critical strong { color: var(--red); }
+    .alert.info {
+      background: var(--blue-subtle);
+      border: 1px solid var(--blue-dim);
+      border-left: 3px solid var(--blue);
+      color: #4a4a4a;
+    }
+    .alert.info strong { color: var(--blue); }
+    .alert.warning {
+      background: var(--amber-subtle);
+      border: 1px solid var(--amber-dim);
+      border-left: 3px solid var(--amber);
+      color: #4a4a4a;
+    }
+    .alert.warning strong { color: var(--amber); }
+    .alert ul { margin-top: 6px; margin-left: 16px; display: flex; flex-direction: column; gap: 4px; }
+    /* ── KEY CARDS ── */
+    .key-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .key-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      padding: 16px;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .key-card:hover {
+      border-color: var(--red);
+      box-shadow: 0 0 10px var(--red-glow);
+    }
+    .key-badge {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      color: #fff;
+      background: var(--text);
+      border: 1px solid var(--text);
+      padding: 4px 10px;
+      display: inline-block;
+      margin-bottom: 10px;
+    }
+    .key-fn {
+      font-family: var(--display);
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      color: var(--red);
+      margin-bottom: 8px;
+    }
+    .key-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .key-desc span::before { content: '· '; color: var(--text-dim); }
+    /* ── INVERTER CARDS ── */
+    .inverter-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .inverter-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--border);
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      transition: all 0.15s;
+    }
+    .inverter-card:hover {
+      border-left-color: var(--red);
+      background: var(--red-subtle);
+    }
+    .inv-name {
+      font-family: var(--mono);
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      color: var(--red);
+      min-width: 180px;
+      flex-shrink: 0;
+    }
+    .inv-desc {
+      font-size: 13px;
+      color: #4a4a4a;
+      flex: 1;
+      line-height: 1.5;
+    }
+    .inv-type {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      color: var(--text-dim);
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      padding: 3px 10px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    /* ── FLOW DIAGRAM ── */
+    .flow-block {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .flow-title {
+      font-family: var(--display);
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+    .flow-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+    .flow-box {
+      flex: 1;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-bright);
+      padding: 10px 14px;
+      font-size: 13px;
+      color: #4a4a4a;
+      min-width: 140px;
+    }
+    .flow-arrow {
+      font-family: var(--mono);
+      color: var(--red);
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    /* ── MENU TREE ── */
+    .menu-tree {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .tree-root {
+      font-family: var(--display);
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      color: var(--text);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .tree-root::before {
+      content: '';
+      display: block;
+      width: 10px; height: 10px;
+      background: var(--red);
+      clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+      flex-shrink: 0;
+    }
+    .tree-trigger {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-bright);
+      font-size: 13px;
+      color: #4a4a4a;
+      margin-bottom: 6px;
+    }
+    .tree-trigger .key-tag {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      padding: 2px 8px;
+      border: 1px solid var(--border-bright);
+      color: var(--text-muted);
+      background: var(--bg-card);
+    }
+    .tree-level {
+      margin-left: 20px;
+      border-left: 2px solid var(--border);
+      padding-left: 16px;
+      margin-bottom: 14px;
+    }
+    .tree-item {
+      padding: 8px 12px;
+      margin-bottom: 5px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      font-size: 13px;
+      color: #4a4a4a;
+      transition: all 0.1s;
+    }
+    .tree-item:hover { border-color: var(--border-bright); color: var(--text); }
+    /* ── PROCEDURE STEPS ── */
+    .proc-step {
+      display: flex;
+      gap: 14px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+      align-items: flex-start;
+    }
+    .proc-step:last-child { border-bottom: none; }
+    .proc-num {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--red);
+      background: var(--red-subtle);
+      border: 1px solid var(--red-dim);
+      min-width: 28px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .proc-text {
+      font-size: 13px;
+      color: #4a4a4a;
+      line-height: 1.65;
+      flex: 1;
+    }
+    .proc-text strong { color: var(--text); }
+    .key {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-bright);
+      color: var(--text);
+      padding: 2px 8px;
+      display: inline-block;
+      text-transform: uppercase;
+    }
+    .code-display {
+      background: #050f08;
+      border: 1px solid rgba(74, 222, 128, 0.15);
+      padding: 12px 16px;
+      font-family: var(--mono);
+      font-size: 13px;
+      color: #4ade80;
+      letter-spacing: 0.08em;
+      margin: 10px 0;
+      text-shadow: 0 0 8px rgba(74, 222, 128, 0.3);
+      line-height: 1.7;
+    }
+    /* Save/Discard row */
+    .save-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+    .save-option {
+      flex: 1;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      font-size: 13px;
+      color: #4a4a4a;
+      min-width: 160px;
+    }
+    .save-option.confirm { border-left: 3px solid var(--green); }
+    .save-option.discard { border-left: 3px solid var(--red); }
+    .save-option .key { margin-right: 6px; }
+    /* ── FOOTER ── */
+    .footer {
+      text-align: center;
+      margin-top: 48px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+    @media (max-width: 600px) {
+      .tab-btn { padding: 8px 12px; font-size: 12px; }
+      .inv-name { min-width: auto; }
+      .inverter-card { flex-wrap: wrap; }
+      .key-grid { grid-template-columns: 1fr 1fr; }
+    }
+ </style>
+ <div class="container">
+  <div class="header">
+   <div class="header-eyebrow">
+    Reference Guide &nbsp;/&nbsp; Flexi ACiON
+   </div>
+   <h1>
+    ECO Smart
+    <span>
+     Display
+    </span>
+    Navigation
+   </h1>
+   <div class="header-sub">
+    Narrow Aisle Ltd &nbsp;·&nbsp; Complete Navigation &amp; Menu Guide
+   </div>
+  </div>
+  <div class="tab-bar">
+   <button class="tab-btn active" onclick="showTab(0)">
+    Key Functions
+   </button>
+   <button class="tab-btn" onclick="showTab(1)">
+    Inverter Nodes
+   </button>
+   <button class="tab-btn" onclick="showTab(2)">
+    Menu Navigation
+   </button>
+   <button class="tab-btn" onclick="showTab(3)">
+    Parameter Menu
+   </button>
+  </div>
+  <!-- ── TAB 0: KEY FUNCTIONS ── -->
+  <div class="tab-section active" id="tab-0">
+   <div class="section-heading">
+    Keyboard Functions
+   </div>
+   <div class="alert info" style="margin-bottom:20px;">
+    <p>
+     <strong>
+      Overview:
+     </strong>
+     The ECO Smart Display uses 5 keys to navigate menus and adjust parameters. Learn each key's function below.
+    </p>
+   </div>
+   <div class="key-grid">
+    <div class="key-card">
+     <div class="key-badge">
+      KEY 1
+     </div>
+     <div class="key-fn">
+      Up / Roll
+     </div>
+     <div class="key-desc">
+      <span>
+       Scroll UP through menus
+      </span>
+      <span>
+       Roll between parameters
+      </span>
+      <span>
+       Navigate to previous item
+      </span>
+     </div>
+    </div>
+    <div class="key-card">
+     <div class="key-badge">
+      KEY 2
+     </div>
+     <div class="key-fn">
+      Out / Decrease
+     </div>
+     <div class="key-desc">
+      <span>
+       EXIT current menu
+      </span>
+      <span>
+       DECREASE parameter value
+      </span>
+      <span>
+       Exit without saving
+      </span>
+     </div>
+    </div>
+    <div class="key-card">
+     <div class="key-badge">
+      KEY 3
+     </div>
+     <div class="key-fn">
+      Enter / Select
+     </div>
+     <div class="key-desc">
+      <span>
+       ENTER selected menu
+      </span>
+      <span>
+       CONFIRM selection
+      </span>
+      <span>
+       EXIT and SAVE changes
+      </span>
+     </div>
+    </div>
+    <div class="key-card">
+     <div class="key-badge">
+      KEY 4
+     </div>
+     <div class="key-fn">
+      Shift / Increase
+     </div>
+     <div class="key-desc">
+      <span>
+       INCREASE parameter value
+      </span>
+      <span>
+       Shift to next option
+      </span>
+      <span>
+       Modify settings upward
+      </span>
+     </div>
+    </div>
+    <div class="key-card">
+     <div class="key-badge">
+      KEY 5
+     </div>
+     <div class="key-fn">
+      Down / Roll
+     </div>
+     <div class="key-desc">
+      <span>
+       Scroll DOWN through menus
+      </span>
+      <span>
+       Roll between parameters
+      </span>
+      <span>
+       Navigate to next item
+      </span>
+     </div>
+    </div>
+   </div>
+   <div class="alert critical">
+    <p>
+     <strong>
+      Important:
+     </strong>
+     Key 3 (Enter) is used for both entering menus AND saving changes. Key 2 (Out) exits menus and can discard changes.
+    </p>
+   </div>
+   <div class="alert warning">
+    <div>
+     <strong>
+      Quick Reference:
+     </strong>
+     <ul>
+      <li>
+       <strong>
+        Navigation:
+       </strong>
+       Keys 1 &amp; 5 (Up/Down)
+      </li>
+      <li>
+       <strong>
+        Selection:
+       </strong>
+       Key 3 (Enter)
+      </li>
+      <li>
+       <strong>
+        Value Adjustment:
+       </strong>
+       Keys 2 &amp; 4 (Out/Shift)
+      </li>
+      <li>
+       <strong>
+        Exit:
+       </strong>
+       Key 2 (Out) or Key 3 (with save)
+      </li>
+     </ul>
+    </div>
+   </div>
+  </div>
+  <!-- ── TAB 1: INVERTER NODES ── -->
+  <div class="tab-section" id="tab-1">
+   <div class="section-heading">
+    Inverter Nodes — CAN Bus
+   </div>
+   <div class="alert info" style="margin-bottom:16px;">
+    <p>
+     <strong>
+      Connection:
+     </strong>
+     After accessing ZAPI CONSOLE from the SERVICE MENU, you can connect to individual inverters on the CAN bus network. Each inverter controls different truck functions.
+    </p>
+   </div>
+   <div class="inverter-list">
+    <div class="inverter-card">
+     <div class="inv-name">
+      DISP EDZ NRx.xx
+     </div>
+     <div class="inv-desc">
+      ECO Smart Display itself — display configuration and settings
+     </div>
+     <span class="inv-type">
+      Display
+     </span>
+    </div>
+    <div class="inverter-card">
+     <div class="inv-name">
+      A3MT2C 2NNRx.xx
+     </div>
+     <div class="inv-desc">
+      Traction inverter — controls drive motor, forward/reverse, speed control
+     </div>
+     <span class="inv-type">
+      Traction
+     </span>
+    </div>
+    <div class="inverter-card">
+     <div class="inv-name">
+      A3ST2C 2NNRx.xx
+     </div>
+     <div class="inv-desc">
+      Traction Slave — used to check alarms of the slave processor only
+     </div>
+     <span class="inv-type">
+      Traction Slave
+     </span>
+    </div>
+    <div class="inverter-card">
+     <div class="inv-name">
+      AE2PSB H NRx.xx
+     </div>
+     <div class="inv-desc">
+      Pump inverter — controls main lift hydraulic pump, lift/lower functions
+     </div>
+     <span class="inv-type">
+      Pump (Lift)
+     </span>
+    </div>
+    <div class="inverter-card">
+     <div class="inv-name">
+      AC0T2BE NRx.xx
+     </div>
+     <div class="inv-desc">
+      Pump inverter — controls steering hydraulic pump, steer motor
+     </div>
+     <span class="inv-type">
+      Pump (Steer)
+     </span>
+    </div>
+   </div>
+   <div class="alert warning" style="margin-bottom:16px;">
+    <p>
+     <strong>
+      Note:
+     </strong>
+     The
+     <strong>
+      x.xx
+     </strong>
+     in each inverter name represents the software version level. This will vary depending on the installed firmware.
+    </p>
+   </div>
+   <div class="flow-block">
+    <div class="flow-title">
+     Connecting to Inverters
+    </div>
+    <div class="flow-row">
+     <div class="flow-box">
+      Access SERVICE MENU with password
+     </div>
+     <div class="flow-arrow">
+      →
+     </div>
+     <div class="flow-box">
+      Select ZAPI CONSOLE
+     </div>
+    </div>
+    <div class="flow-row">
+     <div class="flow-box">
+      Use
+      <span class="key">
+       Key 1
+      </span>
+      /
+      <span class="key">
+       Key 5
+      </span>
+      to scroll nodes
+     </div>
+     <div class="flow-arrow">
+      →
+     </div>
+     <div class="flow-box">
+      Press
+      <span class="key">
+       Key 3
+      </span>
+      to connect
+     </div>
+    </div>
+    <div class="flow-row">
+     <div class="flow-box">
+      Display shows connected node
+     </div>
+     <div class="flow-arrow">
+      →
+     </div>
+     <div class="flow-box">
+      Navigate menus as console
+     </div>
+    </div>
+   </div>
+   <div class="alert info">
+    <p>
+     <strong>
+      Once Connected:
+     </strong>
+     The display functions exactly like a ZAPI digital console. You can access all parameters, diagnostics, and programming functions for that specific inverter.
+    </p>
+   </div>
+  </div>
+  <!-- ── TAB 2: MENU NAVIGATION ── -->
+  <div class="tab-section" id="tab-2">
+   <div class="section-heading">
+    Menu Structure &amp; Navigation
+   </div>
+   <div class="alert info" style="margin-bottom:16px;">
+    <p>
+     <strong>
+      Menu Overview:
+     </strong>
+     Once connected to an inverter, you can navigate through different menu categories. The main screen provides access to all functions.
+    </p>
+   </div>
+   <div class="menu-tree">
+    <div class="tree-root">
+     Main Screen — Connected Inverter
+    </div>
+    <div class="tree-trigger">
+     <span class="key-tag">
+      Key 3 — Enter
+     </span>
+     <span style="font-size:13px; color:#4a4a4a;">
+      Press ENTER to access:
+     </span>
+    </div>
+    <div class="tree-level">
+     <div class="tree-item">
+      Parameters — view and modify parameters
+     </div>
+     <div class="tree-item">
+      Set Options — configure operational settings
+     </div>
+     <div class="tree-item">
+      Adjustments — fine-tune system adjustments
+     </div>
+    </div>
+    <div class="tree-trigger">
+     <span class="key-tag">
+      Key 1 — Up
+     </span>
+     <span style="font-size:13px; color:#4a4a4a;">
+      Press UP to access:
+     </span>
+    </div>
+    <div class="tree-level">
+     <div class="tree-item">
+      Diagnostics — system diagnostics and troubleshooting
+     </div>
+     <div class="tree-item">
+      Alarms — view active and historical alarms
+     </div>
+     <div class="tree-item">
+      Monitoring — real-time system monitoring
+     </div>
+    </div>
+    <div class="tree-trigger">
+     <span class="key-tag">
+      Key 2 — Out
+     </span>
+     <span style="font-size:13px; color:#4a4a4a;">
+      Press OUT to:
+     </span>
+    </div>
+    <div class="tree-level">
+     <div class="tree-item">
+      Return to main screen
+     </div>
+     <div class="tree-item">
+      Exit current menu level
+     </div>
+    </div>
+   </div>
+   <div class="alert critical">
+    <div>
+     <strong>
+      Navigation Rules:
+     </strong>
+     <ul>
+      <li>
+       <strong>
+        Enter (Key 3)
+       </strong>
+       — Go deeper into menus
+      </li>
+      <li>
+       <strong>
+        Out (Key 2)
+       </strong>
+       — Go back to previous level
+      </li>
+      <li>
+       <strong>
+        Up/Down (Keys 1 &amp; 5)
+       </strong>
+       — Navigate between menu items
+      </li>
+     </ul>
+    </div>
+   </div>
+  </div>
+  <!-- ── TAB 3: PARAMETER MENU ── -->
+  <div class="tab-section" id="tab-3">
+   <div class="section-heading">
+    Parameter Menu Guide
+   </div>
+   <div class="alert warning" style="margin-bottom:16px;">
+    <p>
+     <strong>
+      Important:
+     </strong>
+     This procedure applies to PARAMETERS, SET OPTIONS, and ADJUSTMENTS menus. All three use the same navigation method.
+    </p>
+   </div>
+   <div style="background:var(--bg-card); border:1px solid var(--border); padding:0 0 4px;">
+    <div style="padding:12px 18px; background:var(--bg-elevated); border-bottom:1px solid var(--border); margin-bottom:4px;">
+     <span style="font-family:var(--display); font-size:16px; font-weight:700; letter-spacing:0.02em; text-transform:uppercase; color:var(--text);">
+      Step-by-Step Parameter Editing
+     </span>
+    </div>
+    <div style="padding: 0 18px;">
+     <div class="proc-step">
+      <span class="proc-num">
+       01
+      </span>
+      <div class="proc-text">
+       <strong>
+        Access Parameter Menu
+       </strong>
+       <br>
+       Press
+       <span class="key">
+        Key 3 (Enter)
+       </span>
+       to access the Parameter menu
+      </div>
+     </div>
+     <div class="proc-step">
+      <span class="proc-num">
+       02
+      </span>
+      <div class="proc-text">
+       <strong>
+        View First Parameter
+       </strong>
+       <br>
+       Display shows the first parameter in the list with its current value
+       <div class="code-display">
+        Parameter Name: XXX
+        <br>
+        Current Value: YYY
+       </div>
+      </div>
+     </div>
+     <div class="proc-step">
+      <span class="proc-num">
+       03
+      </span>
+      <div class="proc-text">
+       <strong>
+        Navigate Through Parameters
+       </strong>
+       <br>
+       Use
+       <span class="key">
+        Key 1 (Up)
+       </span>
+       and
+       <span class="key">
+        Key 5 (Down)
+       </span>
+       to scroll through the parameter list
+      </div>
+     </div>
+     <div class="proc-step">
+      <span class="proc-num">
+       04
+      </span>
+      <div class="proc-text">
+       <strong>
+        Adjust Parameter Value
+       </strong>
+       <br>
+       Use
+       <span class="key">
+        Key 2 (Out)
+       </span>
+       to
+       <strong>
+        Decrease
+       </strong>
+       — use
+       <span class="key">
+        Key 4 (Shift)
+       </span>
+       to
+       <strong>
+        Increase
+       </strong>
+       <div class="alert info" style="margin-top:10px;">
+        <p>
+         <strong>
+          Tip:
+         </strong>
+         Watch the display as values change in real-time.
+        </p>
+       </div>
+      </div>
+     </div>
+     <div class="proc-step">
+      <span class="proc-num">
+       05
+      </span>
+      <div class="proc-text">
+       <strong>
+        Exit Parameter Menu
+       </strong>
+       <br>
+       Once finished, press
+       <span class="key">
+        Key 3 (Enter)
+       </span>
+       to exit the parameter menu
+      </div>
+     </div>
+     <div class="proc-step">
+      <span class="proc-num">
+       06
+      </span>
+      <div class="proc-text">
+       <strong>
+        Save or Discard Changes
+       </strong>
+       <br>
+       You will be prompted to save:
+       <div class="save-row">
+        <div class="save-option confirm">
+         <span class="key">
+          Key 3
+         </span>
+         Exit &amp;
+         <strong style="color:var(--green)">
+          Save
+         </strong>
+         Changes
+        </div>
+        <div class="save-option discard">
+         <span class="key">
+          Key 2
+         </span>
+         Exit &amp;
+         <strong style="color:var(--red)">
+          Ignore
+         </strong>
+         Changes
+        </div>
+       </div>
+      </div>
+     </div>
+    </div>
+   </div>
+   <div class="alert critical" style="margin-top:14px; margin-bottom:16px;">
+    <p>
+     <strong>
+      Critical Warning:
+     </strong>
+     Changes are NOT automatically saved. You MUST press
+     <span class="key">
+      Key 3
+     </span>
+     when prompted to save parameter changes. Pressing
+     <span class="key">
+      Key 2
+     </span>
+     will discard all changes made in that session.
+    </p>
+   </div>
+   <div class="flow-block" style="margin-bottom:16px;">
+    <div class="flow-title">
+     Quick Parameter Change Flow
+    </div>
+    <div class="flow-row">
+     <div class="flow-box">
+      Enter Menu
+      <span class="key" style="float:right;">
+       Key 3
+      </span>
+     </div>
+     <div class="flow-arrow">
+      →
+     </div>
+     <div class="flow-box">
+      Scroll to Parameter
+      <span class="key" style="float:right;">
+       Keys 1/5
+      </span>
+     </div>
+    </div>
+    <div class="flow-row">
+     <div class="flow-box">
+      Adjust Value
+      <span class="key" style="float:right;">
+       Keys 2/4
+      </span>
+     </div>
+     <div class="flow-arrow">
+      →
+     </div>
+     <div class="flow-box">
+      Exit
+      <span class="key" style="float:right;">
+       Key 3
+      </span>
+     </div>
+    </div>
+    <div class="flow-row">
+     <div class="flow-box">
+      Save
+      <span class="key" style="float:right;">
+       Key 3
+      </span>
+      or Discard
+      <span class="key" style="float:right;">
+       Key 2
+      </span>
+     </div>
+     <div class="flow-arrow">
+      →
+     </div>
+     <div class="flow-box" style="color:var(--green);">
+      Complete
+     </div>
+    </div>
+   </div>
+   <div class="alert info">
+    <div>
+     <strong>
+      Remember:
+     </strong>
+     <ul>
+      <li>
+       <strong>
+        Keys 1 &amp; 5
+       </strong>
+       — Navigate between parameters
+      </li>
+      <li>
+       <strong>
+        Keys 2 &amp; 4
+       </strong>
+       — Decrease / Increase values
+      </li>
+      <li>
+       <strong>
+        Key 3
+       </strong>
+       — Enter menus and SAVE changes
+      </li>
+      <li>
+       <strong>
+        Key 2
+       </strong>
+       — Exit and potentially DISCARD changes
+      </li>
+     </ul>
+    </div>
+   </div>
+  </div>
+  <div class="footer">
+   Flexi Narrow Aisle Ltd &nbsp;·&nbsp; ECO Smart Display Navigation Guide &nbsp;·&nbsp; Internal Use Only
+  </div>
+ </div>
+ <script>
+  function showTab(index) {
+    var tabs = document.querySelectorAll('.tab-section');
+    var btns = document.querySelectorAll('.tab-btn');
+    for (var i = 0; i < tabs.length; i++) {
+      tabs[i].classList.remove('active');
+      btns[i].classList.remove('active');
+    }
+    document.getElementById('tab-' + index).classList.add('active');
+    btns[index].classList.add('active');
+  }
+ </script>
