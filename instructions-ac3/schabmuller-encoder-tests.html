@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#df0a1e">
+<title>Schabmuller Traction Motor Encoder Tests</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --primary-red: #df0a1e;
+    --red-dark: #c3161e;
+    --nested-bg: #fafafa;
+    --card-bg: #ffffff;
+    --border: #e8e8e8;
+    --text-primary: #101010;
+    --text-secondary: #707070;
+    --hover-bg: #f5f5f5;
+  }
+  body {
+    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #ffffff;
+    color: var(--text-primary);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    padding: 30px;
+  }
+  .encoder-check { max-width: 1200px; margin: 0 auto; }
+
+  /* HEADER */
+  .encoder-header {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--primary-red);
+    border-radius: 16px;
+    padding: 40px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 30px;
+  }
+  .header-logo { height: 70px; width: auto; object-fit: contain; flex-shrink: 0; filter: invert(1); }
+  .encoder-header h1 {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 2.2em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    color: var(--text-primary);
+    margin-bottom: 10px;
+    line-height: 1.1;
+  }
+  .encoder-header-info { display: flex; flex-wrap: wrap; gap: 20px; font-size: 0.9em; }
+  .encoder-header-info div { display: flex; gap: 6px; align-items: center; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .encoder-header-info strong { color: var(--primary-red); }
+
+  /* INFO BOXES */
+  .encoder-info-box { padding: 14px 18px; margin: 16px 0; border-radius: 8px; border-left: 4px solid; font-size: 0.95em; line-height: 1.6; }
+  .encoder-info-box strong { display: block; margin-bottom: 6px; font-size: 1em; font-family: 'IBM Plex Sans', sans-serif; }
+  .encoder-info-box p { margin-bottom: 6px; color: var(--text-secondary); }
+  .encoder-info-box ul { margin-left: 18px; margin-top: 6px; }
+  .encoder-info-box li { margin-bottom: 4px; color: var(--text-secondary); }
+  .encoder-info-box.warning { background: #fffbeb; border-color: #f59e0b; }
+  .encoder-info-box.warning strong { color: #92650d; }
+  .encoder-info-box.danger { background: #fef2f2; border-color: var(--primary-red); }
+  .encoder-info-box.danger strong { color: #b91c1c; }
+  .encoder-info-box.danger p { color: #b91c1c; }
+  .encoder-info-box.info { background: #eff6ff; border-color: #3b82f6; }
+  .encoder-info-box.info strong { color: #1d4ed8; }
+  .encoder-info-box.success { background: #f0fdf4; border-color: #22c55e; }
+  .encoder-info-box.success strong { color: #15803d; }
+
+  /* CONTENT CARD */
+  .encoder-content { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 30px; margin-bottom: 20px; }
+  .encoder-content h2 {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 1.7em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    color: var(--text-primary);
+    margin-bottom: 20px;
+    padding-bottom: 14px;
+    border-bottom: 2px solid var(--border);
+  }
+  .encoder-content h3 {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 1.15em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--primary-red);
+    margin-top: 28px;
+    margin-bottom: 14px;
+  }
+  .encoder-content h4 {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 1em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--text-secondary);
+    margin-top: 20px;
+    margin-bottom: 10px;
+  }
+  .encoder-content p { color: var(--text-secondary); margin-bottom: 12px; line-height: 1.6; font-size: 0.95em; }
+
+  /* REQUIREMENTS */
+  .encoder-requirements { background: #fffbeb; border: 1px solid #fde68a; border-left: 4px solid #f59e0b; border-radius: 8px; padding: 16px 20px; margin: 16px 0; }
+  .encoder-requirements h4 { color: #92650d; margin-top: 0; }
+  .encoder-requirements ul { margin-left: 18px; margin-top: 8px; }
+  .encoder-requirements li { color: var(--text-secondary); margin-bottom: 5px; font-size: 0.95em; }
+  .encoder-requirements li strong { color: var(--text-primary); }
+
+  /* CHECK ITEM */
+  .encoder-check-item { background: var(--nested-bg); border: 1px solid var(--border); border-left: 4px solid var(--primary-red); border-radius: 10px; padding: 24px; margin: 16px 0; }
+  .encoder-check-title { font-family: 'IBM Plex Sans', sans-serif; font-size: 1.3em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em; color: var(--primary-red); margin-bottom: 16px; }
+
+  /* STEPS */
+  .encoder-steps { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin: 14px 0; }
+  .encoder-step { display: flex; gap: 14px; padding: 12px; margin: 4px 0; border-radius: 8px; transition: all 0.2s; cursor: default; border: 1px solid transparent; }
+  .encoder-step:hover { background: var(--hover-bg); border-color: var(--border); transform: translateX(4px); }
+  .encoder-step-number {
+    background: var(--primary-red);
+    color: white;
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-weight: 700;
+    font-size: 0.9em;
+    flex-shrink: 0;
+  }
+  .encoder-step-content { flex: 1; }
+  .encoder-step-action { font-family: 'IBM Plex Sans', sans-serif; font-weight: 700; color: var(--text-primary); margin-bottom: 3px; font-size: 0.95em; text-transform: uppercase; letter-spacing: 0.02em; }
+  .encoder-step-detail { color: var(--text-secondary); font-size: 0.88em; line-height: 1.4; }
+
+  /* TABLE */
+  .encoder-table { width: 100%; border-collapse: collapse; margin: 14px 0; background: var(--card-bg); border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+  .encoder-table th { background: var(--primary-red); color: white; padding: 12px 14px; text-align: left; font-family: 'IBM Plex Sans', sans-serif; font-weight: 700; font-size: 0.82em; text-transform: uppercase; letter-spacing: 0.05em; }
+  .encoder-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); color: var(--text-secondary); font-size: 0.95em; }
+  .encoder-table td:first-child { color: var(--text-primary); font-weight: 700; }
+  .encoder-table tr:last-child td { border-bottom: none; }
+  .encoder-table tr:hover td { background: var(--hover-bg); }
+  .encoder-table td strong { color: var(--text-primary); }
+
+  /* BUTTON GRID */
+  .encoder-button-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 16px 0; background: var(--nested-bg); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .encoder-button { background: var(--card-bg); border: 1px solid var(--border); color: var(--text-primary); padding: 14px 10px; border-radius: 8px; text-align: center; font-family: 'IBM Plex Sans', sans-serif; font-weight: 700; font-size: 0.85em; text-transform: uppercase; letter-spacing: 0.03em; }
+  .encoder-button.highlight { background: #fef2f2; border-color: rgba(223,10,30,0.4); color: #b91c1c; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100% { transform: scale(1); box-shadow: none; } 50% { transform: scale(1.04); box-shadow: 0 0 12px rgba(223,10,30,0.2); } }
+
+  /* RESULT BOXES */
+  .encoder-result-box { border-radius: 8px; padding: 16px 18px; margin: 12px 0; border: 1px solid var(--border); font-size: 0.95em; line-height: 1.6; }
+  .encoder-result-box strong { display: block; margin-bottom: 6px; font-size: 1em; font-family: 'IBM Plex Sans', sans-serif; }
+  .encoder-result-box p { margin-bottom: 4px; }
+  .encoder-result-good { background: #f0fdf4; border-color: #86efac; }
+  .encoder-result-good strong { color: #15803d; }
+  .encoder-result-good p { color: var(--text-secondary); }
+  .encoder-result-bad { background: #fef2f2; border-color: #fca5a5; }
+  .encoder-result-bad strong { color: #b91c1c; }
+  .encoder-result-bad p { color: var(--text-secondary); }
+
+  /* TABS */
+  .encoder-tabs { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+  .encoder-tab { padding: 10px 18px; background: transparent; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 0.9em; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.03em; border-bottom: 3px solid transparent; transition: all 0.2s; }
+  .encoder-tab:hover { color: var(--text-primary); }
+  .encoder-tab.active { color: var(--primary-red); border-bottom-color: var(--primary-red); }
+  .encoder-tab-content { display: none; }
+  .encoder-tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* FOOTER */
+  .encoder-footer { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px 30px; margin-top: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+  .encoder-footer p { color: var(--text-secondary); font-size: 0.9em; font-weight: 600; }
+  .encoder-footer strong { color: var(--text-primary); }
+
+  @media (max-width: 768px) {
+    body { padding: 16px; }
+    .encoder-header { flex-direction: column; gap: 16px; padding: 24px; }
+    .encoder-header h1 { font-size: 1.6em; }
+    .encoder-button-grid { grid-template-columns: repeat(2, 1fr); }
+    .encoder-footer { flex-direction: column; text-align: center; }
+  }
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: #f0f0f0; }
+  ::-webkit-scrollbar-thumb { background: var(--primary-red); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--red-dark); }
+</style>
+</head>
+<body>
+<div class="encoder-check">
+  <!-- HEADER -->
+  <div class="encoder-header">
+   <img src="https://narrowaisleservice.github.io/Flexi-Parts-System/flexi-logo-white.svg" alt="Flexi Logo" class="header-logo">
+   <div>
+    <h1>🔧 Schabmuller Traction Motor Encoder Tests</h1>
+    <div class="encoder-header-info">
+     <div><strong>Date:</strong><span>18/02/2014</span></div>
+     <div><strong>Motor Type:</strong><span>Schabmuller Only</span></div>
+     <div><strong>Purpose:</strong><span>Encoder Diagnostics &amp; Testing</span></div>
+    </div>
+   </div>
+  </div>
+
+  <div class="encoder-info-box danger">
+   <strong>⚠️ Critical Safety Notice</strong>
+   <p>After completing encoder tests, you MUST reset SLIP CONTROL to ON before using the truck. Failure to do so can result in unsafe operation.</p>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="encoder-content">
+   <h2>Overview</h2>
+   <p>This procedure guides you through testing the encoder on Schabmuller traction motors used in Flexi forklifts. The encoder provides speed feedback to the motor controller and is critical for proper traction control.</p>
+
+   <div class="encoder-info-box info">
+    <strong>ℹ️ What is the Encoder?</strong>
+    <p>The encoder is a sensor mounted on the motor that measures rotational speed. It sends pulses to the Zapi controller, allowing precise speed control and slip detection. When the encoder fails, the truck may experience poor acceleration, speed control issues, or slip control problems.</p>
+   </div>
+
+   <h3>Required Equipment</h3>
+   <div class="encoder-requirements">
+    <h4>📋 Before You Begin</h4>
+    <ul>
+     <li><strong>Zapi Hand Console</strong> — Complete with AC adapter lead</li>
+     <li><strong>Lifting Device</strong> — Capable of lifting Flexi drive wheels clear of the floor</li>
+     <li><strong>Wooden Blocks</strong> — For supporting raised wheels</li>
+     <li><strong>Wheel Chocks</strong> — For securing rear wheels</li>
+     <li><strong>Multimeter</strong> — For continuity checks</li>
+    </ul>
+   </div>
+
+   <h2>Test Procedures</h2>
+   <div class="encoder-tabs">
+    <button class="encoder-tab active" data-tab="check1">Check 1: Physical Inspection</button>
+    <button class="encoder-tab" data-tab="check2">Check 2: Wiring Continuity</button>
+    <button class="encoder-tab" data-tab="check3">Check 3: Encoder Function Test</button>
+   </div>
+
+   <!-- CHECK 1 -->
+   <div id="check1" class="encoder-tab-content active">
+    <div class="encoder-check-item">
+     <div class="encoder-check-title">Check 1: Loose Encoder (Schabmuller Motor Only!)</div>
+     <div class="encoder-info-box warning">
+      <strong>⚠️ Schabmuller Motors Only</strong>
+      <p>This check is specific to Schabmuller motors. The encoder can become loose or partially unseated, causing intermittent faults.</p>
+     </div>
+     <h4>Procedure:</h4>
+     <div class="encoder-steps">
+      <div class="encoder-step">
+       <div class="encoder-step-number">1</div>
+       <div class="encoder-step-content">
+        <div class="encoder-step-action">Check Encoder Mounting</div>
+        <div class="encoder-step-detail">Verify the encoder is not loose and is fully inserted into the motor housing.</div>
+       </div>
+      </div>
+      <div class="encoder-step">
+       <div class="encoder-step-number">2</div>
+       <div class="encoder-step-content">
+        <div class="encoder-step-action">Remove Encoder</div>
+        <div class="encoder-step-detail">Carefully remove the encoder from the motor for inspection.</div>
+       </div>
+      </div>
+      <div class="encoder-step">
+       <div class="encoder-step-number">3</div>
+       <div class="encoder-step-content">
+        <div class="encoder-step-action">Clean &amp; Inspect</div>
+        <div class="encoder-step-detail">Check that the encoder is clean and not contaminated with debris, oil, or metal particles.</div>
+       </div>
+      </div>
+      <div class="encoder-step">
+       <div class="encoder-step-number">4</div>
+       <div class="encoder-step-content">
+        <div class="encoder-step-action">Reinstall Encoder</div>
+        <div class="encoder-step-detail">Ensure the encoder is fully seated and securely mounted before proceeding to electrical tests.</div>
+       </div>
+      </div>
+     </div>
+     <div class="encoder-info-box success">
+      <strong>✅ What to Look For</strong>
+      <ul>
+       <li>Encoder should be firmly seated with no play</li>
+       <li>Connector should be clean and dry</li>
+       <li>No visible damage to encoder housing or cable</li>
+       <li>No debris or contamination on encoder face</li>
+      </ul>
+     </div>
+    </div>
+   </div>
+
+   <!-- CHECK 2 -->
+   <div id="check2" class="encoder-tab-content">
+    <div class="encoder-check-item">
+     <div class="encoder-check-title">Check 2: Wiring Continuity</div>
+     <div class="encoder-info-box info">
+      <strong>ℹ️ About This Test</strong>
+      <p>This test verifies electrical continuity between the motor encoder connector and the Zapi controller. A break in any wire will prevent proper encoder operation.</p>
+     </div>
+     <h4>Connection Points:</h4>
+     <table class="encoder-table">
+      <thead>
+       <tr><th>Motor Plug X</th><th>Controller Plug E</th><th>Function</th></tr>
+      </thead>
+      <tbody>
+       <tr><td>Pin 1</td><td><strong>Pin 1</strong></td><td>Signal A / Power</td></tr>
+       <tr><td>Pin 2</td><td><strong>Pin 2</strong></td><td>Signal B / Ground</td></tr>
+       <tr><td>Pin 3</td><td><strong>Pin 3</strong></td><td>Signal C / Shield</td></tr>
+       <tr><td>Pin 4</td><td><strong>Pin 5</strong></td><td>Signal D / Reference</td></tr>
+      </tbody>
+     </table>
+     <h4>Testing Procedure:</h4>
+     <div class="encoder-steps">
+      <div class="encoder-step">
+       <div class="encoder-step-number">1</div>
+       <div class="encoder-step-content">
+        <div class="encoder-step-action">Disconnect Plugs</div>
+        <div class="encoder-step-detail">Disconnect Plug X at the motor and Plug E at the controller.</div>
+       </div>
+      </div>
+      <div class="encoder-step">
+       <div class="encoder-step-number">2</div>
+       <div class="encoder-step-content">
+        <div class="encoder-step-action">Set Multimeter to Continuity Mode</div>
+        <div class="encoder-step-detail">Set your multimeter to ohms (Ω) or continuity beep mode.</div>
+       </div>
+      </div>
+      <div class="encoder-step">
+       <div class="encoder-step-number">3</div>
+       <div class="encoder-step-content">
+        <div class="encoder-step-action">Test Each Wire</div>
+        <div class="encoder-step-detail">Check continuity for each pin pair listed in the table above. You should see close to 0Ω or hear a beep.</div>
+       </div>
+      </div>
+      <div class="encoder-step">
+       <div class="encoder-step-number">4</div>
+       <div class="encoder-step-content">
+        <div class="encoder-step-action">Check for Shorts</div>
+        <div class="encoder-step-detail">Verify no continuity exists between different pins (they should be isolated from each other).</div>
+       </div>
+      </div>
+     </div>
+     <div class="encoder-result-box encoder-result-good">
+      <strong>✅ Pass</strong>
+      <p>All four wires show continuity (&lt;1Ω) and no shorts between wires.</p>
+     </div>
+     <div class="encoder-result-box encoder-result-bad">
+      <strong>❌ Fail</strong>
+      <p>If any wire shows no continuity or shorts exist, the cable is damaged and must be repaired or replaced.</p>
+     </div>
+    </div>
+   </div>
+
+   <!-- CHECK 3 -->
+   <div id="check3" class="encoder-tab-content">
+    <div class="encoder-check-item">
+     <div class="encoder-check-title">Check 3: Encoder Function Test</div>
+     <div class="encoder-info-box warning">
+      <strong>⚠️ Important Setup Requirements</strong>
+      <p>Before performing this test, the truck must be safely lifted with drive wheels clear of the floor:</p>
+      <ul>
+       <li>Lower forks to 100mm from floor (activates full traction speed)</li>
+       <li>Chock rear wheels securely</li>
+       <li>Lift drive wheels clear of floor</li>
+       <li>Support with wooden blocks for safety</li>
+      </ul>
+     </div>
+
+     <h3>Step 1 of 2: Turn SLIP CONTROL OFF</h3>
+     <p>You must disable slip control to perform accurate encoder frequency testing.</p>
+     <div class="encoder-steps">
+      <div class="encoder-step"><div class="encoder-step-number">1</div><div class="encoder-step-content"><div class="encoder-step-action">Press ENTER</div><div class="encoder-step-detail">Enter the main menu</div></div></div>
+      <div class="encoder-step"><div class="encoder-step-number">2</div><div class="encoder-step-content"><div class="encoder-step-action">Press ROLL UP until correct menu appears</div><div class="encoder-step-detail">Navigate to hardware settings menu</div></div></div>
+      <div class="encoder-step"><div class="encoder-step-number">3</div><div class="encoder-step-content"><div class="encoder-step-action">Press ENTER</div><div class="encoder-step-detail">Select menu option</div></div></div>
+      <div class="encoder-step"><div class="encoder-step-number">4</div><div class="encoder-step-content"><div class="encoder-step-action">Press PARAM SET Up &amp; Down buttons TOGETHER</div><div class="encoder-step-detail">Enter parameter editing mode</div></div></div>
+      <div class="encoder-step"><div class="encoder-step-number">5</div><div class="encoder-step-content"><div class="encoder-step-action">Press ROLL UP</div><div class="encoder-step-detail">Navigate to Slip Control setting</div></div></div>
+      <div class="encoder-step"><div class="encoder-step-number">6</div><div class="encoder-step-content"><div class="encoder-step-action">Press ENTER</div><div class="encoder-step-detail">Select Slip Control parameter</div></div></div>
+      <div class="encoder-step"><div class="encoder-step-number">7</div><div class="encoder-step-content"><div class="encoder-step-action">Press ROLL UP</div><div class="encoder-step-detail">Change value to OFF</div></div></div>
+      <div class="encoder-step"><div class="encoder-step-number">8</div><div class="encoder-step-content"><div class="encoder-step-action">Press PARAM SET UP</div><div class="encoder-step-detail">Confirm change</div></div></div>
+      <div class="encoder-step"><div class="encoder-step-number">9</div><div class="encoder-step-content"><div class="encoder-step-action">Press OUT</div><div class="encoder-step-detail">Exit to save prompt</div></div></div>
+      <div class="encoder-step"><div class="encoder-step-number">10</div><div class="encoder-step-content"><div class="encoder-step-action">Press ENTER for YES</div><div class="encoder-step-detail">Save changes</div></div></div>
+      <div class="encoder-step"><div class="encoder-step-number">11</div><div class="encoder-step-content"><div class="encoder-step-action">Press OUT</div><div class="encoder-step-detail">Return to main screen</div></div></div>
+     </div>
+
+     <h4>Console Button Reference:</h4>
+     <div class="encoder-button-grid">
+      <div class="encoder-button">ENTER</div>
+      <div class="encoder-button">ROLL UP</div>
+      <div class="encoder-button">ROLL DOWN</div>
+      <div class="encoder-button">PARAM SET UP</div>
+      <div class="encoder-button">PARAM SET DOWN</div>
+      <div class="encoder-button">OUT</div>
+     </div>
+
+     <h3>Step 2 of 2: Encoder Frequency Test</h3>
+     <p>This test compares the SET frequency (commanded by accelerator) with the ACTUAL frequency (measured by encoder).</p>
+     <div class="encoder-steps">
+      <div class="encoder-step"><div class="encoder-step-number">1</div><div class="encoder-step-content"><div class="encoder-step-action">Press ENTER</div><div class="encoder-step-detail">Enter main menu</div></div></div>
+      <div class="encoder-step"><div class="encoder-step-number">2</div><div class="encoder-step-content"><div class="encoder-step-action">Press ROLL UP</div><div class="encoder-step-detail">Navigate to diagnostics</div></div></div>
+      <div class="encoder-step"><div class="encoder-step-number">3</div><div class="encoder-step-content"><div class="encoder-step-action">Press ENTER twice</div><div class="encoder-step-detail">Access frequency display mode</div></div></div>
+      <div class="encoder-step"><div class="encoder-step-number">4</div><div class="encoder-step-content"><div class="encoder-step-action">Press ROLL UP</div><div class="encoder-step-detail">Select encoder frequency view</div></div></div>
+      <div class="encoder-step"><div class="encoder-step-number">5</div><div class="encoder-step-content"><div class="encoder-step-action">Slowly increase speed to 80Hz FREQUENCY</div><div class="encoder-step-detail">Using truck accelerator pedal, gradually increase motor speed until display shows 80Hz</div></div></div>
+      <div class="encoder-step"><div class="encoder-step-number">6</div><div class="encoder-step-content"><div class="encoder-step-action">Press ROLL UP to view ENCODER reading</div><div class="encoder-step-detail">Check the actual encoder frequency measurement</div></div></div>
+     </div>
+
+     <h4>Test Results Interpretation:</h4>
+     <div class="encoder-result-box encoder-result-good">
+      <strong>✅ Good Encoder</strong>
+      <p>ENCODER value should read <strong style="color:#101010;">80Hz ± 5Hz</strong> (between 75Hz and 85Hz)</p>
+      <p>This indicates the encoder is correctly measuring motor speed.</p>
+     </div>
+     <div class="encoder-result-box encoder-result-bad">
+      <strong>❌ Faulty Encoder</strong>
+      <p><strong style="color:#101010;">ENCODER reads 0.00Hz</strong> — Encoder not sending pulses (check wiring, then replace encoder)</p>
+      <p><strong style="color:#101010;">ENCODER reads &gt;100Hz</strong> — Encoder sending incorrect signal (replace encoder)</p>
+      <p>If wiring continuity (Check 2) was good, the encoder itself is faulty and must be replaced.</p>
+     </div>
+     <div class="encoder-info-box info">
+      <strong>ℹ️ Understanding the Readings</strong>
+      <ul>
+       <li><strong style="color:#101010;">FREQUENCY:</strong> The commanded motor speed from the controller (SET value)</li>
+       <li><strong style="color:#101010;">ENCODER:</strong> The actual measured speed from the encoder sensor (ACTUAL value)</li>
+       <li>These values should closely match when the encoder is functioning correctly</li>
+       <li>At 80Hz commanded frequency, a properly functioning encoder reports 75–85Hz</li>
+      </ul>
+     </div>
+    </div>
+   </div>
+
+   <div class="encoder-info-box danger">
+    <strong>🚨 Very Important Note</strong>
+    <p style="font-size:1.05em; font-weight:700; color:#b91c1c;">The SLIP CONTROL must be reset to ON before using the truck.</p>
+    <p>To turn slip control back ON, repeat Step 1 of 2 (Turn SLIP CONTROL OFF) but change the setting from OFF to ON.</p>
+    <p><strong style="color:#b91c1c;">Operating the truck with slip control disabled is dangerous and can result in loss of traction control!</strong></p>
+   </div>
+
+   <h2>Troubleshooting Guide</h2>
+   <table class="encoder-table">
+    <thead><tr><th>Symptom</th><th>Likely Cause</th><th>Action Required</th></tr></thead>
+    <tbody>
+     <tr><td>Encoder reads 0.00Hz constantly</td><td>No signal from encoder</td><td>Check wiring continuity (Check 2). If wiring is good, replace encoder.</td></tr>
+     <tr><td>Encoder reads &gt;100Hz at 80Hz commanded</td><td>Incorrect encoder pulses</td><td>Replace encoder (internal fault)</td></tr>
+     <tr><td>Encoder reading jumps erratically</td><td>Loose encoder or damaged wiring</td><td>Reseat encoder firmly (Check 1), inspect wiring for damage</td></tr>
+     <tr><td>Intermittent encoder faults</td><td>Contaminated encoder or loose mounting</td><td>Clean encoder, ensure fully inserted and locked in position</td></tr>
+     <tr><td>No continuity on specific wire</td><td>Broken wire in cable harness</td><td>Repair or replace cable harness between motor and controller</td></tr>
+    </tbody>
+   </table>
+
+   <h2>Additional Notes</h2>
+   <div class="encoder-info-box success">
+    <strong>✅ Best Practices</strong>
+    <ul>
+     <li>Always perform a physical inspection (Check 1) before electrical tests</li>
+     <li>Document encoder readings for future reference</li>
+     <li>If replacing encoder, verify wiring is correct before final testing</li>
+     <li>After encoder replacement, verify slip control is functioning properly</li>
+     <li>Test truck operation in a safe area after encoder service</li>
+    </ul>
+   </div>
+   <div class="encoder-info-box info">
+    <strong>ℹ️ Typical Encoder Specifications</strong>
+    <ul>
+     <li><strong style="color:#101010;">Type:</strong> 80 Pulses per Revolution (Schabmuller Traction Motor)</li>
+     <li><strong style="color:#101010;">Mounting:</strong> Direct mount to motor shaft</li>
+     <li><strong style="color:#101010;">Output:</strong> Digital pulse signal to Zapi controller</li>
+     <li><strong style="color:#101010;">Function:</strong> Speed feedback for traction control and slip detection</li>
+    </ul>
+   </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="encoder-footer">
+   <p><strong>Schabmuller Encoder Test Procedure</strong>&nbsp;·&nbsp;Date: 18/02/2014</p>
+   <p>For Flexi forklift traction motors — Service technician reference</p>
+  </div>
+</div>
+
+<script>
+  (function() {
+    document.querySelectorAll('.encoder-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.encoder-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.encoder-tab-content').forEach(c => c.classList.remove('active'));
+            this.classList.add('active');
+            const content = document.getElementById(this.dataset.tab);
+            if (content) content.classList.add('active');
+            document.querySelector('.encoder-content')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    });
+  })();
+</script>
+</body>
+</html>
