@@ -1,0 +1,554 @@
+<meta>
+ 
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ 
+ <title>
+  DC Additional Contacts - Interactive Guide
+ </title>
+ <style>
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=DM+Sans:wght@400;500;700&family=DM+Mono:wght@500&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: #f7f7f8;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            max-width: 1400px;
+            width: 100%;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            overflow: hidden;
+            border: 1px solid #ececec;
+        }
+        header {
+            background: #0a0a0a;
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 3px solid #df0a1e;
+        }
+        header h1 {
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-weight: 700;
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        header p {
+            font-size: 1.05em;
+            color: #cfcfcf;
+        }
+        .content {
+            padding: 40px;
+        }
+        .image-container {
+            margin-bottom: 40px;
+        }
+        .image-wrapper {
+            position: relative;
+            background: #fafafa;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #ececec;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .image-wrapper img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .hotspot {
+            position: absolute;
+            width: 45px;
+            height: 45px;
+            background: rgba(223, 10, 30, 0.8);
+            border: 4px solid white;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            animation: pulse 2s infinite;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'DM Mono', monospace;
+            font-weight: 500;
+            color: white;
+            font-size: 12px;
+        }
+        .hotspot:hover {
+            transform: scale(1.4);
+            background: rgba(223, 10, 30, 1);
+            animation: none;
+            box-shadow: 0 0 20px rgba(223, 10, 30, 0.6);
+        }
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(223, 10, 30, 0.6);
+            }
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 0 0 10px rgba(223, 10, 30, 0);
+            }
+        }
+        .hotspot-label {
+            position: absolute;
+            background: #0a0a0a;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 100;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            border: 2px solid #df0a1e;
+        }
+        .hotspot:hover .hotspot-label {
+            opacity: 1;
+        }
+        .hotspot.left-side .hotspot-label {
+            left: 60px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .hotspot.top-area .hotspot-label {
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .hotspot.bottom-area .hotspot-label {
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .info-panel {
+            background: #fff5f6;
+            color: #0a0a0a;
+            padding: 25px;
+            border-radius: 10px;
+            border-left: 4px solid #df0a1e;
+            margin-bottom: 30px;
+        }
+        .info-panel h2 {
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-weight: 600;
+            font-size: 1.4em;
+            margin-bottom: 15px;
+            color: #0a0a0a;
+        }
+        .info-panel p {
+            color: #4a4a4a;
+            line-height: 1.6;
+        }
+        .components-table {
+            width: 100%;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #ececec;
+            margin-bottom: 30px;
+        }
+        .components-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .components-table th {
+            background: #0a0a0a;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-weight: 600;
+            font-size: 1em;
+        }
+        .components-table td {
+            padding: 15px;
+            border-bottom: 1px solid #ececec;
+        }
+        .components-table tr:hover {
+            background: #fafafa;
+        }
+        .components-table tbody tr {
+            cursor: pointer;
+        }
+        .part-number {
+            display: inline-block;
+            background: #df0a1e;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-family: 'DM Mono', monospace;
+            font-weight: 500;
+        }
+        .instructions {
+            background: #fafafa;
+            border: 1px solid #ececec;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 30px;
+        }
+        .instructions h3 {
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-weight: 600;
+            color: #df0a1e;
+            margin-bottom: 10px;
+        }
+        .instructions p {
+            color: #4a4a4a;
+            line-height: 1.6;
+        }
+        .legend {
+            background: white;
+            border: 1px solid #ececec;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        .legend h3 {
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-weight: 600;
+            color: #0a0a0a;
+            margin-bottom: 15px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .legend-dot {
+            width: 30px;
+            height: 30px;
+            background: rgba(223, 10, 30, 0.8);
+            border: 3px solid white;
+            border-radius: 50%;
+            margin-right: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+        }
+        .note-box {
+            background: #fff5f6;
+            border-left: 4px solid #df0a1e;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .note-box strong {
+            color: #df0a1e;
+        }
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.5em;
+            }
+            .content {
+                padding: 20px;
+            }
+            .hotspot {
+                width: 35px;
+                height: 35px;
+                font-size: 10px;
+            }
+        }
+ </style>
+ <div class="container">
+  <header>
+   <h1>
+    🔧 DC Additional Contacts
+   </h1>
+   <p>
+    Additional Contacts - If Required
+   </p>
+  </header>
+  <div class="content">
+   <div class="info-panel">
+    <h2>
+     📍 Interactive Component Guide
+    </h2>
+    <p>
+     Hover over or click the red hotspots on the image below to view component details. This guide shows the additional contacts that can be added to the DC direction lever if required for reverse lamp connections or other functions.
+    </p>
+   </div>
+   <div class="legend">
+    <h3>
+     🎯 How to Use This Guide
+    </h3>
+    <div class="legend-item">
+     <div class="legend-dot">
+     </div>
+     <span>
+      <strong>
+       Hover
+      </strong>
+      over the red dots to see component details
+     </span>
+    </div>
+    <div class="legend-item">
+     <div class="legend-dot">
+     </div>
+     <span>
+      <strong>
+       Click
+      </strong>
+      on any hotspot for detailed information
+     </span>
+    </div>
+    <div class="legend-item">
+     <div class="legend-dot">
+     </div>
+     <span>
+      <strong>
+       Click table rows
+      </strong>
+      to highlight component locations
+     </span>
+    </div>
+   </div>
+   <div class="image-container">
+    <div class="image-wrapper">
+     <img src="__IMG_MAIN__" alt="DC Additional Contacts">
+     <!-- Extended Screws hotspot -->
+     <div class="hotspot left-side" style="top: 35%; left: 15%;" data-component="screws" data-part="5208.08.003" data-desc="Extended Screws">
+      <div class="hotspot-label">
+       <strong>
+        EXTENDED SCREWS
+       </strong>
+       <br>
+       Part: 5208.08.003
+       <br>
+       Used to mount contact blocks
+      </div>
+     </div>
+     <!-- Contact Blocks hotspot -->
+     <div class="hotspot left-side" style="top: 50%; left: 20%;" data-component="blocks" data-part="5282.8.001" data-desc="Contact Blocks">
+      <div class="hotspot-label">
+       <strong>
+        CONTACT BLOCKS
+       </strong>
+       <br>
+       Part: 5282.8.001
+       <br>
+       Additional electrical contacts
+      </div>
+     </div>
+     <!-- Front of Truck hotspot -->
+     <div class="hotspot top-area" style="top: 15%; left: 50%;" data-component="orientation" data-part="N/A" data-desc="Front of Truck Direction">
+      <div class="hotspot-label">
+       <strong>
+        FRONT OF TRUCK
+       </strong>
+       <br>
+       Directional reference
+       <br>
+       for proper installation
+      </div>
+     </div>
+     <!-- Reverse Lamp Connections hotspot -->
+     <div class="hotspot bottom-area" style="bottom: 10%; left: 60%;" data-component="reverse" data-part="Various" data-desc="Reverse Lamp Connections">
+      <div class="hotspot-label">
+       <strong>
+        REVERSE LAMP CONNECTIONS
+       </strong>
+       <br>
+       Wire numbers vary by application
+       <br>
+       Connect to reverse lights
+      </div>
+     </div>
+    </div>
+   </div>
+   <div class="components-table">
+    <table>
+     <thead>
+      <tr>
+       <th>
+        Component
+       </th>
+       <th>
+        Part Number
+       </th>
+       <th>
+        Description
+       </th>
+       <th>
+        Purpose
+       </th>
+      </tr>
+     </thead>
+     <tbody>
+      <tr onclick="highlightComponent('screws')">
+       <td>
+        <strong>
+         Extended Screws
+        </strong>
+       </td>
+       <td>
+        <span class="part-number">
+         5208.08.003
+        </span>
+       </td>
+       <td>
+        Mounting hardware
+       </td>
+       <td>
+        Secure contact blocks to the direction lever assembly
+       </td>
+      </tr>
+      <tr onclick="highlightComponent('blocks')">
+       <td>
+        <strong>
+         Contact Blocks
+        </strong>
+       </td>
+       <td>
+        <span class="part-number">
+         5282.8.001
+        </span>
+       </td>
+       <td>
+        Additional electrical contacts
+       </td>
+       <td>
+        Provide extra switching positions for auxiliary functions
+       </td>
+      </tr>
+      <tr onclick="highlightComponent('reverse')">
+       <td>
+        <strong>
+         Reverse Lamp Connections
+        </strong>
+       </td>
+       <td>
+        <span class="part-number">
+         Varies
+        </span>
+       </td>
+       <td>
+        Wire connections (numbers vary)
+       </td>
+       <td>
+        Control reverse lamps when lever is in reverse position
+       </td>
+      </tr>
+      <tr onclick="highlightComponent('orientation')">
+       <td>
+        <strong>
+         Front of Truck Reference
+        </strong>
+       </td>
+       <td>
+        <span class="part-number">
+         N/A
+        </span>
+       </td>
+       <td>
+        Directional indicator
+       </td>
+       <td>
+        Ensure proper orientation during installation
+       </td>
+      </tr>
+     </tbody>
+    </table>
+   </div>
+   <div class="note-box">
+    <strong>
+     ⚠️ Note:
+    </strong>
+    These additional contacts are optional and only required if your application needs reverse lamp control or other auxiliary switching functions. Wire numbers for reverse lamp connections will vary depending on your specific vehicle wiring harness.
+   </div>
+   <div class="instructions">
+    <h3>
+     🔌 Installation Instructions
+    </h3>
+    <p>
+     <strong>
+      When to Use:
+     </strong>
+     Add these additional contacts when you need to control reverse lamps or other auxiliary functions through the direction lever. 
+                    The contact blocks mount to the side of the direction switch using the extended screws provided.
+    </p>
+    <p style="margin-top: 15px;">
+     <strong>
+      Installation Steps:
+     </strong>
+    </p>
+    <ol style="margin-left: 20px; margin-top: 10px; color: #4a4a4a; line-height: 1.8;">
+     <li>
+      Remove standard mounting screws from direction lever
+     </li>
+     <li>
+      Install contact blocks (5282.8.001) in desired positions
+     </li>
+     <li>
+      Secure with extended screws (5208.08.003)
+     </li>
+     <li>
+      Connect reverse lamp wires according to your vehicle's wiring diagram
+     </li>
+     <li>
+      Test all functions before final installation
+     </li>
+    </ol>
+    <p style="margin-top: 15px;">
+     <strong>
+      Safety Note:
+     </strong>
+     Always disconnect power before installation. Verify that wire numbers and connections match your specific application. 
+                    Improper installation can result in reverse lamps not functioning or staying on constantly.
+    </p>
+   </div>
+  </div>
+ </div>
+ <script>
+  // Add click functionality to hotspots
+        document.querySelectorAll('.hotspot').forEach(hotspot => {
+            hotspot.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const component = this.dataset.component;
+                const part = this.dataset.part;
+                const desc = this.dataset.desc;
+                alert(`${desc.toUpperCase()}\n\nPart Number: ${part}\n\nClick OK to continue exploring the guide.`);
+            });
+        });
+        // Add table row click functionality
+        function highlightComponent(componentName) {
+            const hotspots = document.querySelectorAll(`[data-component="${componentName}"]`);
+            hotspots.forEach(hotspot => {
+                // Temporarily highlight the hotspot
+                hotspot.style.animation = 'none';
+                hotspot.style.transform = 'scale(1.5)';
+                hotspot.style.background = 'rgba(223, 10, 30, 1)';
+                setTimeout(() => {
+                    hotspot.style.transform = 'scale(1)';
+                    hotspot.style.background = 'rgba(223, 10, 30, 0.8)';
+                    hotspot.style.animation = 'pulse 2s infinite';
+                }, 1000);
+            });
+            // Scroll to first hotspot
+            if (hotspots.length > 0) {
+                hotspots[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+        // Add smooth fade-in animation on load
+        window.addEventListener('load', function() {
+            document.body.style.opacity = '0';
+            setTimeout(() => {
+                document.body.style.transition = 'opacity 0.5s ease';
+                document.body.style.opacity = '1';
+            }, 100);
+        });
+ </script>
