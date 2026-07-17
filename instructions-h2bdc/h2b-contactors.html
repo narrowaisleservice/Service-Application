@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#df0a1e">
+<title>H2B Contactors - Interactive Specifications</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #ffffff;
+    color: #101010;
+    min-height: 100vh;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .container { max-width: 1400px; width: 100%; background: #ffffff; border: 1px solid #e8e8e8; border-radius: 16px; overflow: hidden; }
+  header {
+    background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+    border-bottom: 3px solid #df0a1e;
+    color: #101010;
+    padding: 30px;
+    text-align: center;
+  }
+  header h1 { font-family: 'IBM Plex Sans', sans-serif; font-size: 2.2em; font-weight: 700; margin-bottom: 8px; color: #101010; }
+  header p { font-size: 1.05em; color: #707070; }
+  .content { padding: 40px; }
+  .info-panel { background: #fafafa; border: 1px solid #e8e8e8; border-left: 4px solid #df0a1e; color: #101010; padding: 25px; border-radius: 10px; margin-bottom: 30px; text-align: center; }
+  .info-panel h2 { font-family: 'IBM Plex Sans', sans-serif; font-size: 1.4em; font-weight: 700; margin-bottom: 10px; color: #101010; }
+  .info-panel p { color: #707070; }
+
+  .contactors-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px; }
+  .contactor-card { background: #ffffff; border: 1px solid #e8e8e8; border-radius: 12px; overflow: hidden; transition: transform 0.25s ease, box-shadow 0.25s ease; }
+  .contactor-card:hover { transform: translateY(-6px); box-shadow: 0 16px 32px rgba(0,0,0,0.08); border-color: #df0a1e; }
+
+  .contactor-header { background: linear-gradient(135deg, #df0a1e 0%, #c3161e 100%); color: white; padding: 20px; text-align: center; }
+  .contactor-header h3 { font-family: 'IBM Plex Sans', sans-serif; font-size: 1.4em; font-weight: 700; margin-bottom: 5px; }
+  .contactor-header .type { font-size: 1.05em; opacity: 0.9; font-weight: 400; }
+
+  .specs-section { padding: 25px; }
+  .spec-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; margin-bottom: 8px; background: #fafafa; border-radius: 8px; border-left: 4px solid #df0a1e; cursor: pointer; transition: all 0.2s ease; }
+  .spec-item:hover { transform: translateX(5px); box-shadow: 0 3px 10px rgba(0,0,0,0.08); }
+  .spec-label { font-weight: 600; color: #101010; }
+  .spec-value { font-family: 'IBM Plex Sans', sans-serif; font-weight: 700; color: #df0a1e; background: #fef2f2; padding: 5px 12px; border-radius: 15px; }
+
+  .features-section { margin-top: 20px; padding: 20px; background: #fffbeb; border-radius: 8px; border: 2px dashed #f59e0b; }
+  .features-section h4 { font-family: 'IBM Plex Sans', sans-serif; color: #92650d; margin-bottom: 15px; font-size: 1.15em; display: flex; align-items: center; }
+  .features-section h4::before { content: "⚙️"; margin-right: 10px; font-size: 1.2em; }
+  .feature-item { padding: 10px 15px; margin-bottom: 8px; background: #ffffff; border: 1px solid #e8e8e8; border-radius: 6px; border-left: 3px solid #f59e0b; color: #707070; line-height: 1.6; transition: all 0.2s ease; cursor: pointer; }
+  .feature-item:hover { transform: translateX(5px); box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+  .feature-item::before { content: "▸"; color: #f59e0b; margin-right: 10px; font-weight: bold; }
+
+  .temperature-note { background: #f0fdf4; padding: 15px; border-radius: 8px; margin-top: 15px; text-align: center; color: #15803d; font-weight: 600; border: 2px solid #22c55e; }
+  .temperature-note::before { content: "🌡️ "; font-size: 1.2em; }
+
+  .comparison-section { margin-top: 40px; background: #ffffff; border: 1px solid #e8e8e8; padding: 30px; border-radius: 12px; }
+  .comparison-section h3 { font-family: 'IBM Plex Sans', sans-serif; color: #df0a1e; margin-bottom: 20px; text-align: center; font-size: 1.6em; font-weight: 700; }
+  .comparison-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+  .comparison-table th { background: #df0a1e; color: white; padding: 15px; text-align: left; font-family: 'IBM Plex Sans', sans-serif; font-size: 1em; font-weight: 700; }
+  .comparison-table td { padding: 15px; border-bottom: 1px solid #e8e8e8; color: #707070; }
+  .comparison-table tr:hover { background: #fafafa; }
+  .comparison-table tr td:first-child { font-weight: 700; color: #101010; }
+  .value-cell { text-align: center; font-weight: 700; }
+  .fwd-rev { color: #df0a1e; }
+  .regen { color: #1d4ed8; }
+
+  .legend { display: flex; justify-content: center; gap: 30px; margin-top: 20px; padding: 15px; background: #fafafa; border-radius: 8px; }
+  .legend-item { display: flex; align-items: center; gap: 10px; color: #101010; }
+  .legend-dot { width: 18px; height: 18px; border-radius: 50%; }
+  .legend-dot.fwd-rev { background: #df0a1e; }
+  .legend-dot.regen { background: #3b82f6; }
+
+  .toggle-container { text-align: center; margin-bottom: 30px; }
+  .toggle-button { background: linear-gradient(135deg, #df0a1e 0%, #c3161e 100%); color: white; border: none; padding: 15px 30px; border-radius: 25px; font-family: 'IBM Plex Sans', sans-serif; font-size: 1.05em; font-weight: 700; cursor: pointer; transition: all 0.2s ease; }
+  .toggle-button:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(223,10,30,0.25); }
+
+  .view-mode { display: block; }
+  .view-mode.hidden { display: none; }
+
+  @media (max-width: 768px) {
+    .contactors-grid { grid-template-columns: 1fr; }
+    header h1 { font-size: 1.7em; }
+    .content { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+   <h1>⚡ H2B Contactors</h1>
+   <p>Technical Specifications &amp; Features</p>
+  </header>
+  <div class="content">
+   <div class="info-panel">
+    <h2>📊 Interactive Contactor Specifications</h2>
+    <p>Hover over specifications for details • Click to highlight • Toggle between card and table view</p>
+   </div>
+
+   <div class="toggle-container">
+    <button class="toggle-button" onclick="toggleView()">
+     <span id="toggle-text">Switch to Comparison Table View</span>
+    </button>
+   </div>
+
+   <!-- Card View -->
+   <div id="card-view" class="view-mode">
+    <div class="contactors-grid">
+     <!-- FWD-REV Contactor Card -->
+     <div class="contactor-card">
+      <div class="contactor-header">
+       <h3>FWD.-REV. Contactor</h3>
+       <div class="type">Type: S2202-258T</div>
+      </div>
+      <div class="specs-section">
+       <div class="spec-item" onclick="highlightSpec(this)">
+        <span class="spec-label">Coil Voltage</span>
+        <span class="spec-value">48V DC</span>
+       </div>
+       <div class="spec-item" onclick="highlightSpec(this)">
+        <span class="spec-label">Coil Resistance</span>
+        <span class="spec-value">94 Ω</span>
+       </div>
+       <div class="spec-item" onclick="highlightSpec(this)">
+        <span class="spec-label">Pull-in Voltage (Max)</span>
+        <span class="spec-value">30.0 V</span>
+       </div>
+       <div class="spec-item" onclick="highlightSpec(this)">
+        <span class="spec-label">Drop-out Voltage (Max)</span>
+        <span class="spec-value">12.0 V</span>
+       </div>
+       <div class="spec-item" onclick="highlightSpec(this)">
+        <span class="spec-label">Coil Power Dissipation</span>
+        <span class="spec-value">24.51 W</span>
+       </div>
+       <div class="features-section">
+        <h4>Additional Features</h4>
+        <div class="feature-item">Enclosed top covers fitted</div>
+        <div class="feature-item">No bracket fitted</div>
+        <div class="feature-item">=VE at front, cranked links at back (-VE side)</div>
+        <div class="feature-item">Long normally closed contact on right hand side</div>
+        <div class="feature-item">Textured tips throughout</div>
+       </div>
+       <div class="temperature-note">All figures stated at 20°C</div>
+      </div>
+     </div>
+
+     <!-- Re-Gen Contactor Card -->
+     <div class="contactor-card">
+      <div class="contactor-header" style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);">
+       <h3>Re-Gen. Contactor</h3>
+       <div class="type">Type: SW201-249T</div>
+      </div>
+      <div class="specs-section">
+       <div class="spec-item" onclick="highlightSpec(this)" style="border-left-color: #3b82f6;">
+        <span class="spec-label">Coil Voltage</span>
+        <span class="spec-value" style="background: #eff6ff; color: #1d4ed8;">48V DC</span>
+       </div>
+       <div class="spec-item" onclick="highlightSpec(this)" style="border-left-color: #3b82f6;">
+        <span class="spec-label">Coil Resistance</span>
+        <span class="spec-value" style="background: #eff6ff; color: #1d4ed8;">80 Ω</span>
+       </div>
+       <div class="spec-item" onclick="highlightSpec(this)" style="border-left-color: #3b82f6;">
+        <span class="spec-label">Pull-in Voltage (Max)</span>
+        <span class="spec-value" style="background: #eff6ff; color: #1d4ed8;">30.0 V</span>
+       </div>
+       <div class="spec-item" onclick="highlightSpec(this)" style="border-left-color: #3b82f6;">
+        <span class="spec-label">Drop-out Voltage (Max)</span>
+        <span class="spec-value" style="background: #eff6ff; color: #1d4ed8;">12.0 V</span>
+       </div>
+       <div class="spec-item" onclick="highlightSpec(this)" style="border-left-color: #3b82f6;">
+        <span class="spec-label">Coil Power Dissipation</span>
+        <span class="spec-value" style="background: #eff6ff; color: #1d4ed8;">28.80 W</span>
+       </div>
+       <div class="features-section">
+        <h4>Additional Features</h4>
+        <div class="feature-item">Textured contacts throughout</div>
+        <div class="feature-item">Enclosed top cover fitted - T/C to be reversed (+VE on LHS)</div>
+        <div class="feature-item">Crank link fitted on right hand side (-VE side)</div>
+        <div class="feature-item">-VE N/C fixed contact with cranked link positioned on front</div>
+        <div class="feature-item">+VE N/C fixed contact positioned at rear</div>
+       </div>
+       <div class="temperature-note">All figures stated at 20°C</div>
+      </div>
+     </div>
+    </div>
+   </div>
+
+   <!-- Table View -->
+   <div id="table-view" class="view-mode hidden">
+    <div class="comparison-section">
+     <h3>📋 Specifications Comparison</h3>
+     <div class="legend">
+      <div class="legend-item"><div class="legend-dot fwd-rev"></div><span>FWD.-REV. (S2202-258T)</span></div>
+      <div class="legend-item"><div class="legend-dot regen"></div><span>Re-Gen. (SW201-249T)</span></div>
+     </div>
+     <table class="comparison-table">
+      <thead>
+       <tr><th>Specification</th><th>FWD.-REV. (S2202-258T)</th><th>Re-Gen. (SW201-249T)</th></tr>
+      </thead>
+      <tbody>
+       <tr><td>Coil Voltage</td><td class="value-cell fwd-rev">48V DC</td><td class="value-cell regen">48V DC</td></tr>
+       <tr><td>Coil Resistance (Ω)</td><td class="value-cell fwd-rev">94</td><td class="value-cell regen">80</td></tr>
+       <tr><td>Pull-in Voltage (V) - Max</td><td class="value-cell fwd-rev">30.0</td><td class="value-cell regen">30.0</td></tr>
+       <tr><td>Drop-out Voltage (V) - Max</td><td class="value-cell fwd-rev">12.0</td><td class="value-cell regen">12.0</td></tr>
+       <tr><td>Coil Power Dissipation (W)</td><td class="value-cell fwd-rev">24.51</td><td class="value-cell regen">28.80</td></tr>
+      </tbody>
+     </table>
+     <div style="margin-top: 30px;">
+      <h4 style="font-family:'IBM Plex Sans',sans-serif; color: #df0a1e; margin-bottom: 15px;">Key Differences:</h4>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+       <div style="padding: 20px; background: #fef2f2; border-radius: 8px;">
+        <h5 style="font-family:'IBM Plex Sans',sans-serif; color: #df0a1e; margin-bottom: 10px;">FWD.-REV. Features:</h5>
+        <ul style="color: #707070; line-height: 1.8; margin-left: 20px;">
+         <li>Higher coil resistance (94Ω vs 80Ω)</li>
+         <li>Lower power dissipation (24.51W)</li>
+         <li>=VE at front, cranked links at back</li>
+         <li>Long N/C contact on RH side</li>
+        </ul>
+       </div>
+       <div style="padding: 20px; background: #eff6ff; border-radius: 8px;">
+        <h5 style="font-family:'IBM Plex Sans',sans-serif; color: #1d4ed8; margin-bottom: 10px;">Re-Gen. Features:</h5>
+        <ul style="color: #707070; line-height: 1.8; margin-left: 20px;">
+         <li>Lower coil resistance (80Ω vs 94Ω)</li>
+         <li>Higher power dissipation (28.80W)</li>
+         <li>T/C reversed (+VE on LHS)</li>
+         <li>Specific N/C contact positioning</li>
+        </ul>
+       </div>
+      </div>
+     </div>
+    </div>
+   </div>
+  </div>
+</div>
+
+<script>
+  function highlightSpec(element) {
+    document.querySelectorAll('.spec-item').forEach(item => {
+        item.style.background = '#fafafa';
+    });
+    element.style.background = '#fef2f2';
+    setTimeout(() => {
+        element.style.background = '#fafafa';
+    }, 2000);
+  }
+  function toggleView() {
+    const cardView = document.getElementById('card-view');
+    const tableView = document.getElementById('table-view');
+    const toggleText = document.getElementById('toggle-text');
+    if (cardView.classList.contains('hidden')) {
+        cardView.classList.remove('hidden');
+        tableView.classList.add('hidden');
+        toggleText.textContent = 'Switch to Comparison Table View';
+    } else {
+        cardView.classList.add('hidden');
+        tableView.classList.remove('hidden');
+        toggleText.textContent = 'Switch to Card View';
+    }
+  }
+  window.addEventListener('load', function() {
+    document.body.style.opacity = '0';
+    setTimeout(() => {
+        document.body.style.transition = 'opacity 0.5s ease';
+        document.body.style.opacity = '1';
+    }, 100);
+  });
+  document.querySelectorAll('.comparison-table tr').forEach(row => {
+    row.addEventListener('mouseenter', function() {
+        this.style.transform = 'scale(1.01)';
+    });
+    row.addEventListener('mouseleave', function() {
+        this.style.transform = 'scale(1)';
+    });
+  });
+</script>
+</body>
+</html>
