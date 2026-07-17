@@ -1,0 +1,1474 @@
+<meta>
+ 
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ 
+ <title>
+  ECO Display — Lift Lever Calibration
+ </title>
+ <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&amp;family=DM+Sans:wght@400;500;700&amp;family=DM+Mono:wght@500&amp;display=swap" rel="stylesheet">
+ <style>
+  :root {
+      --red: #df0a1e;
+      --red-dim: #a80716;
+      --red-glow: rgba(223, 10, 30, 0.25);
+      --red-subtle: rgba(223, 10, 30, 0.06);
+      --green: #16a34a;
+      --green-subtle: rgba(22, 163, 74, 0.08);
+      --green-dim: rgba(22, 163, 74, 0.3);
+      --amber: #d97706;
+      --amber-subtle: rgba(217, 119, 6, 0.08);
+      --amber-dim: rgba(217, 119, 6, 0.25);
+      --blue: #0284c7;
+      --blue-subtle: rgba(2, 132, 199, 0.06);
+      --blue-dim: rgba(2, 132, 199, 0.2);
+      --bg: #f7f7f8;
+      --bg-card: #ffffff;
+      --bg-elevated: #fafafa;
+      --border: #ececec;
+      --border-bright: #d8d8d8;
+      --text: #0a0a0a;
+      --text-muted: #6b6b6b;
+      --text-dim: #9a9a9a;
+      --mono: 'DM Mono', monospace;
+      --display: 'IBM Plex Sans', sans-serif;
+      --ui: 'DM Sans', sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--ui);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(223, 10, 30, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(223, 10, 30, 0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 32px 20px 60px;
+    }
+    /* ── HEADER ── */
+    .header {
+      text-align: center;
+      padding: 40px 0 36px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 28px;
+      position: relative;
+    }
+    .header::after {
+      content: '';
+      position: absolute;
+      bottom: -1px; left: 50%;
+      transform: translateX(-50%);
+      width: 200px; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--red), transparent);
+    }
+    .header-eyebrow {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.3em;
+      color: var(--red);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .header h1 {
+      font-family: var(--display);
+      font-size: clamp(32px, 5vw, 56px);
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      text-transform: uppercase;
+      color: var(--text);
+      line-height: 1;
+    }
+    .header h1 span { color: var(--red); }
+    .header-sub {
+      margin-top: 10px;
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.15em;
+      color: var(--text-muted);
+    }
+    /* ── ALERTS ── */
+    .alert {
+      padding: 14px 20px;
+      margin-bottom: 14px;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .alert.critical {
+      background: var(--red-subtle);
+      border: 1px solid rgba(223, 10, 30, 0.25);
+      border-left: 3px solid var(--red);
+      color: #4a4a4a;
+    }
+    .alert.critical strong { color: var(--red); }
+    .alert.info {
+      background: var(--blue-subtle);
+      border: 1px solid var(--blue-dim);
+      border-left: 3px solid var(--blue);
+      color: #4a4a4a;
+    }
+    .alert.info strong { color: var(--blue); }
+    .alert.warning {
+      background: var(--amber-subtle);
+      border: 1px solid var(--amber-dim);
+      border-left: 3px solid var(--amber);
+      color: #4a4a4a;
+    }
+    .alert.warning strong { color: var(--amber); }
+    .alert ul { margin-top: 6px; margin-left: 16px; display: flex; flex-direction: column; gap: 4px; }
+    /* ── VOLTAGE REFERENCE TABLE ── */
+    .volt-ref {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      margin-bottom: 24px;
+      overflow: hidden;
+    }
+    .volt-ref-header {
+      padding: 10px 16px;
+      background: var(--bg-elevated);
+      border-bottom: 1px solid var(--border);
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.25em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+    .volt-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 11px 16px;
+      border-bottom: 1px solid var(--border);
+      gap: 16px;
+    }
+    .volt-row:last-child { border-bottom: none; }
+    .volt-row:nth-child(even) { background: var(--bg-elevated); }
+    .volt-pos {
+      font-family: var(--display);
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      color: #4a4a4a;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .volt-dir {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      color: var(--text-dim);
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      padding: 2px 7px;
+      text-transform: uppercase;
+    }
+    .volt-val {
+      font-family: var(--mono);
+      font-size: 16px;
+      color: #4ade80;
+      background: #050f08;
+      border: 1px solid rgba(74, 222, 128, 0.2);
+      padding: 4px 16px;
+      letter-spacing: 0.15em;
+      text-shadow: 0 0 8px rgba(74, 222, 128, 0.4);
+    }
+    /* ── PROGRESS ── */
+    .progress-block {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      padding: 16px 20px;
+      margin-bottom: 28px;
+    }
+    .progress-label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .progress-label-row span {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+    .prog-count { color: var(--red) !important; }
+    .progress-track {
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--red);
+      width: 0%;
+      transition: width 0.4s ease;
+      box-shadow: 0 0 8px var(--red-glow);
+    }
+    /* ── STEP CARDS ── */
+    .step-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--border);
+      margin-bottom: 10px;
+      overflow: hidden;
+      transition: border-left-color 0.2s;
+    }
+    .step-card.completed { border-left-color: var(--green); }
+    .step-card.active    { border-left-color: var(--red); }
+    .step-top {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 13px 18px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-elevated);
+    }
+    .step-num-box {
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      color: var(--text-dim);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      min-width: 34px;
+      height: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+    .step-card.completed .step-num-box {
+      background: var(--green-subtle);
+      border-color: var(--green-dim);
+      color: var(--green);
+    }
+    .step-card.active .step-num-box {
+      background: var(--red-subtle);
+      border-color: var(--red-dim);
+      color: var(--red);
+    }
+    .step-title-wrap { flex: 1; }
+    .step-title {
+      font-family: var(--display);
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      color: var(--text);
+    }
+    .step-subtitle {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+    .step-status-tag {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+    .step-card.completed .step-status-tag { color: var(--green); }
+    .step-body {
+      padding: 16px 18px;
+      font-size: 13px;
+      color: #4a4a4a;
+      line-height: 1.65;
+    }
+    .key {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-bright);
+      color: var(--text);
+      padding: 2px 8px;
+      display: inline-block;
+      text-transform: uppercase;
+    }
+    /* Calibration sub-block */
+    .cal-block {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--amber);
+      padding: 14px 16px;
+      margin-top: 12px;
+    }
+    .cal-label {
+      font-family: var(--display);
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      color: var(--amber);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .cal-steps {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .cal-steps li {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      font-size: 13px;
+      color: #4a4a4a;
+      line-height: 1.5;
+    }
+    .sub-num {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--amber);
+      background: var(--amber-subtle);
+      border: 1px solid var(--amber-dim);
+      min-width: 18px;
+      height: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 3px;
+    }
+    /* Voltage readout target */
+    .volt-target {
+      font-family: var(--mono);
+      font-size: 18px;
+      color: #4ade80;
+      background: #050f08;
+      border: 1px solid rgba(74, 222, 128, 0.2);
+      padding: 8px 20px;
+      text-align: center;
+      letter-spacing: 0.2em;
+      text-shadow: 0 0 10px rgba(74, 222, 128, 0.4);
+      margin-top: 12px;
+      display: block;
+    }
+    /* Section divider label */
+    .section-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 20px 0 12px;
+    }
+    .section-divider span {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.25em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .section-divider::before,
+    .section-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+    /* Mark complete button */
+    .mark-btn {
+      margin-top: 14px;
+      padding: 8px 20px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-bright);
+      color: var(--text-muted);
+      font-family: var(--display);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .mark-btn:hover {
+      border-color: var(--green);
+      color: var(--green);
+      background: var(--green-subtle);
+    }
+    .mark-btn.done {
+      border-color: var(--green-dim);
+      color: var(--green);
+      background: var(--green-subtle);
+      cursor: default;
+    }
+    /* ── SUCCESS ── */
+    .success-card {
+      display: none;
+      background: var(--green-subtle);
+      border: 1px solid var(--green-dim);
+      border-left: 3px solid var(--green);
+      padding: 24px;
+      margin-bottom: 16px;
+      text-align: center;
+      animation: slideIn 0.4s ease-out;
+    }
+    .success-card.show { display: block; }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .success-card .check {
+      font-family: var(--mono);
+      font-size: 26px;
+      color: var(--green);
+      display: block;
+      margin-bottom: 8px;
+    }
+    .success-card p {
+      font-family: var(--display);
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--green);
+    }
+    .success-card .success-sub {
+      font-family: var(--ui);
+      font-size: 13px;
+      font-weight: 400;
+      color: var(--text-muted);
+      margin-top: 6px;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+    /* ── RESET ── */
+    .reset-btn {
+      display: block;
+      margin: 24px auto 0;
+      padding: 11px 36px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-bright);
+      color: var(--text-muted);
+      font-family: var(--display);
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .reset-btn:hover {
+      border-color: var(--red);
+      color: var(--red);
+      background: var(--red-subtle);
+    }
+    /* ── FOOTER ── */
+    .footer {
+      text-align: center;
+      margin-top: 48px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+ </style>
+ <div class="container">
+  <div class="header">
+   <div class="header-eyebrow">
+    Calibration Procedure &nbsp;/&nbsp; Pump ACE2 Inverter
+   </div>
+   <h1>
+    ECO Display —
+    <span>
+     Lift Lever
+    </span>
+    Calibration
+   </h1>
+   <div class="header-sub">
+    Narrow Aisle Ltd &nbsp;·&nbsp; Detailed Lift/Lower Lever Calibration via Adjustments Menu
+   </div>
+  </div>
+  <div class="alert critical" style="margin-bottom:14px;">
+   <p>
+    <strong>
+     Critical:
+    </strong>
+    This is the DETAILED lift/lower lever calibration procedure using the ADJUSTMENTS menu. Connect to the Pump ACE2 Inverter before beginning.
+   </p>
+  </div>
+  <div class="alert info" style="margin-bottom:20px;">
+   <p>
+    <strong>
+     Objective:
+    </strong>
+    Programme the lift/lower lever by manually calibrating four specific voltage points for precise hydraulic control.
+   </p>
+  </div>
+  <!-- VOLTAGE REFERENCE -->
+  <div class="volt-ref">
+   <div class="volt-ref-header">
+    Voltage Reference Guide — Calibration Targets
+   </div>
+   <div class="volt-row">
+    <div class="volt-pos">
+     <span class="volt-dir">
+      Neutral
+     </span>
+     Rest Position
+    </div>
+    <div class="volt-val">
+     ~1.0V
+    </div>
+   </div>
+   <div class="volt-row">
+    <div class="volt-pos">
+     <span class="volt-dir">
+      ↑ Min
+     </span>
+     Minimum Lift
+    </div>
+    <div class="volt-val">
+     ~1.2V
+    </div>
+   </div>
+   <div class="volt-row">
+    <div class="volt-pos">
+     <span class="volt-dir">
+      ↑ Full
+     </span>
+     Full Lift
+    </div>
+    <div class="volt-val">
+     ~1.9V
+    </div>
+   </div>
+   <div class="volt-row">
+    <div class="volt-pos">
+     <span class="volt-dir">
+      ↓ Full
+     </span>
+     Full Lower
+    </div>
+    <div class="volt-val">
+     ~0.2V
+    </div>
+   </div>
+   <div class="volt-row">
+    <div class="volt-pos">
+     <span class="volt-dir">
+      ↓ Min
+     </span>
+     Minimum Lower
+    </div>
+    <div class="volt-val">
+     ~0.9V
+    </div>
+   </div>
+  </div>
+  <!-- PROGRESS -->
+  <div class="progress-block">
+   <div class="progress-label-row">
+    <span>
+     Procedure Progress
+    </span>
+    <span class="prog-count" id="progCount">
+     0 / 14 steps
+    </span>
+   </div>
+   <div class="progress-track">
+    <div class="progress-fill" id="progressFill">
+    </div>
+   </div>
+  </div>
+  <!-- NAVIGATION STEPS DIVIDER -->
+  <div class="section-divider">
+   <span>
+    Navigation — Access Adjustments Menu
+   </span>
+  </div>
+  <!-- STEPS 1–7: Navigation -->
+  <div class="step-card" id="step-0">
+   <div class="step-top">
+    <div class="step-num-box">
+     01
+    </div>
+    <div class="step-title-wrap">
+     <div class="step-title">
+      Access Password Screen
+     </div>
+     <div class="step-subtitle">
+      Initial Setup
+     </div>
+    </div>
+    <div class="step-status-tag" id="status-0">
+     Pending
+    </div>
+   </div>
+   <div class="step-body">
+    Press
+    <span class="key">
+     Enter (Key 3)
+    </span>
+    twice to access the Password Screen
+    <br>
+    <button class="mark-btn" onclick="completeStep(0)">
+     Mark Complete
+    </button>
+   </div>
+  </div>
+  <div class="step-card" id="step-1">
+   <div class="step-top">
+    <div class="step-num-box">
+     02
+    </div>
+    <div class="step-title-wrap">
+     <div class="step-title">
+      Enter Password
+     </div>
+     <div class="step-subtitle">
+      Authentication
+     </div>
+    </div>
+    <div class="step-status-tag" id="status-1">
+     Pending
+    </div>
+   </div>
+   <div class="step-body">
+    Enter your password using
+    <span class="key">
+     Keys 1–5
+    </span>
+    <br>
+    <button class="mark-btn" onclick="completeStep(1)">
+     Mark Complete
+    </button>
+   </div>
+  </div>
+  <div class="step-card" id="step-2">
+   <div class="step-top">
+    <div class="step-num-box">
+     03
+    </div>
+    <div class="step-title-wrap">
+     <div class="step-title">
+      Navigate to ZAPI Console
+     </div>
+     <div class="step-subtitle">
+      Menu Access
+     </div>
+    </div>
+    <div class="step-status-tag" id="status-2">
+     Pending
+    </div>
+   </div>
+   <div class="step-body">
+    Use
+    <span class="key">
+     Key 1
+    </span>
+    to scroll to
+    <strong style="color:var(--text)">
+     ZAPI CONSOLE
+    </strong>
+    , then press
+    <span class="key">
+     Enter
+    </span>
+    <br>
+    <button class="mark-btn" onclick="completeStep(2)">
+     Mark Complete
+    </button>
+   </div>
+  </div>
+  <div class="step-card" id="step-3">
+   <div class="step-top">
+    <div class="step-num-box">
+     04
+    </div>
+    <div class="step-title-wrap">
+     <div class="step-title">
+      Select Console Screen
+     </div>
+     <div class="step-subtitle">
+      Navigation
+     </div>
+    </div>
+    <div class="step-status-tag" id="status-3">
+     Pending
+    </div>
+   </div>
+   <div class="step-body">
+    Use
+    <span class="key">
+     Key 1
+    </span>
+    to scroll to the correct screen, then press
+    <span class="key">
+     Enter (Key 3)
+    </span>
+    <br>
+    <button class="mark-btn" onclick="completeStep(3)">
+     Mark Complete
+    </button>
+   </div>
+  </div>
+  <div class="step-card" id="step-4">
+   <div class="step-top">
+    <div class="step-num-box">
+     05
+    </div>
+    <div class="step-title-wrap">
+     <div class="step-title">
+      Enter CONFIG MENU
+     </div>
+     <div class="step-subtitle">
+      Configuration Access
+     </div>
+    </div>
+    <div class="step-status-tag" id="status-4">
+     Pending
+    </div>
+   </div>
+   <div class="step-body">
+    Press
+    <span class="key">
+     Key 1
+    </span>
+    to enter
+    <strong style="color:var(--text)">
+     CONFIG MENU
+    </strong>
+    <br>
+    <button class="mark-btn" onclick="completeStep(4)">
+     Mark Complete
+    </button>
+   </div>
+  </div>
+  <div class="step-card" id="step-5">
+   <div class="step-top">
+    <div class="step-num-box">
+     06
+    </div>
+    <div class="step-title-wrap">
+     <div class="step-title">
+      Navigate to ADJUSTMENTS
+     </div>
+     <div class="step-subtitle">
+      Find Calibration Menu
+     </div>
+    </div>
+    <div class="step-status-tag" id="status-5">
+     Pending
+    </div>
+   </div>
+   <div class="step-body">
+    Use
+    <span class="key">
+     Key 1
+    </span>
+    to scroll until you see
+    <strong style="color:var(--text)">
+     ADJUSTMENTS
+    </strong>
+    <br>
+    <button class="mark-btn" onclick="completeStep(5)">
+     Mark Complete
+    </button>
+   </div>
+  </div>
+  <div class="step-card" id="step-6">
+   <div class="step-top">
+    <div class="step-num-box">
+     07
+    </div>
+    <div class="step-title-wrap">
+     <div class="step-title">
+      Enter ADJUSTMENTS Menu
+     </div>
+     <div class="step-subtitle">
+      Access Calibration
+     </div>
+    </div>
+    <div class="step-status-tag" id="status-6">
+     Pending
+    </div>
+   </div>
+   <div class="step-body">
+    Press
+    <span class="key">
+     Enter (Key 3)
+    </span>
+    to access the ADJUSTMENTS menu
+    <br>
+    <button class="mark-btn" onclick="completeStep(6)">
+     Mark Complete
+    </button>
+   </div>
+  </div>
+  <!-- CALIBRATION STEPS DIVIDER -->
+  <div class="section-divider">
+   <span>
+    Calibration — Four Voltage Points
+   </span>
+  </div>
+  <!-- STEP 8: View MIN LIFT VALUE -->
+  <div class="step-card" id="step-7">
+   <div class="step-top">
+    <div class="step-num-box">
+     08
+    </div>
+    <div class="step-title-wrap">
+     <div class="step-title">
+      View MIN LIFT VALUE
+     </div>
+     <div class="step-subtitle">
+      Check Current Setting
+     </div>
+    </div>
+    <div class="step-status-tag" id="status-7">
+     Pending
+    </div>
+   </div>
+   <div class="step-body">
+    Use
+    <span class="key">
+     Key 1
+    </span>
+    to scroll to
+    <strong style="color:var(--text)">
+     MIN LIFT VALUE
+    </strong>
+    , then press
+    <span class="key">
+     Enter (Key 3)
+    </span>
+    <span class="volt-target">
+     Value changes to → 1.0V (Neutral/Rest)
+    </span>
+    <div class="alert info" style="margin-top:10px;">
+     <p>
+      <strong>
+       Note:
+      </strong>
+      1.0V is the potentiometer in its Neutral (rest) position.
+     </p>
+    </div>
+    <button class="mark-btn" onclick="completeStep(7)">
+     Mark Complete
+    </button>
+   </div>
+  </div>
+  <!-- STEP 9: MIN LIFT -->
+  <div class="step-card" id="step-8">
+   <div class="step-top">
+    <div class="step-num-box">
+     09
+    </div>
+    <div class="step-title-wrap">
+     <div class="step-title">
+      Calibrate Minimum Lift
+     </div>
+     <div class="step-subtitle">
+      Calibration Point 1 of 4
+     </div>
+    </div>
+    <div class="step-status-tag" id="status-8">
+     Pending
+    </div>
+   </div>
+   <div class="step-body">
+    <div class="cal-block">
+     <div class="cal-label">
+      ↑ Minimum Lift Position
+     </div>
+     <ul class="cal-steps">
+      <li>
+       <span class="sub-num">
+        1
+       </span>
+       <span>
+        Use
+        <span class="key">
+         Key 1
+        </span>
+        to scroll to the next value
+       </span>
+      </li>
+      <li>
+       <span class="sub-num">
+        2
+       </span>
+       <span>
+        Move lever to
+        <strong style="color:var(--text)">
+         MINIMUM LIFT
+        </strong>
+        position
+       </span>
+      </li>
+      <li>
+       <span class="sub-num">
+        3
+       </span>
+       <span>
+        Voltage should show approximately
+        <strong style="color:#16a34a;">
+         1.2V
+        </strong>
+       </span>
+      </li>
+      <li>
+       <span class="sub-num">
+        4
+       </span>
+       <span>
+        <strong style="color:var(--text);">
+         Keep lever in position
+        </strong>
+       </span>
+      </li>
+      <li>
+       <span class="sub-num">
+        5
+       </span>
+       <span>
+        Press
+        <span class="key">
+         Out (Key 2)
+        </span>
+        to lock value
+       </span>
+      </li>
+      <li>
+       <span class="sub-num">
+        6
+       </span>
+       <span>
+        Return lift lever to REST position
+       </span>
+      </li>
+     </ul>
+     <span class="volt-target">
+      Target: ~1.2V
+     </span>
+    </div>
+    <button class="mark-btn" onclick="completeStep(8)">
+     Mark Complete
+    </button>
+   </div>
+  </div>
+  <!-- STEP 10: FULL LIFT -->
+  <div class="step-card" id="step-9">
+   <div class="step-top">
+    <div class="step-num-box">
+     10
+    </div>
+    <div class="step-title-wrap">
+     <div class="step-title">
+      Calibrate Full Lift
+     </div>
+     <div class="step-subtitle">
+      Calibration Point 2 of 4
+     </div>
+    </div>
+    <div class="step-status-tag" id="status-9">
+     Pending
+    </div>
+   </div>
+   <div class="step-body">
+    <div class="cal-block">
+     <div class="cal-label">
+      ↑ Full Lift Position
+     </div>
+     <ul class="cal-steps">
+      <li>
+       <span class="sub-num">
+        1
+       </span>
+       <span>
+        Press
+        <span class="key">
+         Enter (Key 3)
+        </span>
+        — value changes to 1.0V
+       </span>
+      </li>
+      <li>
+       <span class="sub-num">
+        2
+       </span>
+       <span>
+        Move lever to
+        <strong style="color:var(--text)">
+         FULL LIFT
+        </strong>
+        position
+       </span>
+      </li>
+      <li>
+       <span class="sub-num">
+        3
+       </span>
+       <span>
+        Voltage should show approximately
+        <strong style="color:#16a34a;">
+         1.9V
+        </strong>
+       </span>
+      </li>
+      <li>
+       <span class="sub-num">
+        4
+       </span>
+       <span>
+        <strong style="color:var(--text);">
+         Keep lever in position
+        </strong>
+       </span>
+      </li>
+      <li>
+       <span class="sub-num">
+        5
+       </span>
+       <span>
+        Press
+        <span class="key">
+         Out (Key 2)
+        </span>
+        to lock value
+       </span>
+      </li>
+      <li>
+       <span class="sub-num">
+        6
+       </span>
+       <span>
+        Return lift lever to REST position
+       </span>
+      </li>
+     </ul>
+     <span class="volt-target">
+      Target: ~1.9V
+     </span>
+    </div>
+    <button class="mark-btn" onclick="completeStep(9)">
+     Mark Complete
+    </button>
+   </div>
+  </div>
+  <!-- STEP 11: FULL LOWER -->
+  <div class="step-card" id="step-10">
+   <div class="step-top">
+    <div class="step-num-box">
+     11
+    </div>
+    <div class="step-title-wrap">
+     <div class="step-title">
+      Calibrate Full Lower
+     </div>
+     <div class="step-subtitle">
+      Calibration Point 3 of 4
+     </div>
+    </div>
+    <div class="step-status-tag" id="status-10">
+     Pending
+    </div>
+   </div>
+   <div class="step-body">
+    <div class="cal-block">
+     <div class="cal-label">
+      ↓ Full Lower Position
+     </div>
+     <ul class="cal-steps">
+      <li>
+       <span class="sub-num">
+        1
+       </span>
+       <span>
+        Use
+        <span class="key">
+         Key 1
+        </span>
+        to scroll to the next value
+       </span>
+      </li>
+      <li>
+       <span class="sub-num">
+        2
+       </span>
+       <span>
+        Press
+        <span class="key">
+         Enter (Key 3)
+        </span>
+        — value changes to 1.0V
+       </span>
+      </li>
+      <li>
+       <span class="sub-num">
+        3
+       </span>
+       <span>
+        Move lever to
+        <strong style="color:var(--text)">
+         FULL LOWER
+        </strong>
+        position
+       </span>
+      </li>
+      <li>
+       <span class="sub-num">
+        4
+       </span>
+       <span>
+        Voltage should show approximately
+        <strong style="color:#16a34a;">
+         0.2V
+        </strong>
+       </span>
+      </li>
+      <li>
+       <span class="sub-num">
+        5
+       </span>
+       <span>
+        <strong style="color:var(--text);">
+         Keep lever in position
+        </strong>
+       </span>
+      </li>
+      <li>
+       <span class="sub-num">
+        6
+       </span>
+       <span>
+        Press
+        <span class="key">
+         Out (Key 2)
+        </span>
+        to lock value
+       </span>
+      </li>
+      <li>
+       <span class="sub-num">
+        7
+       </span>
+       <span>
+        Return lift lever to REST position
+       </span>
+      </li>
+     </ul>
+     <span class="volt-target">
+      Target: ~0.2V
+     </span>
+    </div>
+    <button class="mark-btn" onclick="completeStep(10)">
+     Mark Complete
+    </button>
+   </div>
+  </div>
+  <!-- STEP 12: MIN LOWER -->
+  <div class="step-card" id="step-11">
+   <div class="step-top">
+    <div class="step-num-box">
+     12
+    </div>
+    <div class="step-title-wrap">
+     <div class="step-title">
+      Calibrate Minimum Lower
+     </div>
+     <div class="step-subtitle">
+      Calibration Point 4 of 4
+     </div>
+    </div>
+    <div class="step-status-tag" id="status-11">
+     Pending
+    </div>
+   </div>
+   <div class="step-body">
+    <div class="cal-block">
+     <div class="cal-label">
+      ↓ Minimum Lower Position
+     </div>
+     <ul class="cal-steps">
+      <li>
+       <span class="sub-num">
+        1
+       </span>
+       <span>
+        Use
+        <span class="key">
+         Key 1
+        </span>
+        to scroll to the next value
+       </span>
+      </li>
+      <li>
+       <span class="sub-num">
+        2
+       </span>
+       <span>
+        Press
+        <span class="key">
+         Enter (Key 3)
+        </span>
+        — value changes to 1.0V
+       </span>
+      </li>
+      <li>
+       <span class="sub-num">
+        3
+       </span>
+       <span>
+        Move lever to
+        <strong style="color:var(--text)">
+         MINIMUM LOWER
+        </strong>
+        position
+       </span>
+      </li>
+      <li>
+       <span class="sub-num">
+        4
+       </span>
+       <span>
+        Voltage should show approximately
+        <strong style="color:#16a34a;">
+         0.9V
+        </strong>
+       </span>
+      </li>
+      <li>
+       <span class="sub-num">
+        5
+       </span>
+       <span>
+        <strong style="color:var(--text);">
+         Keep lever in position
+        </strong>
+       </span>
+      </li>
+      <li>
+       <span class="sub-num">
+        6
+       </span>
+       <span>
+        Press
+        <span class="key">
+         Out (Key 2)
+        </span>
+        to lock value
+       </span>
+      </li>
+      <li>
+       <span class="sub-num">
+        7
+       </span>
+       <span>
+        Return lift lever to REST position
+       </span>
+      </li>
+     </ul>
+     <span class="volt-target">
+      Target: ~0.9V
+     </span>
+    </div>
+    <button class="mark-btn" onclick="completeStep(11)">
+     Mark Complete
+    </button>
+   </div>
+  </div>
+  <!-- SAVE STEPS DIVIDER -->
+  <div class="section-divider">
+   <span>
+    Save &amp; Finalise
+   </span>
+  </div>
+  <!-- STEP 13 -->
+  <div class="step-card" id="step-12">
+   <div class="step-top">
+    <div class="step-num-box">
+     13
+    </div>
+    <div class="step-title-wrap">
+     <div class="step-title">
+      Navigate to Save Option
+     </div>
+     <div class="step-subtitle">
+      Find AUX OUTPUT
+     </div>
+    </div>
+    <div class="step-status-tag" id="status-12">
+     Pending
+    </div>
+   </div>
+   <div class="step-body">
+    Use
+    <span class="key">
+     Key 1
+    </span>
+    to scroll up until you see
+    <strong style="color:var(--text)">
+     AUX OUTPUT V RID
+    </strong>
+    , then press
+    <span class="key">
+     Enter (Key 3)
+    </span>
+    <br>
+    <button class="mark-btn" onclick="completeStep(12)">
+     Mark Complete
+    </button>
+   </div>
+  </div>
+  <!-- STEP 14 -->
+  <div class="step-card" id="step-13">
+   <div class="step-top">
+    <div class="step-num-box">
+     14
+    </div>
+    <div class="step-title-wrap">
+     <div class="step-title">
+      Save Changes
+     </div>
+     <div class="step-subtitle">
+      Finalise Calibration
+     </div>
+    </div>
+    <div class="step-status-tag" id="status-13">
+     Pending
+    </div>
+   </div>
+   <div class="step-body">
+    Press
+    <span class="key">
+     Enter (Key 3)
+    </span>
+    to save all changes
+    <div class="alert critical" style="margin-top:10px;">
+     <p>
+      <strong>
+       Final Step:
+      </strong>
+      Cycle the key — turn OFF, wait 5 seconds, then turn back ON — to complete the procedure.
+     </p>
+    </div>
+    <button class="mark-btn" onclick="completeStep(13)">
+     Mark Complete
+    </button>
+   </div>
+  </div>
+  <!-- SUCCESS -->
+  <div class="success-card" id="successCard">
+   <span class="check">
+    ✓
+   </span>
+   <p>
+    Calibration Complete
+   </p>
+   <p class="success-sub">
+    All four voltage points programmed. Cycle the key to finalise. Verify lift/lower operation before returning to service.
+   </p>
+  </div>
+  <!-- REMINDERS -->
+  <div class="alert warning" style="margin-top:8px;">
+   <div>
+    <strong>
+     Critical Reminders:
+    </strong>
+    <ul style="margin-top:6px;">
+     <li>
+      <strong>
+       Always keep the lever in position
+      </strong>
+      when pressing Out (Key 2) to lock values
+     </li>
+     <li>
+      <strong>
+       Return to rest position
+      </strong>
+      after each calibration point
+     </li>
+     <li>
+      Voltage values are approximate — slight variations are normal
+     </li>
+     <li>
+      Four calibration points: Min Lift (~1.2V), Full Lift (~1.9V), Full Lower (~0.2V), Min Lower (~0.9V)
+     </li>
+     <li>
+      Must save changes at the end or calibration will be lost
+     </li>
+    </ul>
+   </div>
+  </div>
+  <button class="reset-btn" onclick="resetAll()">
+   ↺ Reset All Steps
+  </button>
+  <div class="footer">
+   Flexi Narrow Aisle Ltd &nbsp;·&nbsp; ECO Display Detailed Lift Lever Calibration &nbsp;·&nbsp; Internal Use Only
+  </div>
+ </div>
+ <script>
+  var completed = [];
+  var total = 14;
+  function completeStep(i) {
+    if (completed.indexOf(i) === -1) completed.push(i);
+    var card = document.getElementById('step-' + i);
+    card.classList.add('completed');
+    card.classList.remove('active');
+    var btn = card.querySelector('.mark-btn');
+    btn.textContent = '✓ Completed';
+    btn.classList.add('done');
+    btn.disabled = true;
+    document.getElementById('status-' + i).textContent = 'Done';
+    if (i + 1 < total) document.getElementById('step-' + (i + 1)).classList.add('active');
+    updateProgress();
+    if (completed.length === total) {
+      var sc = document.getElementById('successCard');
+      sc.classList.add('show');
+      sc.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }
+  function updateProgress() {
+    var pct = (completed.length / total) * 100;
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progCount').textContent = completed.length + ' / ' + total + ' steps';
+  }
+  function resetAll() {
+    if (!confirm('Reset all steps to pending?')) return;
+    completed = [];
+    for (var i = 0; i < total; i++) {
+      var card = document.getElementById('step-' + i);
+      card.classList.remove('completed', 'active');
+      var btn = card.querySelector('.mark-btn');
+      btn.textContent = 'Mark Complete';
+      btn.classList.remove('done');
+      btn.disabled = false;
+      document.getElementById('status-' + i).textContent = 'Pending';
+    }
+    document.getElementById('successCard').classList.remove('show');
+    document.getElementById('step-0').classList.add('active');
+    updateProgress();
+  }
+  document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('step-0').classList.add('active');
+  });
+ </script>
