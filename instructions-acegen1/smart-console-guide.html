@@ -1,0 +1,263 @@
+<meta>
+ 
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ 
+ <title>
+  Smart Console Guide
+ </title>
+ <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&amp;family=DM+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet">
+ <style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --black: #f7f7f8;
+    --card: #ffffff;
+    --border: #ececec;
+    --border-bright: #d8d8d8;
+    --red: #df0a1e;
+    --text: #0a0a0a;
+    --muted: #6b6b6b;
+    --blue: #0284c7;
+    --amber: #d97706;
+    --display: 'IBM Plex Sans', sans-serif;
+    --ui: 'DM Sans', sans-serif;
+  }
+  html, body {
+    width: 100%;
+    min-height: 100vh;
+    background: var(--black);
+    color: var(--text);
+    font-family: var(--ui);
+  }
+  .page {
+    width: 100%;
+    padding: 24px;
+  }
+  /* HEADER */
+  .header {
+    background: #0a0a0a;
+    border-left: 4px solid var(--red);
+    border-radius: 16px;
+    padding: 22px 28px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+  .header img { width: 44px; height: 44px; flex-shrink: 0; }
+  .header h1 {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 2rem;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    line-height: 1;
+    color: #ffffff;
+  }
+  .header p { font-family: var(--ui); color: #b8b8b8; font-size: 0.95rem; margin-top: 4px; }
+  /* BANNER */
+  .banner {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 22px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--muted);
+    font-size: 0.95rem;
+  }
+  .banner-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--red);
+    flex-shrink: 0;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  /* WIRE CARDS */
+  .wire-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .wire-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    transition: border-color 0.2s;
+  }
+  .wire-card:hover { border-color: var(--red); }
+  .wire-number {
+    font-family: var(--display);
+    font-size: 2.8rem;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--red);
+    margin-bottom: 4px;
+  }
+  .wire-label {
+    font-family: var(--display);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+  .swatch-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .swatch {
+    width: 40px; height: 16px;
+    border-radius: 3px;
+    border: 1px solid rgba(0,0,0,0.15);
+    flex-shrink: 0;
+  }
+  .swatch-rb { background: linear-gradient(90deg, #dc2626 50%, #111 50%); }
+  .swatch-yb { background: linear-gradient(90deg, #eab308 50%, #111 50%); }
+  .swatch-bb { background: linear-gradient(90deg, #3b82f6 50%, #111 50%); }
+  .wire-color-name { font-weight: 700; font-size: 0.95rem; letter-spacing: 0.02em; color: var(--text); }
+  .wire-desc { font-size: 0.88rem; color: var(--muted); line-height: 1.4; }
+  .wire-location {
+    margin-top: 12px;
+    font-family: var(--display);
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+    padding-top: 12px;
+  }
+  .wire-location span {
+    display: inline-block;
+    background: var(--black);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 3px 9px;
+    margin-top: 5px;
+    font-family: var(--ui);
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: 0.02em;
+    color: var(--text);
+  }
+  /* TABLE */
+  .table-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .table-header {
+    background: var(--black);
+    padding: 13px 22px;
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+  }
+  .table-header .hl { color: var(--red); }
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    background: var(--black);
+    padding: 10px 22px;
+    text-align: left;
+    font-family: var(--display);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+  }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: rgba(223,10,30,0.05); }
+  tbody td { padding: 13px 22px; font-size: 1rem; vertical-align: middle; color: var(--text); }
+  .td-num { font-family: var(--display); font-weight: 700; font-size: 1.2rem; color: var(--red); }
+  .badge { display: inline-flex; align-items: center; gap: 7px; font-weight: 700; font-size: 0.9rem; }
+  .badge-swatch {
+    width: 28px; height: 12px;
+    border-radius: 2px;
+    border: 1px solid rgba(0,0,0,0.15);
+    display: inline-block;
+  }
+  .td-loc { color: var(--muted); font-size: 0.9rem; }
+  /* ALERTS */
+  .alerts { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  .alert {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-left-width: 4px;
+    border-radius: 12px;
+    padding: 16px 20px;
+  }
+  .alert-info { border-left-color: var(--blue); }
+  .alert-warn { border-left-color: var(--amber); }
+  .alert-title {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 7px;
+  }
+  .alert-info .alert-title { color: var(--blue); }
+  .alert-warn .alert-title { color: var(--amber); }
+  .alert p { font-size: 0.9rem; color: var(--muted); line-height: 1.5; font-weight: 400; }
+  /* FOOTER */
+  footer {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 13px 22px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  footer span { font-family: var(--display); font-size: 0.78rem; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: var(--black); }
+  ::-webkit-scrollbar-thumb { background: var(--red); border-radius: 3px; }
+  @media (max-width: 720px) {
+    .wire-grid, .alerts { grid-template-columns: 1fr; }
+    .header { flex-direction: column; }
+  }
+ </style>
+ <div class="page">
+  <header class="header">
+   <img src="https://narrowaisleservice.github.io/Flexi-Parts-System/flexi-logo-white.svg" alt="Flexi">
+   <div>
+    <h1>
+     Smart Console Guide
+    </h1>
+    <p>
+     Flexi ACe Control Panel - User Manual
+    </p>
+   </div>
+  </header>
+  <footer>
+   <span>
+    Narrow Aisle Service
+   </span>
+   <span>
+    Smart Console Guide
+   </span>
+   <span>
+    Flexi ACe Control Panel
+   </span>
+  </footer>
+ </div>
