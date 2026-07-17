@@ -1,0 +1,707 @@
+<meta>
+ 
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ 
+ <title>
+  ACiON AUX Hydraulic Enable Settings
+ </title>
+ <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&amp;family=DM+Sans:wght@400;500;700&amp;family=DM+Mono:wght@500&amp;display=swap" rel="stylesheet">
+ <style>
+  :root {
+      --red: #df0a1e;
+      --red-dim: #a80716;
+      --red-glow: rgba(223, 10, 30, 0.25);
+      --red-subtle: rgba(223, 10, 30, 0.06);
+      --green: #22c55e;
+      --green-subtle: rgba(34, 197, 94, 0.08);
+      --green-dim: rgba(34, 197, 94, 0.3);
+      --bg: #f7f7f8;
+      --bg-card: #ffffff;
+      --bg-elevated: #fafafa;
+      --bg-row-alt: #f5f5f6;
+      --border: #ececec;
+      --border-bright: #d8d8d8;
+      --text: #0a0a0a;
+      --text-muted: #6b6b6b;
+      --text-dim: #9a9a9a;
+      --mono: 'DM Mono', monospace;
+      --display: 'IBM Plex Sans', sans-serif;
+      --ui: 'DM Sans', sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--ui);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(223, 10, 30, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(223, 10, 30, 0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 32px 20px 60px;
+    }
+    /* ── HEADER ── */
+    .header {
+      text-align: center;
+      padding: 40px 0 36px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 36px;
+      position: relative;
+    }
+    .header::after {
+      content: '';
+      position: absolute;
+      bottom: -1px; left: 50%;
+      transform: translateX(-50%);
+      width: 200px; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--red), transparent);
+    }
+    .header-eyebrow {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.3em;
+      color: var(--red);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .header h1 {
+      font-family: var(--display);
+      font-size: clamp(32px, 5vw, 56px);
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      text-transform: uppercase;
+      color: var(--text);
+      line-height: 1;
+    }
+    .header h1 span { color: var(--red); }
+    .header-sub {
+      margin-top: 10px;
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.15em;
+      color: var(--text-muted);
+    }
+    /* ── STEPS ── */
+    .step-block {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+    .step-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-elevated);
+    }
+    .step-title {
+      font-family: var(--display);
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      color: var(--text);
+    }
+    .step-badge {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      color: var(--red);
+      background: var(--red-subtle);
+      border: 1px solid var(--red-dim);
+      padding: 4px 12px;
+      text-transform: uppercase;
+    }
+    .step-body { padding: 20px; }
+    /* ── INSTRUCTION LIST ── */
+    .instruction-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .instruction-list li {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      font-size: 14px;
+      line-height: 1.55;
+      color: #4a4a4a;
+    }
+    .inst-num {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--red);
+      background: var(--red-subtle);
+      border: 1px solid var(--red-dim);
+      min-width: 24px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .inst-num.pin {
+      background: var(--red);
+      color: #fff;
+      border-color: var(--red);
+      min-width: auto;
+      padding: 0 10px;
+      font-size: 13px;
+      letter-spacing: 0.15em;
+    }
+    .path-tag {
+      font-family: var(--mono);
+      font-size: 11px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-bright);
+      color: var(--text-muted);
+      padding: 2px 8px;
+      letter-spacing: 0.06em;
+    }
+    .path-tag span { color: var(--red); }
+    /* ── FUNCTION TABLE ── */
+    .func-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+    }
+    .func-table thead th {
+      background: var(--bg-elevated);
+      padding: 10px 16px;
+      text-align: left;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.22em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border);
+      font-weight: 500;
+    }
+    .func-table thead th:last-child { text-align: center; }
+    .func-table tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.1s;
+    }
+    .func-table tbody tr:last-child { border-bottom: none; }
+    .func-table tbody tr:nth-child(even) { background: var(--bg-row-alt); }
+    .func-table tbody tr:hover { background: var(--red-subtle); }
+    .func-table td {
+      padding: 11px 16px;
+      vertical-align: middle;
+    }
+    .func-name {
+      font-family: var(--mono);
+      font-size: 13px;
+      letter-spacing: 0.06em;
+      color: var(--red);
+    }
+    .func-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .checkbox-cell { text-align: center; }
+    /* Custom checkbox */
+    .toggle-wrap {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .toggle-wrap input[type="checkbox"] {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 36px;
+      height: 20px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-bright);
+      border-radius: 10px;
+      cursor: pointer;
+      position: relative;
+      transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+    }
+    .toggle-wrap input[type="checkbox"]::after {
+      content: '';
+      position: absolute;
+      top: 3px; left: 3px;
+      width: 12px; height: 12px;
+      background: var(--text-dim);
+      border-radius: 50%;
+      transition: left 0.2s, background 0.2s;
+    }
+    .toggle-wrap input[type="checkbox"]:checked {
+      background: var(--green-subtle);
+      border-color: var(--green);
+      box-shadow: 0 0 8px rgba(34, 197, 94, 0.25);
+    }
+    .toggle-wrap input[type="checkbox"]:checked::after {
+      left: 19px;
+      background: var(--green);
+    }
+    /* ── SUMMARY TABLE ── */
+    .summary-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+    }
+    .summary-table thead th {
+      background: var(--bg-elevated);
+      padding: 10px 16px;
+      text-align: left;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.22em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border);
+      font-weight: 500;
+    }
+    .summary-table tbody tr {
+      border-bottom: 1px solid var(--border);
+    }
+    .summary-table tbody tr:last-child { border-bottom: none; }
+    .summary-table td {
+      padding: 10px 16px;
+      font-size: 13px;
+      vertical-align: middle;
+    }
+    .summary-table .s-name {
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      color: #4a4a4a;
+    }
+    .status-enabled {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      color: var(--green);
+      background: var(--green-subtle);
+      border: 1px solid var(--green-dim);
+      padding: 3px 10px;
+      display: inline-block;
+    }
+    .status-disabled {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      color: var(--text-dim);
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      padding: 3px 10px;
+      display: inline-block;
+    }
+    .summary-total {
+      background: var(--bg-elevated);
+    }
+    .summary-total td {
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+    }
+    .summary-total .total-val {
+      color: var(--red);
+      font-size: 14px;
+    }
+    /* ── WARNING BANNER ── */
+    .warning-banner {
+      margin-top: 20px;
+      padding: 14px 20px;
+      background: var(--red-subtle);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--red);
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .warning-banner p {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .warning-banner strong { color: var(--red); }
+    /* ── RESET BUTTON ── */
+    .reset-btn {
+      display: block;
+      margin: 32px auto 0;
+      padding: 12px 40px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-bright);
+      color: var(--text-muted);
+      font-family: var(--display);
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .reset-btn:hover {
+      border-color: var(--red);
+      color: var(--red);
+      background: var(--red-subtle);
+      box-shadow: 0 0 12px var(--red-glow);
+    }
+    /* ── FOOTER ── */
+    .footer {
+      text-align: center;
+      margin-top: 48px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+ </style>
+ <div class="container">
+  <div class="header">
+   <div class="header-eyebrow">
+    Configuration Tool &nbsp;/&nbsp; Hydraulic Settings
+   </div>
+   <h1>
+    ACiON
+    <span>
+     AUX Hydraulic
+    </span>
+    Enable
+   </h1>
+   <div class="header-sub">
+    Narrow Aisle Ltd &nbsp;·&nbsp; Configure Hydraulic Function Parameters
+   </div>
+  </div>
+  <!-- STEP 1 -->
+  <div class="step-block">
+   <div class="step-header">
+    <div class="step-title">
+     Display Settings Configuration
+    </div>
+    <div class="step-badge">
+     Step 01
+    </div>
+   </div>
+   <div class="step-body">
+    <ul class="instruction-list">
+     <li>
+      <span class="inst-num">
+       01
+      </span>
+      <span>
+       Navigate to the
+       <strong style="color:var(--text)">
+        Display
+       </strong>
+       and press the settings cog icon
+      </span>
+     </li>
+     <li>
+      <span class="inst-num">
+       02
+      </span>
+      <span>
+       Enter PIN &nbsp;
+       <span class="inst-num pin">
+        1234
+       </span>
+       &nbsp; to access the settings menu
+      </span>
+     </li>
+    </ul>
+   </div>
+  </div>
+  <!-- STEP 2 -->
+  <div class="step-block">
+   <div class="step-header">
+    <div class="step-title">
+     Hydraulic Function Enable / Disable
+    </div>
+    <div class="step-badge">
+     Step 02
+    </div>
+   </div>
+   <div class="step-body">
+    <ul class="instruction-list">
+     <li>
+      <span class="inst-num">
+       01
+      </span>
+      <span>
+       Navigate to: &nbsp;
+       <span class="path-tag">
+        Settings
+        <span>
+         ›
+        </span>
+        Hydraulic
+        <span>
+         ›
+        </span>
+        Enable/Disable Functions
+       </span>
+      </span>
+     </li>
+     <li>
+      <span class="inst-num">
+       02
+      </span>
+      <span>
+       Select which hydraulic functions to enable for this truck using the toggles below
+      </span>
+     </li>
+    </ul>
+    <table class="func-table">
+     <thead>
+      <tr>
+       <th style="width:22%">
+        Function
+       </th>
+       <th>
+        Description
+       </th>
+       <th style="width:100px; text-align:center;">
+        Enable
+       </th>
+      </tr>
+     </thead>
+     <tbody>
+      <tr>
+       <td>
+        <span class="func-name">
+         AUX 1
+        </span>
+       </td>
+       <td>
+        <span class="func-desc">
+         Primary Auxiliary Function
+        </span>
+       </td>
+       <td class="checkbox-cell">
+        <div class="toggle-wrap">
+         <input type="checkbox" id="aux1" onchange="updateSummary()">
+        </div>
+       </td>
+      </tr>
+      <tr>
+       <td>
+        <span class="func-name">
+         AUX 2
+        </span>
+       </td>
+       <td>
+        <span class="func-desc">
+         Secondary Auxiliary Function
+        </span>
+       </td>
+       <td class="checkbox-cell">
+        <div class="toggle-wrap">
+         <input type="checkbox" id="aux2" onchange="updateSummary()">
+        </div>
+       </td>
+      </tr>
+      <tr>
+       <td>
+        <span class="func-name">
+         AUX 3
+        </span>
+       </td>
+       <td>
+        <span class="func-desc">
+         Tertiary Auxiliary Function
+        </span>
+       </td>
+       <td class="checkbox-cell">
+        <div class="toggle-wrap">
+         <input type="checkbox" id="aux3" onchange="updateSummary()">
+        </div>
+       </td>
+      </tr>
+      <tr>
+       <td>
+        <span class="func-name">
+         TILT FWD
+        </span>
+       </td>
+       <td>
+        <span class="func-desc">
+         Mast Tilt Forward Control
+        </span>
+       </td>
+       <td class="checkbox-cell">
+        <div class="toggle-wrap">
+         <input type="checkbox" id="tiltForward" onchange="updateSummary()">
+        </div>
+       </td>
+      </tr>
+      <tr>
+       <td>
+        <span class="func-name">
+         TILT BWD
+        </span>
+       </td>
+       <td>
+        <span class="func-desc">
+         Mast Tilt Backward Control
+        </span>
+       </td>
+       <td class="checkbox-cell">
+        <div class="toggle-wrap">
+         <input type="checkbox" id="tiltBackward" onchange="updateSummary()">
+        </div>
+       </td>
+      </tr>
+      <tr>
+       <td>
+        <span class="func-name">
+         LIFT
+        </span>
+       </td>
+       <td>
+        <span class="func-desc">
+         Main Lift Function
+        </span>
+       </td>
+       <td class="checkbox-cell">
+        <div class="toggle-wrap">
+         <input type="checkbox" id="lift" onchange="updateSummary()" checked="">
+        </div>
+       </td>
+      </tr>
+      <tr>
+       <td>
+        <span class="func-name">
+         LOWER
+        </span>
+       </td>
+       <td>
+        <span class="func-desc">
+         Main Lower Function
+        </span>
+       </td>
+       <td class="checkbox-cell">
+        <div class="toggle-wrap">
+         <input type="checkbox" id="lower" onchange="updateSummary()" checked="">
+        </div>
+       </td>
+      </tr>
+     </tbody>
+    </table>
+   </div>
+  </div>
+  <!-- STEP 3 -->
+  <div class="step-block">
+   <div class="step-header">
+    <div class="step-title">
+     Configuration Summary
+    </div>
+    <div class="step-badge">
+     Step 03
+    </div>
+   </div>
+   <div class="step-body">
+    <ul class="instruction-list">
+     <li>
+      <span class="inst-num">
+       01
+      </span>
+      <span>
+       Review configuration below, then
+       <strong style="color:var(--text)">
+        save settings on the display
+       </strong>
+      </span>
+     </li>
+    </ul>
+    <table class="summary-table">
+     <thead>
+      <tr>
+       <th>
+        Function
+       </th>
+       <th>
+        Status
+       </th>
+      </tr>
+     </thead>
+     <tbody id="summaryBody">
+     </tbody>
+    </table>
+    <div class="warning-banner">
+     <p>
+      ⚠ &nbsp;
+      <strong>
+       Important:
+      </strong>
+      Remember to SAVE settings on the display after configuration. Unsaved changes will be lost on power cycle.
+     </p>
+    </div>
+   </div>
+  </div>
+  <button class="reset-btn" onclick="resetForm()">
+   Reset Configuration
+  </button>
+  <div class="footer">
+   Flexi Narrow Aisle Ltd &nbsp;·&nbsp; ACiON AUX Hydraulic Configuration &nbsp;·&nbsp; Internal Use Only
+  </div>
+ </div>
+ <script>
+  var functions = [
+    { id: 'aux1',        name: 'AUX 1' },
+    { id: 'aux2',        name: 'AUX 2' },
+    { id: 'aux3',        name: 'AUX 3' },
+    { id: 'tiltForward', name: 'TILT FWD' },
+    { id: 'tiltBackward',name: 'TILT BWD' },
+    { id: 'lift',        name: 'LIFT' },
+    { id: 'lower',       name: 'LOWER' }
+  ];
+  function updateSummary() {
+    var body = document.getElementById('summaryBody');
+    var enabledCount = 0;
+    var html = '';
+    functions.forEach(function(fn) {
+      var checked = document.getElementById(fn.id).checked;
+      if (checked) enabledCount++;
+      html += '<tr>' +
+        '<td><span class="s-name">' + fn.name + '</span></td>' +
+        '<td>' + (checked
+          ? '<span class="status-enabled">ENABLED</span>'
+          : '<span class="status-disabled">DISABLED</span>') +
+        '</td></tr>';
+    });
+    html += '<tr class="summary-total">' +
+      '<td>Total Enabled</td>' +
+      '<td><span class="total-val">' + enabledCount + ' / ' + functions.length + '</span></td>' +
+      '</tr>';
+    body.innerHTML = html;
+  }
+  function resetForm() {
+    if (confirm('Reset all hydraulic settings to default?')) {
+      document.getElementById('aux1').checked = false;
+      document.getElementById('aux2').checked = false;
+      document.getElementById('aux3').checked = false;
+      document.getElementById('tiltForward').checked = false;
+      document.getElementById('tiltBackward').checked = false;
+      document.getElementById('lift').checked = true;
+      document.getElementById('lower').checked = true;
+      updateSummary();
+    }
+  }
+  document.addEventListener('DOMContentLoaded', updateSummary);
+ </script>
