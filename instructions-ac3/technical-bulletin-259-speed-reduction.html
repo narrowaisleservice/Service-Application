@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#df0a1e">
+<title>Technical Bulletin 259 - Speed Reduction</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #ffffff;
+    color: #101010;
+    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    padding: 0 0 32px;
+    min-height: 100vh;
+  }
+  .page { max-width: 1100px; margin: 0 auto; }
+
+  .ft-header { background: #ffffff; border: 1px solid #e8e8e8; border-left: 4px solid #df0a1e; border-radius: 16px; margin: 16px 16px 0; padding: 20px 24px; display: flex; align-items: center; gap: 16px; }
+  .ft-logo { height: 40px; filter: invert(1); }
+  .ft-header-text h1 { font-family: 'IBM Plex Sans', sans-serif; font-size: 28px; font-weight: 700; text-transform: uppercase; line-height: 1.1; color: #101010; }
+  .ft-header-text p { font-size: 13px; color: #707070; margin-top: 4px; }
+
+  .ft-badges { display: flex; gap: 8px; margin: 12px 16px 0; flex-wrap: wrap; }
+  .ft-badge { background: #fafafa; border: 1px solid #e8e8e8; border-radius: 6px; padding: 5px 12px; font-size: 12px; color: #707070; font-weight: 500; }
+
+  .ft-section { margin: 20px 16px 0; }
+  .ft-card { background: #ffffff; border: 1px solid #e8e8e8; border-radius: 12px; padding: 20px; }
+  .ft-card-title { font-family: 'IBM Plex Sans', sans-serif; font-size: 16px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: #101010; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #e8e8e8; }
+
+  .ft-alert { border-radius: 8px; padding: 14px 16px; margin: 12px 0; font-size: 14px; line-height: 1.5; }
+  .ft-alert-warn { background: #fffbeb; border-left: 4px solid #f59e0b; color: #92650d; }
+  .ft-alert-danger { background: #fef2f2; border-left: 4px solid #df0a1e; color: #b91c1c; }
+  .ft-alert strong { display: block; margin-bottom: 4px; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; font-family: 'IBM Plex Sans', sans-serif; }
+
+  .ft-steps { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+  .ft-step { background: #fafafa; border-left: 4px solid #df0a1e; border-radius: 0 8px 8px 0; padding: 14px 16px; display: flex; gap: 14px; align-items: flex-start; }
+  .ft-step-num { background: #df0a1e; color: #fff; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; flex-shrink: 0; margin-top: 1px; font-family: 'IBM Plex Sans', sans-serif; }
+  .ft-step-title { font-family: 'IBM Plex Sans', sans-serif; font-weight: 700; font-size: 15px; color: #101010; text-transform: uppercase; margin-bottom: 4px; }
+  .ft-step-desc { font-size: 13px; color: #707070; line-height: 1.55; font-weight: 400; }
+
+  .ft-calc { background: #fafafa; border: 1px solid #e8e8e8; border-radius: 10px; padding: 20px; margin-top: 12px; }
+  .ft-calc-label { font-size: 13px; color: #707070; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+  input[type=range] { width: 100%; accent-color: #df0a1e; cursor: pointer; }
+  .ft-calc-val { text-align: center; font-family: 'IBM Plex Sans', sans-serif; font-size: 36px; font-weight: 700; color: #df0a1e; margin: 8px 0 2px; }
+  .ft-calc-sub { text-align: center; font-size: 12px; color: #909090; }
+
+  .ft-table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 14px; }
+  .ft-table thead tr { background: #df0a1e; }
+  .ft-table th { padding: 10px 12px; text-align: left; font-family: 'IBM Plex Sans', sans-serif; font-weight: 700; text-transform: uppercase; font-size: 12px; letter-spacing: 0.05em; color: #fff; }
+  .ft-table td { padding: 10px 12px; border-bottom: 1px solid #e8e8e8; color: #101010; }
+  .ft-table tbody tr:nth-child(even) td { background: #fafafa; }
+
+  .ft-part-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-top: 12px; }
+  .ft-part { background: #fafafa; border: 1px solid #e8e8e8; border-radius: 8px; padding: 14px; }
+  .ft-part-name { font-family: 'IBM Plex Sans', sans-serif; font-size: 13px; font-weight: 700; color: #df0a1e; text-transform: uppercase; margin-bottom: 6px; }
+  .ft-part p { font-size: 12px; color: #707070; line-height: 1.6; }
+
+  .ft-keypad { background: #0a0a0a; border: 1px solid #2a2a2a; border-radius: 10px; padding: 16px; max-width: 260px; margin: 12px auto 0; }
+  .ft-display { background: #0a0a0a; border: 2px solid #df0a1e; border-radius: 6px; padding: 16px; text-align: center; font-family: monospace; font-size: 13px; color: #4ade80; min-height: 54px; display: flex; align-items: center; justify-content: center; white-space: pre; margin-bottom: 12px; }
+  .ft-keys { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .ft-key { background: #df0a1e; color: #fff; border: none; padding: 14px 8px; border-radius: 6px; cursor: pointer; font-family: 'IBM Plex Sans', sans-serif; font-weight: 700; font-size: 13px; text-align: center; line-height: 1.2; transition: background 0.15s; }
+  .ft-key:hover { background: #c3161e; }
+  .ft-key.nav { background: #1a1a1a; border: 1px solid #2a2a2a; color: #fff; }
+  .ft-key.nav:hover { background: #2a2a2a; }
+
+  .ft-footer { background: #fafafa; border: 1px solid #e8e8e8; margin: 24px 16px 0; border-radius: 12px; padding: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; }
+  .ft-footer h3 { font-family: 'IBM Plex Sans', sans-serif; font-size: 13px; font-weight: 700; text-transform: uppercase; color: #df0a1e; margin-bottom: 6px; letter-spacing: 0.05em; }
+  .ft-footer p { font-size: 12px; color: #707070; line-height: 1.6; }
+
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: #f0f0f0; }
+  ::-webkit-scrollbar-thumb { background: #df0a1e; border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: #c3161e; }
+</style>
+</head>
+<body>
+<div class="page">
+ <div class="ft-header">
+  <img class="ft-logo" src="https://narrowaisleservice.github.io/Flexi-Parts-System/flexi-logo-white.svg" alt="Flexi logo">
+  <div class="ft-header-text">
+   <h1>Technical Bulletin 259</h1>
+   <p>Speed Reduction — Flexi AC Trucks</p>
+  </div>
+ </div>
+
+ <div class="ft-badges">
+  <span class="ft-badge">QD 290</span>
+  <span class="ft-badge">27/07/17</span>
+  <span class="ft-badge">Narrow Aisle</span>
+  <span class="ft-badge">Flexi AC / AC1200</span>
+ </div>
+
+ <div class="ft-section">
+  <div class="ft-card">
+   <div class="ft-card-title">Overview</div>
+   <div class="ft-alert ft-alert-warn">
+    <strong>Summary</strong>
+    The maximum speed of Flexi AC trucks can be reduced by enabling a speed reduction input to the traction controller and adjusting the Cutback Speed 2 setting.
+   </div>
+   <div class="ft-alert ft-alert-danger">
+    <strong>Notice</strong>
+    The 'tortoise' speed reduction symbol on the digital display will be permanently illuminated when this feature is enabled.
+   </div>
+  </div>
+ </div>
+
+ <div class="ft-section">
+  <div class="ft-card">
+   <div class="ft-card-title">Enabling Speed Reduction Input</div>
+   <p style="font-size:13px;color:#707070;line-height:1.6;margin-bottom:12px">
+    Fit a link between pins 1 &amp; 2 on truck harness plug <strong style="color:#101010">H</strong>, located below the spool valve controller.
+   </p>
+   <div style="background:#fafafa;border:1px solid #e8e8e8;border-left:4px solid #df0a1e;border-radius:0 8px 8px 0;padding:12px 16px;font-family:monospace;font-size:15px;color:#df0a1e;font-weight:700">
+    Part #42603-00 — Pre-fitted link wire plug
+   </div>
+  </div>
+ </div>
+
+ <div class="ft-section">
+  <div class="ft-card">
+   <div class="ft-card-title">Speed Calculator</div>
+   <div class="ft-calc">
+    <div class="ft-calc-label">Cutback Speed 2 Setting</div>
+    <input type="range" id="spd" min="10" max="100" value="60" step="10">
+    <div class="ft-calc-val" id="spdVal">60%</div>
+    <div style="background:#df0a1e;height:2px;border-radius:2px;margin:8px 0"></div>
+    <div class="ft-calc-val" id="spdKm" style="font-size:48px">~7.8 km/h</div>
+    <div class="ft-calc-sub">Estimated max speed — AC1200 with typical load</div>
+   </div>
+   <div class="ft-alert ft-alert-warn" style="margin-top:12px">
+    <strong>Note</strong>
+    Actual speed varies by truck model, load weight and battery condition.
+   </div>
+  </div>
+ </div>
+
+ <div class="ft-section">
+  <div class="ft-card">
+   <div class="ft-card-title">Zapi Console — Configuration Steps</div>
+   <div class="ft-keypad">
+    <div class="ft-display" id="disp">ZAPI CONSOLE</div>
+    <div class="ft-keys">
+     <button class="ft-key nav" onclick="kp()">↑ ROLL</button>
+     <button class="ft-key" onclick="kp()">ENTER</button>
+     <button class="ft-key nav" onclick="kp()">PARAM +</button>
+     <button class="ft-key nav" onclick="kp()">↓ ROLL</button>
+     <button class="ft-key" onclick="kp()">OUT</button>
+     <button class="ft-key nav" onclick="kp()">PARAM −</button>
+    </div>
+   </div>
+   <div class="ft-steps">
+    <div class="ft-step">
+     <div class="ft-step-num">1</div>
+     <div>
+      <div class="ft-step-title">Preparation</div>
+      <div class="ft-step-desc">Keyswitch OFF. Disconnect digital display harness from traction controller plug F. Connect Zapi digital console.</div>
+     </div>
+    </div>
+    <div class="ft-step">
+     <div class="ft-step-num">2</div>
+     <div>
+      <div class="ft-step-title">Power On</div>
+      <div class="ft-step-desc">Turn keyswitch ON. Display shows controller info — model, software version, voltage, current, hour count.</div>
+     </div>
+    </div>
+    <div class="ft-step">
+     <div class="ft-step-num">3</div>
+     <div>
+      <div class="ft-step-title">Access Main Menu</div>
+      <div class="ft-step-desc">Press ENTER. Display shows "MAIN MENU — PARAMETER CHANGE".</div>
+     </div>
+    </div>
+    <div class="ft-step">
+     <div class="ft-step-num">4</div>
+     <div>
+      <div class="ft-step-title">Navigate to Cutback Speed</div>
+      <div class="ft-step-desc">Press ENTER again. Press ROLL UP until display shows "CUTBACK SPEED 2" with current % (default 60%).</div>
+     </div>
+    </div>
+    <div class="ft-step">
+     <div class="ft-step-num">5</div>
+     <div>
+      <div class="ft-step-title">Adjust Setting</div>
+      <div class="ft-step-desc">Press PARAM SET up or down to adjust in 10% increments. E.g. 40% gives ~8 km/h on AC1200.</div>
+     </div>
+    </div>
+    <div class="ft-step">
+     <div class="ft-step-num">6</div>
+     <div>
+      <div class="ft-step-title">Save</div>
+      <div class="ft-step-desc">Press OUT. Confirm with ENTER when prompted "ARE YOU SURE? YES=ENTER NO=OUT".</div>
+     </div>
+    </div>
+    <div class="ft-step">
+     <div class="ft-step-num">7</div>
+     <div>
+      <div class="ft-step-title">Exit &amp; Reconnect</div>
+      <div class="ft-step-desc">Press OUT twice. Keyswitch OFF. Disconnect console, reconnect truck display harness to plug F.</div>
+     </div>
+    </div>
+   </div>
+  </div>
+ </div>
+
+ <div class="ft-section">
+  <div class="ft-card">
+   <div class="ft-card-title">Quick Reference</div>
+   <table class="ft-table">
+    <thead>
+     <tr>
+      <th>Setting</th>
+      <th>Reduction</th>
+      <th>Est. Max Speed (AC1200)</th>
+     </tr>
+    </thead>
+    <tbody>
+     <tr>
+      <td>60% (default)</td>
+      <td>Slight</td>
+      <td>~10–11 km/h</td>
+     </tr>
+     <tr>
+      <td>50%</td>
+      <td>Moderate</td>
+      <td>~9 km/h</td>
+     </tr>
+     <tr>
+      <td>40%</td>
+      <td>Significant</td>
+      <td>~8 km/h</td>
+     </tr>
+     <tr>
+      <td>30%</td>
+      <td>Heavy</td>
+      <td>~6–7 km/h</td>
+     </tr>
+    </tbody>
+   </table>
+   <div class="ft-part-grid">
+    <div class="ft-part">
+     <div class="ft-part-name">Plug H</div>
+     <p>Below spool valve controller<br>Link pins 1 &amp; 2<br>Enables speed reduction</p>
+    </div>
+    <div class="ft-part">
+     <div class="ft-part-name">Plug F</div>
+     <p>Traction controller<br>Digital display / console<br>Disconnect for programming</p>
+    </div>
+    <div class="ft-part">
+     <div class="ft-part-name">Part #42603-00</div>
+     <p>Pre-fitted link plug<br>Narrow Aisle supply<br>Speed reduction enable</p>
+    </div>
+   </div>
+  </div>
+ </div>
+
+ <div class="ft-section">
+  <div class="ft-alert ft-alert-danger">
+   <strong>Documentation Required</strong>
+   Inform Narrow Aisle Design department in writing of any modified settings to ensure replacement controllers are configured correctly.
+  </div>
+ </div>
+
+ <div class="ft-footer">
+  <div>
+   <h3>Document Info</h3>
+   <p>Bulletin 259<br>Issue: 27/07/17<br>Ref: QD 290</p>
+  </div>
+  <div>
+   <h3>Models</h3>
+   <p>Flexi AC Trucks<br>AC1200 Series<br>Narrow Aisle Equipment</p>
+  </div>
+  <div>
+   <h3>Contact</h3>
+   <p>Narrow Aisle Design Dept.<br>Document all modifications<br>For replacement controller config</p>
+  </div>
+ </div>
+</div>
+
+<script>
+  const steps = [
+    'ZAPI CONSOLE\nV 3.07',
+    'AC3T2CF CNR1.09\n48V 600A 0000',
+    'MAIN MENU\nPARAMETER CHANGE',
+    'ACCELER. DELAY\nLEVEL = 1',
+    'CUTBACK SPEED 2\n60%',
+    'CUTBACK SPEED 2\n40%',
+    'ARE YOU SURE ?\nYES=ENTER NO=OUT',
+    'MAIN MENU\nPARAMETER CHANGE',
+    'AC3T2CF CNR1.09\n48V 600A 0000',
+    'DISCONNECTED'
+  ];
+  let si = 0;
+  function kp() {
+    document.getElementById('disp').textContent = steps[si % steps.length];
+    si++;
+  }
+  const sl = document.getElementById('spd');
+  const sv = document.getElementById('spdVal');
+  const sk = document.getElementById('spdKm');
+  function upd() {
+    const v = parseInt(sl.value);
+    sv.textContent = v + '%';
+    const spd = Math.round(13 * v / 100 * 10) / 10;
+    sk.textContent = '~' + spd + ' km/h';
+  }
+  sl.addEventListener('input', upd);
+  upd();
+</script>
+</body>
+</html>
