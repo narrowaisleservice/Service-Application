@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#df0a1e">
+<title>ZAPI H2B User Manual</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #ffffff; padding: 24px; }
+  .zapi-manual * { box-sizing: border-box; }
+  .zapi-manual { font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #101010; line-height: 1.6; max-width: 1400px; margin: 0 auto; }
+
+  .zapi-header { background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%); border: 1px solid #e8e8e8; border-left: 4px solid #df0a1e; color: #101010; padding: 30px 40px; border-radius: 16px; margin-bottom: 2rem; }
+  .zapi-header h1 { font-family: 'IBM Plex Sans', sans-serif; font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem; color: #101010; }
+  .zapi-header p { color: #707070; margin: 0; }
+  .zapi-search { margin: 1rem 0; }
+  .zapi-search input { width: 100%; max-width: 400px; padding: 0.8rem 1rem; border: 1px solid #e8e8e8; border-radius: 25px; font-size: 1rem; font-family: 'DM Sans', sans-serif; color: #101010; }
+  .zapi-search input:focus { outline: none; border-color: #df0a1e; }
+
+  .zapi-container { display: flex; gap: 2rem; flex-wrap: wrap; }
+
+  .zapi-sidebar { flex: 0 0 280px; background: #ffffff; border: 1px solid #e8e8e8; border-radius: 12px; padding: 1.5rem; }
+  .zapi-sidebar h3 { font-family: 'IBM Plex Sans', sans-serif; color: #df0a1e; margin-bottom: 1rem; font-size: 1.05rem; font-weight: 700; padding-bottom: 0.5rem; border-bottom: 2px solid #e8e8e8; }
+  .zapi-nav { list-style: none; padding: 0; margin: 0; }
+  .zapi-nav li { margin-bottom: 0.5rem; }
+  .zapi-nav a { color: #707070; text-decoration: none; display: block; padding: 0.6rem 0.8rem; border-radius: 7px; transition: all 0.2s; cursor: pointer; border: 1px solid transparent; }
+  .zapi-nav a:hover { background: #f5f5f5; color: #101010; border-color: #e8e8e8; }
+  .zapi-nav a.active { background: rgba(223,10,30,0.08); border-color: rgba(223,10,30,0.3); color: #df0a1e; font-weight: 600; }
+  .zapi-sub-menu { margin-left: 1rem; margin-top: 0.3rem; }
+  .zapi-sub-menu a { font-size: 0.9rem; padding: 0.4rem 0.6rem; }
+
+  .zapi-content { flex: 1; min-width: 300px; background: #ffffff; border: 1px solid #e8e8e8; border-radius: 12px; padding: 2rem; }
+  .zapi-section { display: none; }
+  .zapi-section.active { display: block; animation: fadeIn 0.4s; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .zapi-content h2 { font-family: 'IBM Plex Sans', sans-serif; color: #101010; margin-bottom: 1.5rem; font-size: 1.8rem; font-weight: 700; border-bottom: 2px solid #e8e8e8; padding-bottom: 0.5rem; }
+  .zapi-content h3 { font-family: 'IBM Plex Sans', sans-serif; color: #df0a1e; margin-top: 2rem; margin-bottom: 1rem; font-size: 1.3rem; font-weight: 700; }
+  .zapi-content h4 { font-family: 'IBM Plex Sans', sans-serif; color: #101010; margin-top: 1.5rem; margin-bottom: 0.8rem; font-size: 1.1rem; font-weight: 700; }
+  .zapi-content p { margin-bottom: 1rem; color: #707070; }
+  .zapi-content ul, .zapi-content ol { margin: 1rem 0 1rem 2rem; color: #707070; }
+  .zapi-content li { margin-bottom: 0.5rem; }
+
+  .zapi-table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; background: #ffffff; border: 1px solid #e8e8e8; border-radius: 10px; overflow: hidden; }
+  .zapi-table th { background: #df0a1e; color: white; padding: 1rem; text-align: left; font-family: 'IBM Plex Sans', sans-serif; font-weight: 700; }
+  .zapi-table td { padding: 0.9rem 1rem; border-bottom: 1px solid #e8e8e8; color: #707070; }
+  .zapi-table tr:hover { background: #fafafa; }
+
+  .zapi-info-box { padding: 1.2rem; margin: 1.5rem 0; border-radius: 8px; border-left: 4px solid; color: #707070; }
+  .zapi-info-box strong { display: block; margin-bottom: 0.5rem; font-size: 1.05rem; font-family: 'IBM Plex Sans', sans-serif; }
+  .zapi-info-box.warning { background: #fffbeb; border-color: #f59e0b; }
+  .zapi-info-box.warning strong { color: #92650d; }
+  .zapi-info-box.danger { background: #fef2f2; border-color: #df0a1e; }
+  .zapi-info-box.danger strong { color: #b91c1c; }
+  .zapi-info-box.success { background: #f0fdf4; border-color: #22c55e; }
+  .zapi-info-box.success strong { color: #15803d; }
+  .zapi-info-box.info { background: #eff6ff; border-color: #3b82f6; }
+  .zapi-info-box.info strong { color: #1d4ed8; }
+
+  .zapi-spec-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin: 1.5rem 0; }
+  .zapi-spec-card { background: #fafafa; border: 1px solid #e8e8e8; border-top: 3px solid #df0a1e; color: #101010; padding: 1.5rem; border-radius: 10px; text-align: center; }
+  .zapi-spec-card h4 { font-family: 'DM Sans', sans-serif; color: #707070; margin: 0 0 0.5rem 0; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; }
+  .zapi-spec-value { font-family: 'IBM Plex Sans', sans-serif; font-size: 1.8rem; font-weight: 700; margin-top: 0.5rem; color: #df0a1e; }
+
+  .zapi-quick-links { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin: 2rem 0; }
+  .zapi-quick-link { background: #ffffff; border: 2px solid #df0a1e; border-radius: 8px; padding: 1.5rem; text-align: center; text-decoration: none; color: #df0a1e; font-weight: 700; transition: all 0.2s; cursor: pointer; display: block; font-family: 'IBM Plex Sans', sans-serif; }
+  .zapi-quick-link:hover { background: #df0a1e; color: white; transform: translateY(-3px); }
+  .zapi-icon { font-size: 2rem; display: block; margin-bottom: 0.5rem; }
+
+  .zapi-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 2px solid #e8e8e8; flex-wrap: wrap; }
+  .zapi-tab { padding: 0.8rem 1.5rem; background: none; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 700; color: #707070; border-bottom: 3px solid transparent; transition: all 0.2s; }
+  .zapi-tab:hover { color: #101010; }
+  .zapi-tab.active { color: #df0a1e; border-bottom-color: #df0a1e; }
+  .zapi-tab-content { display: none; }
+  .zapi-tab-content.active { display: block; }
+
+  .zapi-collapsible { background: #df0a1e; color: white; cursor: pointer; padding: 1rem; border: none; text-align: left; width: 100%; font-family: 'IBM Plex Sans', sans-serif; font-size: 1rem; font-weight: 700; border-radius: 6px; margin: 0.5rem 0; transition: all 0.2s; display: block; }
+  .zapi-collapsible:hover { background: #c3161e; }
+  .zapi-collapsible:after { content: '+'; float: right; font-size: 1.3rem; }
+  .zapi-collapsible.active:after { content: '−'; }
+  .zapi-collapsible-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; background: #fafafa; border: 1px solid #e8e8e8; border-top: none; border-radius: 0 0 6px 6px; padding: 0 1rem; }
+  .zapi-collapsible-content.active { padding: 1rem; max-height: 2000px; }
+  .zapi-collapsible-content p, .zapi-collapsible-content li { color: #707070; }
+
+  .zapi-breadcrumbs { color: #707070; margin-bottom: 1.5rem; font-size: 0.9rem; }
+  .zapi-breadcrumbs a { color: #df0a1e; text-decoration: none; cursor: pointer; }
+  .zapi-breadcrumbs a:hover { text-decoration: underline; }
+
+  @media (max-width: 768px) {
+    .zapi-container { flex-direction: column; }
+    .zapi-sidebar { flex: 1; }
+    .zapi-spec-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="zapi-manual">
+  <div class="zapi-header">
+   <h1>⚡ ZAPI H2B User Manual</h1>
+   <p>ZAPIMOS High-Frequency Controller - Interactive Guide</p>
+   <div class="zapi-search">
+    <input type="text" id="zapiSearchInput" placeholder="🔍 Search manual...">
+   </div>
+  </div>
+
+  <div class="zapi-container">
+   <aside class="zapi-sidebar">
+    <h3>📑 Table of Contents</h3>
+    <ul class="zapi-nav">
+     <li><a class="zapi-nav-link active" data-section="home">🏠 Home</a></li>
+     <li><a class="zapi-nav-link" data-section="introduction">📖 Introduction</a></li>
+     <li><a class="zapi-nav-link" data-section="specifications">⚙️ Specifications</a></li>
+     <li><a class="zapi-nav-link" data-section="installation">🔧 Installation</a></li>
+     <li><a class="zapi-nav-link" data-section="configuration">💻 Configuration</a></li>
+     <li><a class="zapi-nav-link" data-section="diagnosis">🔍 Diagnosis</a></li>
+     <li><a class="zapi-nav-link" data-section="alarms">⚠️ Alarm Codes</a></li>
+     <li><a class="zapi-nav-link" data-section="maintenance">🛠️ Maintenance</a></li>
+     <li><a class="zapi-nav-link" data-section="spare-parts">📦 Spare Parts</a></li>
+    </ul>
+   </aside>
+
+   <main class="zapi-content">
+    <!-- HOME SECTION -->
+    <section id="home" class="zapi-section active">
+     <h2>Welcome to the Zapi H2B Interactive Manual</h2>
+     <div class="zapi-info-box info">
+      <strong>ℹ️ About This Manual</strong>
+      This interactive manual covers the ZAPI H2B chopper controller, part of the ZAPIMOS family. Use the navigation menu to explore different sections.
+     </div>
+     <div class="zapi-quick-links">
+      <a class="zapi-quick-link zapi-nav-link" data-section="specifications"><span class="zapi-icon">⚙️</span>Technical Specs</a>
+      <a class="zapi-quick-link zapi-nav-link" data-section="installation"><span class="zapi-icon">🔧</span>Installation Guide</a>
+      <a class="zapi-quick-link zapi-nav-link" data-section="diagnosis"><span class="zapi-icon">🔍</span>Troubleshooting</a>
+      <a class="zapi-quick-link zapi-nav-link" data-section="alarms"><span class="zapi-icon">⚠️</span>Alarm Codes</a>
+     </div>
+     <h3>Key Features of the H2B Controller</h3>
+     <div class="zapi-spec-grid">
+      <div class="zapi-spec-card"><h4>Operating Voltage</h4><div class="zapi-spec-value">24-96V</div></div>
+      <div class="zapi-spec-card"><h4>Maximum Current</h4><div class="zapi-spec-value">600A</div></div>
+      <div class="zapi-spec-card"><h4>Frequency</h4><div class="zapi-spec-value">18 kHz</div></div>
+      <div class="zapi-spec-card"><h4>Protection Rating</h4><div class="zapi-spec-value">IP54</div></div>
+     </div>
+     <h3>Four Main Configurations</h3>
+     <div class="zapi-tabs">
+      <button class="zapi-tab active" data-tab="config1">Regenerative Traction</button>
+      <button class="zapi-tab" data-tab="config2">Standard Traction</button>
+      <button class="zapi-tab" data-tab="config3">Standard Pump</button>
+      <button class="zapi-tab" data-tab="config4">Pump + Hydro</button>
+     </div>
+     <div id="config1" class="zapi-tab-content active">
+      <h4>🔄 Regenerative Traction</h4>
+      <p>Motor control with energy regeneration during braking. This configuration returns energy to the battery during deceleration.</p>
+      <ul>
+       <li>Energy recovery during braking</li>
+       <li>3 speed reductions</li>
+       <li>Rapid inversion capability</li>
+       <li>Programmable braking curves</li>
+      </ul>
+     </div>
+     <div id="config2" class="zapi-tab-content">
+      <h4>➡️ Standard Traction</h4>
+      <p>Basic motor control without regeneration.</p>
+      <ul>
+       <li>Simple motor control</li>
+       <li>3 speed reductions</li>
+       <li>Handle or seat microswitch input</li>
+       <li>Quick inversion support</li>
+      </ul>
+     </div>
+     <div id="config3" class="zapi-tab-content">
+      <h4>⬆️ Standard Pump/Lifting</h4>
+      <p>5-speed pump control for lifting applications.</p>
+      <ul>
+       <li>4 lifting speeds with compensation</li>
+       <li>Proportional descent control</li>
+       <li>Main contactor handling</li>
+       <li>Bypass or weakening options</li>
+      </ul>
+     </div>
+     <div id="config4" class="zapi-tab-content">
+      <h4>⬆️➕ Pump + Hydro</h4>
+      <p>4-speed pump control plus hydrodrive motor management.</p>
+      <ul>
+       <li>4 lifting speeds</li>
+       <li>Dedicated hydrodrive motor control</li>
+       <li>Programmable delay timing</li>
+       <li>Proportional descent valve</li>
+      </ul>
+     </div>
+     <div class="zapi-info-box warning">
+      <strong>⚠️ Important Safety Notice</strong>
+      Never combine SCR low-frequency choppers with H2B modules. All controllers must be from the ZAPIMOS high-frequency family.
+     </div>
+    </section>
+
+    <!-- INTRODUCTION SECTION -->
+    <section id="introduction" class="zapi-section">
+     <div class="zapi-breadcrumbs"><a class="zapi-nav-link" data-section="home">Home</a> / Introduction</div>
+     <h2>Introduction to the ZAPIMOS Family</h2>
+     <p>The ZAPIMOS chopper family represents ZAPI's advanced solution for electric vehicle control systems.</p>
+     <h3>Design Philosophy</h3>
+     <button class="zapi-collapsible">1. Advanced Technology with Economic Costs</button>
+     <div class="zapi-collapsible-content">
+      <p>High-frequency MOS technology provides superior performance while maintaining competitive pricing. The 18 kHz switching frequency ensures smooth motor operation and high efficiency.</p>
+     </div>
+     <button class="zapi-collapsible">2. Maximum Safety</button>
+     <div class="zapi-collapsible-content">
+      <p>Real-time monitoring of all critical systems with self-diagnosis capabilities:</p>
+      <ul>
+       <li>Internal logic and power circuits</li>
+       <li>External components (contactors, sensors)</li>
+       <li>Temperature and current levels</li>
+       <li>Battery voltage and charge status</li>
+      </ul>
+     </div>
+     <button class="zapi-collapsible">3. Maximum Flexibility</button>
+     <div class="zapi-collapsible-content">
+      <p>Stored Programme Control (SPC) architecture allows:</p>
+      <ul>
+       <li>User-configurable operation modes</li>
+       <li>Parameter adjustment without hardware changes</li>
+       <li>Multiple configurations in a single controller</li>
+       <li>Easy updates and customization</li>
+      </ul>
+     </div>
+     <button class="zapi-collapsible">4. Open to Future Innovations</button>
+     <div class="zapi-collapsible-content">
+      <p>Standard communication protocol enables easy interfacing with various programming consoles and integration with external monitoring systems.</p>
+     </div>
+     <button class="zapi-collapsible">5. Optimum Level of Protection</button>
+     <div class="zapi-collapsible-content">
+      <p>IP54-rated sealed enclosure protects against water splashes, dust, acid, and harsh industrial environments.</p>
+     </div>
+    </section>
+
+    <!-- SPECIFICATIONS SECTION -->
+    <section id="specifications" class="zapi-section">
+     <div class="zapi-breadcrumbs"><a class="zapi-nav-link" data-section="home">Home</a> / Specifications</div>
+     <h2>Technical Specifications</h2>
+     <h3>Voltage Ranges</h3>
+     <table class="zapi-table">
+      <tbody>
+       <tr><th>Nominal Voltage</th><th>Operating Range</th></tr>
+       <tr><td>24V</td><td>14V - 32V</td></tr>
+       <tr><td>36V / 40V / 48V</td><td>22V - 55V</td></tr>
+       <tr><td>60V / 72V / 80V</td><td>36V - 90V</td></tr>
+       <tr><td>96V</td><td>57V - 120V</td></tr>
+      </tbody>
+     </table>
+     <h3>General Specifications</h3>
+     <table class="zapi-table">
+      <tbody>
+       <tr><th>Parameter</th><th>Value</th></tr>
+       <tr><td>Switching Frequency</td><td>18 kHz</td></tr>
+       <tr><td>Motor Type</td><td>DC wire wound series, 4-cable</td></tr>
+       <tr><td>Operating Temperature</td><td>-30°C to +40°C</td></tr>
+       <tr><td>Max Body Temperature</td><td>85°C (auto-protection at 80°C)</td></tr>
+       <tr><td>Protection Rating</td><td>IP54 (sealed enclosure)</td></tr>
+       <tr><td>Logic System</td><td>Microprocessor-based SPC</td></tr>
+      </tbody>
+     </table>
+     <h3>Four Available Configurations</h3>
+     <table class="zapi-table">
+      <tbody>
+       <tr><th>Mode</th><th>Description</th><th>Key Features</th></tr>
+       <tr><td><strong>Regenerative Traction</strong></td><td>Motor control with energy regeneration</td><td>Energy recovery, braking control, 3 speed reductions</td></tr>
+       <tr><td><strong>Standard Traction</strong></td><td>Basic motor control</td><td>Directional control, 3 speed reductions</td></tr>
+       <tr><td><strong>Standard Pump</strong></td><td>5-speed pump control</td><td>4 lift speeds + descent, proportional valve</td></tr>
+       <tr><td><strong>Pump + Hydro</strong></td><td>4-speed pump + 3rd motor</td><td>Lift control + hydrodrive motor</td></tr>
+      </tbody>
+     </table>
+    </section>
+
+    <!-- INSTALLATION SECTION -->
+    <section id="installation" class="zapi-section">
+     <div class="zapi-breadcrumbs"><a class="zapi-nav-link" data-section="home">Home</a> / Installation</div>
+     <h2>Installation Guide</h2>
+     <div class="zapi-info-box warning">
+      <strong>⚠️ Critical Installation Requirements</strong>
+      <ul>
+       <li>Mount on clean, flat metal surface with thermal grease</li>
+       <li>Power cables: 35-50mm² cross-section</li>
+       <li>Battery polarity: +B = positive, -B = negative</li>
+       <li>Contactors must NOT have external arc suppressors</li>
+       <li>Disconnect controller during battery charging</li>
+      </ul>
+     </div>
+     <h3>Installation Steps</h3>
+     <ol>
+      <li><strong>Physical Mounting:</strong> Secure to flat metal surface with thermal compound</li>
+      <li><strong>Cable Selection:</strong> Use appropriately sized cables</li>
+      <li><strong>Contactor Installation:</strong> ≤3A coil current, no external suppressors</li>
+      <li><strong>Fuse Selection:</strong> 10A for auxiliary circuits</li>
+      <li><strong>Connector Assembly:</strong> Follow color codes and pin assignments</li>
+      <li><strong>Pre-Startup Checks:</strong> Verify all connections</li>
+     </ol>
+     <div class="zapi-info-box danger">
+      <strong>⚠️ POLARITY WARNING</strong>
+      The power stage is NOT protected against reverse polarity. Connecting the battery backwards will destroy the power stage immediately.
+     </div>
+    </section>
+
+    <!-- CONFIGURATION SECTION -->
+    <section id="configuration" class="zapi-section">
+     <div class="zapi-breadcrumbs"><a class="zapi-nav-link" data-section="home">Home</a> / Configuration</div>
+     <h2>Configuration Overview</h2>
+     <p>The H2B controller is configured using either a mini console (10-level adjustment) or digital console (full programming).</p>
+     <h3>Initial Configuration Sequence</h3>
+     <ol>
+      <li><strong>Select Controller Model:</strong> Choose voltage and configuration mode</li>
+      <li><strong>Configure Options:</strong> Set operational features</li>
+      <li><strong>Set Battery Voltage:</strong> Program actual battery voltage</li>
+      <li><strong>Input Testing:</strong> Verify all wired inputs</li>
+      <li><strong>Potentiometer Calibration:</strong> Perform automatic signal acquisition</li>
+      <li><strong>Parameter Programming:</strong> Adjust operational parameters</li>
+     </ol>
+     <div class="zapi-info-box success">
+      <strong>✅ Potentiometer Auto-Calibration</strong>
+      <p>The H2B features automatic potentiometer calibration that compensates for mechanical asymmetries.</p>
+     </div>
+    </section>
+
+    <!-- DIAGNOSIS SECTION -->
+    <section id="diagnosis" class="zapi-section">
+     <div class="zapi-breadcrumbs"><a class="zapi-nav-link" data-section="home">Home</a> / Diagnosis</div>
+     <h2>Diagnosis &amp; Troubleshooting</h2>
+     <p>The H2B includes comprehensive diagnostic capabilities.</p>
+     <h3>Real-Time Monitoring</h3>
+     <ul>
+      <li>Battery voltage</li>
+      <li>Motor current (instantaneous)</li>
+      <li>Motor voltage (PWM output)</li>
+      <li>Controller temperature</li>
+      <li>Potentiometer position</li>
+      <li>Input/Output states</li>
+      <li>Hour meter</li>
+     </ul>
+     <h3>Self-Diagnostic System</h3>
+     <ol>
+      <li><strong>Key-On Diagnosis:</strong> Complete system check</li>
+      <li><strong>Standby Diagnosis:</strong> Continuous monitoring</li>
+      <li><strong>Running Diagnosis:</strong> Additional checks during operation</li>
+      <li><strong>Continuous Diagnosis:</strong> Temperature and battery monitoring</li>
+     </ol>
+    </section>
+
+    <!-- ALARMS SECTION -->
+    <section id="alarms" class="zapi-section">
+     <div class="zapi-breadcrumbs"><a class="zapi-nav-link" data-section="home">Home</a> / Alarm Codes</div>
+     <h2>LED Alarm Codes</h2>
+     <p>Count the number of LED blinks to identify the alarm type.</p>
+     <table class="zapi-table">
+      <tbody>
+       <tr><th>Blinks</th><th>Alarm Type</th><th>Description</th></tr>
+       <tr><td>1</td><td>Logic Anomaly</td><td>EEPROM error or watchdog fault</td></tr>
+       <tr><td>2</td><td>Incorrect Start</td><td>Wrong startup sequence</td></tr>
+       <tr><td>3</td><td>VMN Test Error</td><td>Power stage not responding</td></tr>
+       <tr><td>4</td><td>Accelerator Error</td><td>Accelerator voltage too high</td></tr>
+       <tr><td>5</td><td>Current Sensor Error</td><td>Current reading fault</td></tr>
+       <tr><td>6</td><td>Contactor Driver Fault</td><td>Short circuit on output</td></tr>
+       <tr><td>7</td><td>Thermal Protection</td><td>Temperature &gt;80°C</td></tr>
+       <tr><td>8</td><td>Contactor Won't Open</td><td>Contactor stuck</td></tr>
+       <tr><td>9</td><td>Contactor Stuck Closed</td><td>Brake/direction contactor issue</td></tr>
+       <tr><td>Continuous</td><td>Low Battery</td><td>Battery charge &lt;10%</td></tr>
+       <tr><td>Steady ON</td><td>Double Request</td><td>Both directions requested</td></tr>
+      </tbody>
+     </table>
+     <h3>Common Solutions</h3>
+     <button class="zapi-collapsible">2 Blinks: Incorrect Start</button>
+     <div class="zapi-collapsible-content">
+      <p><strong>Solution:</strong></p>
+      <ol>
+       <li>Turn key OFF</li>
+       <li>Ensure accelerator is at minimum</li>
+       <li>Turn key ON</li>
+       <li>Activate seat/handle microswitch</li>
+       <li>Select direction then press accelerator</li>
+      </ol>
+     </div>
+     <button class="zapi-collapsible">4 Blinks: Accelerator Error</button>
+     <div class="zapi-collapsible-content">
+      <p><strong>Solution:</strong></p>
+      <ul>
+       <li>Check accelerator is fully returned</li>
+       <li>Check potentiometer wiring</li>
+       <li>Test potentiometer resistance (500Ω to 10kΩ)</li>
+       <li>Re-calibrate via PROGRAM VACC</li>
+      </ul>
+     </div>
+     <button class="zapi-collapsible">7 Blinks: Thermal Protection</button>
+     <div class="zapi-collapsible-content">
+      <p><strong>Solution:</strong></p>
+      <ul>
+       <li>Allow controller to cool</li>
+       <li>Check mounting surface and thermal grease</li>
+       <li>Verify adequate ventilation</li>
+       <li>Consider forced-air cooling</li>
+      </ul>
+     </div>
+    </section>
+
+    <!-- MAINTENANCE SECTION -->
+    <section id="maintenance" class="zapi-section">
+     <div class="zapi-breadcrumbs"><a class="zapi-nav-link" data-section="home">Home</a> / Maintenance</div>
+     <h2>Maintenance Schedule</h2>
+     <h3>Every 3 Months</h3>
+     <table class="zapi-table">
+      <tbody>
+       <tr><th>Component</th><th>Inspection/Action</th></tr>
+       <tr><td>Electric Contacts</td><td>Check contactor wear; replace when excessive</td></tr>
+       <tr><td>Microswitches</td><td>Verify firm contact closure</td></tr>
+       <tr><td>Power Cables</td><td>Inspect for damage, check connections</td></tr>
+       <tr><td>Springs</td><td>Check pedal and contactor springs</td></tr>
+       <tr><td>Contactor Movement</td><td>Verify friction-free operation</td></tr>
+      </tbody>
+     </table>
+     <div class="zapi-info-box danger">
+      <strong>⚠️ SAFETY WARNING</strong>
+      <p>DO NOT USE A VEHICLE WITH A FAULTY ELECTRONIC CONTROLLER</p>
+     </div>
+    </section>
+
+    <!-- SPARE PARTS SECTION -->
+    <section id="spare-parts" class="zapi-section">
+     <div class="zapi-breadcrumbs"><a class="zapi-nav-link" data-section="home">Home</a> / Spare Parts</div>
+     <h2>Recommended Spare Parts</h2>
+     <table class="zapi-table">
+      <tbody>
+       <tr><th>Part Type</th><th>Specification</th><th>Application</th></tr>
+       <tr><td>Potentiometers</td><td>5kΩ, 330°</td><td>Accelerator input</td></tr>
+       <tr><td>Microswitches</td><td>10A, 250V</td><td>Direction and function inputs</td></tr>
+       <tr><td>Power Fuses</td><td>425A, 500A</td><td>Main battery fuse</td></tr>
+       <tr><td>Contactors SW Series</td><td>SW 80, 180, 181, 182</td><td>Various applications</td></tr>
+       <tr><td>Logic Boards</td><td>ZP321C (voltage-specific)</td><td>Controller logic replacement</td></tr>
+      </tbody>
+     </table>
+     <div class="zapi-info-box info">
+      <strong>📞 Ordering Spare Parts</strong>
+      <p>Contact ZAPI or your authorized distributor. Always provide controller model, serial number, and battery voltage.</p>
+     </div>
+    </section>
+   </main>
+  </div>
+
+  <div style="background: #fafafa; border: 1px solid #e8e8e8; color: #707070; text-align: center; padding: 20px 30px; margin-top: 24px; border-radius: 12px;">
+   <p style="color:#101010; font-weight:700; margin-bottom:4px;">© 1995 ZAPI S.p.A. - Publication 550145D</p>
+   <p>Interactive Manual Created for Reference Purposes</p>
+  </div>
+</div>
+
+<script>
+  (function() {
+    document.querySelectorAll('.zapi-nav-link').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const sectionId = this.dataset.section;
+            document.querySelectorAll('.zapi-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            const targetSection = document.getElementById(sectionId);
+            if (targetSection) {
+                targetSection.classList.add('active');
+            }
+            document.querySelectorAll('.zapi-nav-link').forEach(navLink => {
+                navLink.classList.remove('active');
+            });
+            this.classList.add('active');
+            document.querySelector('.zapi-content').scrollIntoView({ behavior: 'smooth' });
+        });
+    });
+    document.querySelectorAll('.zapi-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            const targetTab = this.dataset.tab;
+            const tabGroup = this.closest('.zapi-section');
+            tabGroup.querySelectorAll('.zapi-tab').forEach(t => t.classList.remove('active'));
+            tabGroup.querySelectorAll('.zapi-tab-content').forEach(c => c.classList.remove('active'));
+            this.classList.add('active');
+            const content = document.getElementById(targetTab);
+            if (content) {
+                content.classList.add('active');
+            }
+        });
+    });
+    document.querySelectorAll('.zapi-collapsible').forEach(button => {
+        button.addEventListener('click', function() {
+            this.classList.toggle('active');
+            const content = this.nextElementSibling;
+            if (content && content.classList.contains('zapi-collapsible-content')) {
+                content.classList.toggle('active');
+            }
+        });
+    });
+    const searchInput = document.getElementById('zapiSearchInput');
+    if (searchInput) {
+        let searchTimeout;
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            const searchTerm = this.value.toLowerCase();
+            searchTimeout = setTimeout(() => {
+                if (searchTerm.length < 3) return;
+                const sections = document.querySelectorAll('.zapi-section');
+                for (let section of sections) {
+                    if (section.textContent.toLowerCase().includes(searchTerm)) {
+                        const sectionId = section.id;
+                        document.querySelectorAll('.zapi-section').forEach(s => s.classList.remove('active'));
+                        section.classList.add('active');
+                        document.querySelectorAll('.zapi-nav-link').forEach(link => link.classList.remove('active'));
+                        const navLink = document.querySelector(`.zapi-nav-link[data-section="${sectionId}"]`);
+                        if (navLink) navLink.classList.add('active');
+                        document.querySelector('.zapi-content').scrollIntoView({ behavior: 'smooth' });
+                        break;
+                    }
+                }
+            }, 300);
+        });
+    }
+  })();
+</script>
+</body>
+</html>
