@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#df0a1e">
+<title>AC Inverter Settings - Flexi Forklift</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --primary-red: #df0a1e;
+    --red-dark: #c3161e;
+    --nested-bg: #fafafa;
+    --card-bg: #ffffff;
+    --border: #e8e8e8;
+    --text-primary: #101010;
+    --text-secondary: #707070;
+    --hover-bg: #f5f5f5;
+  }
+  body {
+    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #ffffff;
+    color: var(--text-primary);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    padding: 30px;
+  }
+  .ac-inverter { max-width: 1400px; margin: 0 auto; }
+
+  /* HEADER */
+  .ac-header { background: var(--card-bg); border: 1px solid var(--border); border-left: 4px solid var(--primary-red); border-radius: 16px; padding: 40px; margin-bottom: 24px; display: flex; align-items: center; gap: 30px; }
+  .header-logo { height: 70px; width: auto; object-fit: contain; flex-shrink: 0; filter: invert(1); }
+  .ac-header h1 { font-family: 'IBM Plex Sans', sans-serif; font-size: 2.2em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.01em; color: var(--text-primary); margin-bottom: 10px; line-height: 1.1; }
+  .ac-header-info { display: flex; flex-wrap: wrap; gap: 20px; font-size: 0.9em; }
+  .ac-header-info div { display: flex; gap: 6px; align-items: center; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .ac-header-info strong { color: var(--primary-red); }
+
+  /* QUICK LINKS */
+  .ac-quick-links { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 24px; }
+  .ac-quick-link { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 18px 14px; text-align: center; color: var(--text-secondary); font-weight: 700; font-size: 0.9em; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; transition: all 0.2s; display: block; text-decoration: none; }
+  .ac-quick-link:hover, .ac-quick-link.active { background: var(--primary-red); border-color: var(--primary-red); color: white; transform: translateY(-2px); }
+  .ac-icon { font-size: 1.8em; display: block; margin-bottom: 6px; }
+
+  /* LAYOUT */
+  .ac-container { display: flex; gap: 20px; flex-wrap: wrap; }
+
+  /* SIDEBAR */
+  .ac-sidebar { flex: 0 0 240px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+  .ac-sidebar h3 { font-family: 'IBM Plex Sans', sans-serif; font-size: 0.95em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--primary-red); margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+  .ac-nav { list-style: none; }
+  .ac-nav li { margin-bottom: 4px; }
+  .ac-nav a { color: var(--text-secondary); text-decoration: none; display: block; padding: 9px 12px; border-radius: 7px; transition: all 0.2s; cursor: pointer; font-weight: 600; font-size: 0.9em; border: 1px solid transparent; }
+  .ac-nav a:hover { background: var(--hover-bg); color: var(--text-primary); border-color: var(--border); }
+  .ac-nav a.active { background: rgba(223,10,30,0.08); border-color: rgba(223,10,30,0.3); color: var(--primary-red); }
+
+  /* CONTENT */
+  .ac-content { flex: 1; min-width: 300px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 30px; }
+  .ac-section { display: none; }
+  .ac-section.active { display: block; animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  .ac-content h2 { font-family: 'IBM Plex Sans', sans-serif; font-size: 1.7em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.01em; color: var(--text-primary); margin-bottom: 20px; padding-bottom: 14px; border-bottom: 2px solid var(--border); }
+  .ac-content h3 { font-family: 'IBM Plex Sans', sans-serif; font-size: 1.15em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--primary-red); margin-top: 28px; margin-bottom: 14px; }
+  .ac-content h4 { font-family: 'IBM Plex Sans', sans-serif; font-size: 1em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-primary); margin-top: 16px; margin-bottom: 10px; }
+
+  /* BREADCRUMBS */
+  .ac-breadcrumbs { color: var(--text-secondary); margin-bottom: 16px; font-size: 0.85em; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .ac-breadcrumbs a { color: var(--primary-red); text-decoration: none; cursor: pointer; }
+  .ac-breadcrumbs a:hover { text-decoration: underline; }
+
+  /* INFO BOXES */
+  .ac-info-box { padding: 14px 18px; margin: 16px 0; border-radius: 8px; border-left: 4px solid; font-size: 0.95em; line-height: 1.6; }
+  .ac-info-box strong { display: block; margin-bottom: 6px; font-size: 1em; font-family: 'IBM Plex Sans', sans-serif; }
+  .ac-info-box p { margin-bottom: 6px; }
+  .ac-info-box ul { margin-left: 18px; margin-top: 6px; }
+  .ac-info-box li { margin-bottom: 4px; color: var(--text-secondary); }
+  .ac-info-box.warning { background: #fffbeb; border-color: #f59e0b; color: var(--text-secondary); }
+  .ac-info-box.warning strong { color: #92650d; }
+  .ac-info-box.info { background: #eff6ff; border-color: #3b82f6; color: var(--text-secondary); }
+  .ac-info-box.info strong { color: #1d4ed8; }
+  .ac-info-box.success { background: #f0fdf4; border-color: #22c55e; color: var(--text-secondary); }
+  .ac-info-box.success strong { color: #15803d; }
+
+  /* SPEC GRID */
+  .ac-spec-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin: 16px 0; }
+  .ac-spec-card { background: var(--nested-bg); border: 1px solid var(--border); border-top: 3px solid var(--primary-red); padding: 20px 16px; border-radius: 10px; text-align: center; }
+  .ac-spec-card h4 { color: var(--text-secondary); margin: 0 0 8px 0; font-size: 0.8em; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; font-family: 'DM Sans', sans-serif; }
+  .ac-spec-value { font-family: 'IBM Plex Sans', sans-serif; font-size: 1.9em; font-weight: 700; color: var(--primary-red); line-height: 1; }
+
+  /* TABLES */
+  .ac-table { width: 100%; border-collapse: collapse; margin: 14px 0; background: var(--card-bg); border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+  .ac-table th { background: var(--primary-red); color: white; padding: 12px 14px; text-align: left; font-family: 'IBM Plex Sans', sans-serif; font-weight: 700; font-size: 0.82em; text-transform: uppercase; letter-spacing: 0.05em; }
+  .ac-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); color: var(--text-secondary); font-size: 0.95em; }
+  .ac-table td:first-child { font-weight: 700; color: var(--text-primary); }
+  .ac-table tr:last-child td { border-bottom: none; }
+  .ac-table tr:hover td { background: var(--hover-bg); }
+  .ac-highlight td:last-child { color: #92650d !important; font-weight: 800 !important; }
+  .highlight-val { background: #fffbeb; color: #92650d !important; font-weight: 800 !important; padding: 2px 8px; border-radius: 4px; border: 1px solid #fde68a; }
+
+  /* TABS */
+  .ac-tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+  .ac-tab { padding: 10px 18px; background: transparent; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 0.9em; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.03em; border-bottom: 3px solid transparent; transition: all 0.2s; }
+  .ac-tab:hover { color: var(--text-primary); }
+  .ac-tab.active { color: var(--primary-red); border-bottom-color: var(--primary-red); }
+  .ac-tab-content { display: none; }
+  .ac-tab-content.active { display: block; }
+
+  /* SETTINGS GROUPS */
+  .ac-settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin: 16px 0; }
+  .ac-settings-group { background: var(--nested-bg); border: 1px solid var(--border); border-radius: 10px; padding: 18px; }
+  .ac-settings-group h4 { color: var(--primary-red); margin-top: 0; margin-bottom: 12px; font-size: 0.9em; text-transform: uppercase; letter-spacing: 0.05em; padding-bottom: 8px; border-bottom: 1px solid var(--border); font-family: 'IBM Plex Sans', sans-serif; font-weight: 700; }
+  .ac-setting-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--border); gap: 10px; }
+  .ac-setting-row:last-child { border-bottom: none; }
+  .ac-setting-label { font-weight: 600; color: var(--text-secondary); font-size: 0.9em; }
+  .ac-setting-value { font-weight: 700; color: var(--text-primary); font-size: 0.9em; white-space: nowrap; }
+
+  /* FOOTER */
+  .ac-footer { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px 30px; margin-top: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+  .ac-footer p { color: var(--text-secondary); font-size: 0.9em; font-weight: 600; }
+  .ac-footer strong { color: var(--text-primary); }
+
+  @media (max-width: 768px) {
+    body { padding: 16px; }
+    .ac-header { flex-direction: column; gap: 16px; padding: 24px; }
+    .ac-header h1 { font-size: 1.6em; }
+    .ac-container { flex-direction: column; }
+    .ac-sidebar { flex: 1; }
+    .ac-spec-grid { grid-template-columns: 1fr 1fr; }
+    .ac-settings-grid { grid-template-columns: 1fr; }
+    .ac-footer { flex-direction: column; text-align: center; }
+  }
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: #f0f0f0; }
+  ::-webkit-scrollbar-thumb { background: var(--primary-red); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--red-dark); }
+</style>
+</head>
+<body>
+<div class="ac-inverter">
+  <!-- HEADER -->
+  <div class="ac-header">
+   <img src="https://narrowaisleservice.github.io/Flexi-Parts-System/flexi-logo-white.svg" alt="Flexi Logo" class="header-logo">
+   <div>
+    <h1>⚡ AC Inverter Settings — Flexi Forklift</h1>
+    <div class="ac-header-info">
+     <div><strong>Document:</strong><span>42400-03 Rev A</span></div>
+     <div><strong>Date:</strong><span>18/02/2015</span></div>
+     <div><strong>Application:</strong><span>Flexi VNA/Euro/G4/Himax</span></div>
+     <div><strong>Model:</strong><span>AC3</span></div>
+     <div><strong>Function:</strong><span>Traction Node 2</span></div>
+    </div>
+   </div>
+  </div>
+
+  <!-- QUICK LINKS -->
+  <div class="ac-quick-links">
+   <a class="ac-quick-link ac-nav-link" data-section="overview"><span class="ac-icon">📊</span>System Overview</a>
+   <a class="ac-quick-link ac-nav-link" data-section="parameters"><span class="ac-icon">⚙️</span>Parameters</a>
+   <a class="ac-quick-link ac-nav-link" data-section="hardware"><span class="ac-icon">🔧</span>Hardware Settings</a>
+   <a class="ac-quick-link ac-nav-link" data-section="menus"><span class="ac-icon">📋</span>All Menus</a>
+  </div>
+
+  <div class="ac-container">
+   <!-- SIDEBAR -->
+   <aside class="ac-sidebar">
+    <h3>📑 Navigation</h3>
+    <ul class="ac-nav">
+     <li><a class="ac-nav-link active" data-section="overview">📊 System Overview</a></li>
+     <li><a class="ac-nav-link" data-section="specifications">📐 Specifications</a></li>
+     <li><a class="ac-nav-link" data-section="set-option">⚙️ Set Option Menu</a></li>
+     <li><a class="ac-nav-link" data-section="adjustment">🔧 Adjustment Menu</a></li>
+     <li><a class="ac-nav-link" data-section="parameters">📊 Parameter Changes</a></li>
+     <li><a class="ac-nav-link" data-section="hardware">🖥️ Hardware Settings</a></li>
+     <li><a class="ac-nav-link" data-section="special">⭐ Special Adjustments</a></li>
+     <li><a class="ac-nav-link" data-section="menus">📋 Complete Menu List</a></li>
+    </ul>
+   </aside>
+
+   <!-- MAIN CONTENT -->
+   <main class="ac-content">
+    <!-- OVERVIEW -->
+    <section id="overview" class="ac-section active">
+     <h2>System Overview</h2>
+     <div class="ac-info-box info">
+      <strong>ℹ️ About This Configuration</strong>
+      This document contains the complete AC inverter configuration for Flexi VNA/Euro/G4/Himax forklifts with Schabmuller traction motors. The settings are optimized for a 48V system with 600A RMS maximum current.
+     </div>
+     <h3>Key System Specifications</h3>
+     <div class="ac-spec-grid">
+      <div class="ac-spec-card"><h4>Battery Voltage</h4><div class="ac-spec-value">48V</div></div>
+      <div class="ac-spec-card"><h4>Maximum Current</h4><div class="ac-spec-value">600A</div></div>
+      <div class="ac-spec-card"><h4>Motor Power</h4><div class="ac-spec-value">10 kW</div></div>
+      <div class="ac-spec-card"><h4>Motor Poles</h4><div class="ac-spec-value">4</div></div>
+     </div>
+     <h3>Inverter &amp; Motor Details</h3>
+     <table class="ac-table">
+      <thead><tr><th>Component</th><th>Specification</th></tr></thead>
+      <tbody>
+       <tr><td>Inverter Model</td><td>AC3</td></tr>
+       <tr><td>Maximum Current</td><td>600A RMS</td></tr>
+       <tr><td>Battery Voltage</td><td>48V</td></tr>
+       <tr><td>Function</td><td>Traction Node 2</td></tr>
+       <tr><td>Flash Version</td><td>AC3T2CF CNR1.09</td></tr>
+       <tr><td>Motor Supplier</td><td>Schabmuller</td></tr>
+       <tr><td>Motor Model</td><td>TSA240-200-210</td></tr>
+       <tr><td>Motor Power</td><td>10 kW</td></tr>
+       <tr><td>Motor Poles</td><td>4</td></tr>
+       <tr><td>Encoder</td><td>80 Pulses/Rev (Traction Motor)</td></tr>
+      </tbody>
+     </table>
+     <div class="ac-info-box success">
+      <strong>✅ Configuration Status</strong>
+      This is a complete, tested configuration for Flexi forklift traction applications. All parameters have been optimized for the Schabmuller TSA240-200-210 motor.
+     </div>
+    </section>
+
+    <!-- SPECIFICATIONS -->
+    <section id="specifications" class="ac-section">
+     <div class="ac-breadcrumbs"><a class="ac-nav-link" data-section="overview">Overview</a> / Specifications</div>
+     <h2>Complete Specifications</h2>
+     <h3>Inverter Specifications</h3>
+     <table class="ac-table">
+      <thead><tr><th>Parameter</th><th>Value</th></tr></thead>
+      <tbody>
+       <tr><td>Model</td><td>AC3</td></tr>
+       <tr><td>Maximum Current (RMS)</td><td>600A</td></tr>
+       <tr><td>Battery Voltage</td><td>48V</td></tr>
+       <tr><td>Function Type</td><td>Traction - Node 2</td></tr>
+       <tr><td>Flash Version</td><td>AC3T2CF CNR1.09</td></tr>
+      </tbody>
+     </table>
+     <h3>Motor Specifications</h3>
+     <table class="ac-table">
+      <thead><tr><th>Parameter</th><th>Value</th></tr></thead>
+      <tbody>
+       <tr><td>Supplier</td><td>Schabmuller</td></tr>
+       <tr><td>Model</td><td>TSA240-200-210</td></tr>
+       <tr><td>Power Rating</td><td>10 kW</td></tr>
+       <tr><td>Number of Poles</td><td>4</td></tr>
+       <tr><td>Encoder Type</td><td>Traction Motor</td></tr>
+       <tr><td>Encoder Resolution</td><td>80 Pulses/Revolution</td></tr>
+      </tbody>
+     </table>
+     <h3>Application Details</h3>
+     <table class="ac-table">
+      <thead><tr><th>Parameter</th><th>Value</th></tr></thead>
+      <tbody>
+       <tr><td>Application Type</td><td>Flexi VNA/Euro/G4/Himax</td></tr>
+       <tr><td>Function</td><td>Traction Control</td></tr>
+       <tr><td>Node Number</td><td>2</td></tr>
+       <tr><td>Document Number</td><td>42400-03</td></tr>
+       <tr><td>Revision</td><td>A</td></tr>
+       <tr><td>Date</td><td>18/02/2015</td></tr>
+      </tbody>
+     </table>
+    </section>
+
+    <!-- SET OPTION -->
+    <section id="set-option" class="ac-section">
+     <div class="ac-breadcrumbs"><a class="ac-nav-link" data-section="overview">Overview</a> / Set Option Menu</div>
+     <h2>Set Option Menu</h2>
+     <div class="ac-info-box info">
+      <strong>ℹ️ Menu Purpose</strong>
+      The Set Option menu controls fundamental operating modes and features of the inverter. These settings determine how the inverter responds to inputs and manages various control functions.
+     </div>
+     <table class="ac-table">
+      <thead><tr><th>Option</th><th>Setting</th><th>Description</th></tr></thead>
+      <tbody>
+       <tr><td>Display Type</td><td>0</td><td>Display configuration</td></tr>
+       <tr><td>Hour Counter</td><td>Seat</td><td>Hour meter counts when seat is occupied</td></tr>
+       <tr><td>Battery Check</td><td>On</td><td>Monitors battery voltage and charge</td></tr>
+       <tr><td>Cutback Mode</td><td>Present</td><td>Speed reduction feature enabled</td></tr>
+       <tr><td>Hydro Key ON</td><td>Off</td><td>Hydraulic control from key switch</td></tr>
+       <tr><td>Stop On Ramp</td><td>Off</td><td>Auto-stop on incline disabled</td></tr>
+       <tr><td>Aux Output #1</td><td>Battery Alert</td><td>Auxiliary output configured for low battery warning</td></tr>
+       <tr><td>Pedal Braking</td><td>Digital</td><td>Brake pedal input type</td></tr>
+       <tr><td>Set Temperature</td><td>Analogue</td><td>Temperature sensing method</td></tr>
+       <tr><td>Cutback on A12</td><td>On</td><td>Speed reduction on input A12</td></tr>
+       <tr><td>Aux Function</td><td>Off</td><td>Additional auxiliary function</td></tr>
+       <tr><td>Check Pump Hydro</td><td>Off</td><td>Hydraulic pump monitoring</td></tr>
+       <tr><td>Battery On Start</td><td>Off</td><td>Battery check at startup</td></tr>
+      </tbody>
+     </table>
+    </section>
+
+    <!-- ADJUSTMENT -->
+    <section id="adjustment" class="ac-section">
+     <div class="ac-breadcrumbs"><a class="ac-nav-link" data-section="overview">Overview</a> / Adjustment Menu</div>
+     <h2>Adjustment Menu</h2>
+     <div class="ac-info-box warning">
+      <strong>⚠️ Calibration Settings</strong>
+      These adjustments calibrate the inverter to the specific potentiometer, battery, and vehicle characteristics. Incorrect settings can affect performance and safety.
+     </div>
+     <div class="ac-settings-grid">
+      <div class="ac-settings-group">
+       <h4>Potentiometer Calibration</h4>
+       <div class="ac-setting-row"><span class="ac-setting-label">Set Pot Brk Min</span><span class="ac-setting-value">0.4</span></div>
+       <div class="ac-setting-row"><span class="ac-setting-label">Set Pot Brk Max</span><span class="ac-setting-value">4.5</span></div>
+       <div class="ac-setting-row"><span class="ac-setting-label">Throttle 0 Zone</span><span class="ac-setting-value">5%</span></div>
+       <div class="ac-setting-row"><span class="ac-setting-label">Throttle X Point</span><span class="ac-setting-value">45%</span></div>
+       <div class="ac-setting-row"><span class="ac-setting-label">Throttle Y Point</span><span class="ac-setting-value">25%</span></div>
+      </div>
+      <div class="ac-settings-group">
+       <h4>Battery Configuration</h4>
+       <div class="ac-setting-row"><span class="ac-setting-label">Set Battery Type</span><span class="ac-setting-value">48V</span></div>
+       <div class="ac-setting-row"><span class="ac-setting-label">Adjust Battery</span><span class="ac-setting-value">Set to batt volt</span></div>
+      </div>
+      <div class="ac-settings-group">
+       <h4>Custom Adjustments</h4>
+       <div class="ac-setting-row"><span class="ac-setting-label">Adjustment #04</span><span class="ac-setting-value">120 Degrees</span></div>
+       <div class="ac-setting-row"><span class="ac-setting-label">Adjustment #03</span><span class="ac-setting-value">35 Degrees</span></div>
+       <div class="ac-setting-row"><span class="ac-setting-label">Adjustment #02</span><span class="ac-setting-value">5</span></div>
+       <div class="ac-setting-row"><span class="ac-setting-label">Adjustment #01</span><span class="ac-setting-value">4</span></div>
+       <div class="ac-setting-row"><span class="ac-setting-label">BDI Reset</span><span class="ac-setting-value">30%</span></div>
+      </div>
+      <div class="ac-settings-group">
+       <h4>System Configuration</h4>
+       <div class="ac-setting-row"><span class="ac-setting-label">Load HM from MDI</span><span class="ac-setting-value">OFF</span></div>
+       <div class="ac-setting-row"><span class="ac-setting-label">Check Up Done</span><span class="ac-setting-value">OFF</span></div>
+       <div class="ac-setting-row"><span class="ac-setting-label">Check Up Type</span><span class="ac-setting-value">NONE</span></div>
+       <div class="ac-setting-row"><span class="ac-setting-label">PWM on main cont</span><span class="ac-setting-value">Off</span></div>
+       <div class="ac-setting-row"><span class="ac-setting-label">PWM on aux cont</span><span class="ac-setting-value">Off</span></div>
+      </div>
+     </div>
+    </section>
+
+    <!-- PARAMETERS -->
+    <section id="parameters" class="ac-section">
+     <div class="ac-breadcrumbs"><a class="ac-nav-link" data-section="overview">Overview</a> / Parameter Changes</div>
+     <h2>Parameter Change Menu</h2>
+     <div class="ac-info-box info">
+      <strong>ℹ️ About Parameters</strong>
+      These parameters control the operational characteristics of the vehicle including acceleration, braking, speed limits, and timing functions.
+     </div>
+     <div class="ac-tabs">
+      <button class="ac-tab active" data-tab="accel-brake">Acceleration &amp; Braking</button>
+      <button class="ac-tab" data-tab="speed-limits">Speed Limits</button>
+      <button class="ac-tab" data-tab="timing">Timing Functions</button>
+     </div>
+     <div id="accel-brake" class="ac-tab-content active">
+      <h3>Acceleration &amp; Braking Parameters</h3>
+      <table class="ac-table">
+       <thead><tr><th>Parameter</th><th>Value</th><th>Description</th></tr></thead>
+       <tbody>
+        <tr class="ac-highlight"><td>Acceleration Delay</td><td>2</td><td>Rate of acceleration increase (level 2)</td></tr>
+        <tr><td>Release Braking</td><td>8</td><td>Braking force when accelerator released</td></tr>
+        <tr><td>Inversion Braking</td><td>6</td><td>Braking force during direction change</td></tr>
+        <tr><td>Pedal Braking</td><td>6</td><td>Braking force from brake pedal</td></tr>
+        <tr><td>Speed Limit Brake</td><td>5</td><td>Braking at speed limits</td></tr>
+        <tr><td>Brake Cut Back</td><td>5</td><td>Reduced braking in cutback mode</td></tr>
+        <tr><td>Maximum Current</td><td>9</td><td>Maximum motor current level (level 9)</td></tr>
+       </tbody>
+      </table>
+     </div>
+     <div id="speed-limits" class="ac-tab-content">
+      <h3>Speed Limit Parameters</h3>
+      <table class="ac-table">
+       <thead><tr><th>Parameter</th><th>Value</th><th>Description</th></tr></thead>
+       <tbody>
+        <tr><td>Max Speed Fwd</td><td>155 Hz</td><td>Maximum forward speed</td></tr>
+        <tr><td>Max Speed Back</td><td>155 Hz</td><td>Maximum reverse speed</td></tr>
+        <tr><td>(Load Height) Cutback Speed</td><td>20%</td><td>Speed reduction when load is raised</td></tr>
+        <tr><td>Curve Cutback</td><td>55%</td><td>Speed reduction in curves</td></tr>
+        <tr><td>Cutback Speed 2</td><td>60%</td><td>Secondary speed reduction level</td></tr>
+        <tr><td>Creep Frequency</td><td>0.6 Hz</td><td>Minimum speed for fine control</td></tr>
+        <tr><td>Backing Speed</td><td>0 Hz</td><td>Automatic backing speed (disabled)</td></tr>
+       </tbody>
+      </table>
+     </div>
+     <div id="timing" class="ac-tab-content">
+      <h3>Timing Functions</h3>
+      <table class="ac-table">
+       <thead><tr><th>Parameter</th><th>Value</th><th>Description</th></tr></thead>
+       <tbody>
+        <tr><td>Backing Time Level</td><td>0</td><td>Duration of automatic backing (disabled)</td></tr>
+        <tr><td>Aux. Time</td><td>0.8</td><td>Auxiliary function timing</td></tr>
+        <tr><td>Batt Lift Time</td><td>2.0</td><td>Battery lift delay time</td></tr>
+       </tbody>
+      </table>
+     </div>
+    </section>
+
+    <!-- HARDWARE -->
+    <section id="hardware" class="ac-section">
+     <div class="ac-breadcrumbs"><a class="ac-nav-link" data-section="overview">Overview</a> / Hardware Settings</div>
+     <h2>Hardware Setting Menu</h2>
+     <div class="ac-info-box warning">
+      <strong>⚠️ Critical Settings</strong>
+      Hardware settings are fundamental to motor control. Incorrect values can cause poor performance, motor damage, or safety issues. Amber values are highlighted as critical in the original document.
+     </div>
+     <div class="ac-settings-grid">
+      <div class="ac-settings-group">
+       <h4>Control Features</h4>
+       <div class="ac-setting-row"><span class="ac-setting-label">Compensation</span><span class="ac-setting-value">On</span></div>
+       <div class="ac-setting-row"><span class="ac-setting-label">Slip Control</span><span class="ac-setting-value">On</span></div>
+       <div class="ac-setting-row"><span class="ac-setting-label">DC Link Comp.</span><span class="ac-setting-value">On</span></div>
+      </div>
+      <div class="ac-settings-group">
+       <h4>Frequency Settings</h4>
+       <div class="ac-setting-row"><span class="ac-setting-label">Sat. Frequency</span><span class="ac-setting-value highlight-val">50 Hz</span></div>
+       <div class="ac-setting-row"><span class="ac-setting-label">Braking Modulation</span><span class="ac-setting-value highlight-val">50 Hz</span></div>
+      </div>
+      <div class="ac-settings-group">
+       <h4>Voltage &amp; Boost Settings</h4>
+       <div class="ac-setting-row"><span class="ac-setting-label">Minimum Voltage</span><span class="ac-setting-value">3%</span></div>
+       <div class="ac-setting-row"><span class="ac-setting-label">Boost at Low Freq.</span><span class="ac-setting-value highlight-val">30%</span></div>
+       <div class="ac-setting-row"><span class="ac-setting-label">Boost at High Freq.</span><span class="ac-setting-value highlight-val">50%</span></div>
+       <div class="ac-setting-row"><span class="ac-setting-label">Boost Corner Freq.</span><span class="ac-setting-value highlight-val">32 Hz</span></div>
+       <div class="ac-setting-row"><span class="ac-setting-label">Braking Booster</span><span class="ac-setting-value">0%</span></div>
+      </div>
+      <div class="ac-settings-group">
+       <h4>Slip Control Parameters</h4>
+       <div class="ac-setting-row"><span class="ac-setting-label">Slip Co-efficient</span><span class="ac-setting-value">0</span></div>
+       <div class="ac-setting-row"><span class="ac-setting-label">Max Slip Reset</span><span class="ac-setting-value">0.6 Hz</span></div>
+       <div class="ac-setting-row"><span class="ac-setting-label">Maxslip Low Freq.</span><span class="ac-setting-value highlight-val">1.9 Hz</span></div>
+       <div class="ac-setting-row"><span class="ac-setting-label">Maxslip Inc.</span><span class="ac-setting-value highlight-val">2.0 Hz</span></div>
+       <div class="ac-setting-row"><span class="ac-setting-label">Maxslip Freq.</span><span class="ac-setting-value highlight-val">20 Hz</span></div>
+       <div class="ac-setting-row"><span class="ac-setting-label">Maxslip Freq. Inc.</span><span class="ac-setting-value highlight-val">80 Hz</span></div>
+      </div>
+      <div class="ac-settings-group">
+       <h4>Options &amp; Compensation</h4>
+       <div class="ac-setting-row"><span class="ac-setting-label">Option 07 level</span><span class="ac-setting-value">1</span></div>
+       <div class="ac-setting-row"><span class="ac-setting-label">Option 08 level</span><span class="ac-setting-value">1</span></div>
+       <div class="ac-setting-row"><span class="ac-setting-label">Option 06 level</span><span class="ac-setting-value">6</span></div>
+       <div class="ac-setting-row"><span class="ac-setting-label">Flux Compensation</span><span class="ac-setting-value">50</span></div>
+       <div class="ac-setting-row"><span class="ac-setting-label">Aux Voltage #3 level</span><span class="ac-setting-value">5</span></div>
+      </div>
+     </div>
+     <div class="ac-info-box info">
+      <strong>💡 About Highlighted Settings</strong>
+      <p>Settings shown in amber are critical hardware parameters specific to the Schabmuller TSA240-200-210 motor. These include:</p>
+      <ul>
+       <li><strong>Saturation Frequency (50 Hz):</strong> Motor magnetic saturation point</li>
+       <li><strong>Braking Modulation (50 Hz):</strong> Regenerative braking frequency</li>
+       <li><strong>Boost Settings:</strong> Voltage boost at low and high frequencies for proper torque</li>
+       <li><strong>Slip Control:</strong> Parameters for traction control and wheel slip prevention</li>
+      </ul>
+     </div>
+    </section>
+
+    <!-- SPECIAL -->
+    <section id="special" class="ac-section">
+     <div class="ac-breadcrumbs"><a class="ac-nav-link" data-section="overview">Overview</a> / Special Adjustments</div>
+     <h2>Special Adjustments Menu</h2>
+     <div class="ac-info-box warning">
+      <strong>⚠️ Advanced Settings</strong>
+      These are factory-level adjustments that should only be modified by trained technicians. Incorrect values can cause equipment damage.
+     </div>
+     <table class="ac-table">
+      <thead><tr><th>Parameter</th><th>Value</th><th>Status</th></tr></thead>
+      <tbody>
+       <tr><td>Adjustment 1</td><td>105%</td><td>Fixed</td></tr>
+       <tr><td>Adjustment 2</td><td>104%</td><td>Fixed</td></tr>
+       <tr><td>Set Current</td><td>600A</td><td>Maximum rated current</td></tr>
+       <tr><td>Set Temperature</td><td>Set to ambient</td><td>Temperature compensation baseline</td></tr>
+       <tr><td>Aux Output 1</td><td>Level 5</td><td>Auxiliary output configuration</td></tr>
+       <tr><td>Aux Output 2</td><td>Level 8</td><td>Auxiliary output configuration</td></tr>
+      </tbody>
+     </table>
+     <div class="ac-info-box info">
+      <strong>ℹ️ Current Setting</strong>
+      The Set Current value of 600A matches the inverter's maximum rating and the motor's continuous current capability. This ensures optimal performance without exceeding equipment limits.
+     </div>
+    </section>
+
+    <!-- ALL MENUS -->
+    <section id="menus" class="ac-section">
+     <div class="ac-breadcrumbs"><a class="ac-nav-link" data-section="overview">Overview</a> / Complete Menu List</div>
+     <h2>Complete Menu Reference</h2>
+     <div class="ac-info-box success">
+      <strong>✅ Quick Reference</strong>
+      All menu settings in a single comprehensive view for quick reference and configuration verification.
+     </div>
+     <h3>Menu: SET OPTION</h3>
+     <table class="ac-table">
+      <thead><tr><th>Parameter</th><th>Value</th></tr></thead>
+      <tbody>
+       <tr><td>Display type</td><td>0</td></tr>
+       <tr><td>Hour Counter</td><td>Seat</td></tr>
+       <tr><td>Battery Check</td><td>On</td></tr>
+       <tr><td>Cutback Mode</td><td>Present</td></tr>
+       <tr><td>Hydro Key ON</td><td>Off</td></tr>
+       <tr><td>Stop On Ramp</td><td>Off</td></tr>
+       <tr><td>Aux Output #1</td><td>Battery Alert</td></tr>
+       <tr><td>Pedal Braking</td><td>Digital</td></tr>
+       <tr><td>Set Temperature</td><td>Analogue</td></tr>
+       <tr><td>Cutback on A12</td><td>On</td></tr>
+       <tr><td>Aux Function</td><td>Off</td></tr>
+       <tr><td>Check Pump Hydro</td><td>Off</td></tr>
+       <tr><td>Battery On Start</td><td>Off</td></tr>
+      </tbody>
+     </table>
+     <h3>Menu: ADJUSTMENT</h3>
+     <table class="ac-table">
+      <thead><tr><th>Parameter</th><th>Value</th></tr></thead>
+      <tbody>
+       <tr><td>Set Pot Brk Min</td><td>0.4</td></tr>
+       <tr><td>Set Pot Brk Max</td><td>4.5</td></tr>
+       <tr><td>Set Battery Type</td><td>48V</td></tr>
+       <tr><td>Adjust Battery</td><td>Set to batt volt</td></tr>
+       <tr><td>Throttle 0 Zone</td><td>5%</td></tr>
+       <tr><td>Throttle X Point</td><td>45%</td></tr>
+       <tr><td>Throttle Y Point</td><td>25%</td></tr>
+       <tr><td>Adjustment #04</td><td>120 Degrees</td></tr>
+       <tr><td>Adjustment #03</td><td>35 Degrees</td></tr>
+       <tr><td>Adjustment #02</td><td>5</td></tr>
+       <tr><td>Adjustment #01</td><td>4</td></tr>
+       <tr><td>BDI Reset</td><td>30%</td></tr>
+      </tbody>
+     </table>
+     <h3>Menu: PARAMETER CHANGE</h3>
+     <table class="ac-table">
+      <thead><tr><th>Parameter</th><th>Value</th></tr></thead>
+      <tbody>
+       <tr class="ac-highlight"><td>Acceleration Delay</td><td>2</td></tr>
+       <tr><td>Release Braking</td><td>8</td></tr>
+       <tr><td>Inversion Braking</td><td>6</td></tr>
+       <tr><td>Pedal Braking</td><td>6</td></tr>
+       <tr><td>Speed Limit Brake</td><td>5</td></tr>
+       <tr><td>Brake Cut Back</td><td>5</td></tr>
+       <tr><td>Max Speed Fwd</td><td>155 Hz</td></tr>
+       <tr><td>Max Speed Back</td><td>155 Hz</td></tr>
+       <tr><td>(Load Height) Cutback Speed</td><td>20%</td></tr>
+       <tr><td>Curve Cutback</td><td>55%</td></tr>
+       <tr><td>Cutback Speed 2</td><td>60%</td></tr>
+       <tr><td>Creep Frequency</td><td>0.6 Hz</td></tr>
+       <tr><td>Maximum Current</td><td>9</td></tr>
+       <tr><td>Backing Speed</td><td>0 Hz</td></tr>
+       <tr><td>Backing Time Level</td><td>0</td></tr>
+       <tr><td>Aux. Time</td><td>0.8</td></tr>
+       <tr><td>Batt Lift Time</td><td>2.0</td></tr>
+      </tbody>
+     </table>
+     <h3>Menu: HARDWARE SETTING</h3>
+     <table class="ac-table">
+      <thead><tr><th>Parameter</th><th>Value</th></tr></thead>
+      <tbody>
+       <tr><td>Compensation</td><td>On</td></tr>
+       <tr><td>Slip Control</td><td>On</td></tr>
+       <tr><td>DC Link Comp.</td><td>On</td></tr>
+       <tr class="ac-highlight"><td>Sat. Frequency</td><td>50 Hz</td></tr>
+       <tr class="ac-highlight"><td>Braking Modulation</td><td>50 Hz</td></tr>
+       <tr><td>Minimum Voltage</td><td>3%</td></tr>
+       <tr class="ac-highlight"><td>Boost at Low Freq.</td><td>30%</td></tr>
+       <tr class="ac-highlight"><td>Boost at High Freq.</td><td>50%</td></tr>
+       <tr class="ac-highlight"><td>Boost Corner Freq.</td><td>32 Hz</td></tr>
+       <tr><td>Braking Booster</td><td>0%</td></tr>
+       <tr><td>Slip Co-efficient</td><td>0</td></tr>
+       <tr><td>Max Slip Reset</td><td>0.6 Hz</td></tr>
+       <tr class="ac-highlight"><td>Maxslip Low Freq.</td><td>1.9 Hz</td></tr>
+       <tr class="ac-highlight"><td>Maxslip Inc.</td><td>2.0 Hz</td></tr>
+       <tr class="ac-highlight"><td>Maxslip Freq.</td><td>20 Hz</td></tr>
+       <tr class="ac-highlight"><td>Maxslip Freq. Inc.</td><td>80 Hz</td></tr>
+       <tr><td>Option 07 level</td><td>1</td></tr>
+       <tr><td>Option 08 level</td><td>1</td></tr>
+       <tr><td>Option 06 level</td><td>6</td></tr>
+       <tr><td>Flux Compensation</td><td>50</td></tr>
+       <tr><td>Aux Voltage #3 level</td><td>5</td></tr>
+      </tbody>
+     </table>
+     <h3>Menu: SPECIAL ADJUSTMENTS</h3>
+     <table class="ac-table">
+      <thead><tr><th>Parameter</th><th>Value</th></tr></thead>
+      <tbody>
+       <tr><td>Adjustment 1</td><td>105% (Fixed)</td></tr>
+       <tr><td>Adjustment 2</td><td>104% (Fixed)</td></tr>
+       <tr><td>Set Current</td><td>600A</td></tr>
+       <tr><td>Set Temperature</td><td>Set to ambient</td></tr>
+       <tr><td>Aux Output 1</td><td>Level 5</td></tr>
+       <tr><td>Aux Output 2</td><td>Level 8</td></tr>
+      </tbody>
+     </table>
+    </section>
+   </main>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="ac-footer">
+   <p><strong>Document 42400-03 Rev A</strong>&nbsp;·&nbsp;Date: 18/02/2015</p>
+   <p>Flexi VNA/Euro/G4/Himax Traction Configuration</p>
+   <p>Interactive reference created for technician use</p>
+  </div>
+</div>
+
+<script>
+  (function() {
+    function navigate(sectionId) {
+        document.querySelectorAll('.ac-section').forEach(s => s.classList.remove('active'));
+        const target = document.getElementById(sectionId);
+        if (target) target.classList.add('active');
+        document.querySelectorAll('.ac-nav-link').forEach(l => l.classList.remove('active'));
+        document.querySelectorAll(`.ac-nav-link[data-section="${sectionId}"]`).forEach(l => l.classList.add('active'));
+        document.querySelector('.ac-content')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    document.querySelectorAll('.ac-nav-link').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            navigate(this.dataset.section);
+        });
+    });
+    document.querySelectorAll('.ac-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            const section = this.closest('.ac-section');
+            section.querySelectorAll('.ac-tab').forEach(t => t.classList.remove('active'));
+            section.querySelectorAll('.ac-tab-content').forEach(c => c.classList.remove('active'));
+            this.classList.add('active');
+            const content = document.getElementById(this.dataset.tab);
+            if (content) content.classList.add('active');
+        });
+    });
+  })();
+</script>
+</body>
+</html>
