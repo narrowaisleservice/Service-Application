@@ -1,0 +1,598 @@
+<meta>
+ 
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ 
+ <title>
+  DC Direction Lever - Interactive Guide
+ </title>
+ <style>
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=DM+Sans:wght@400;500;700&family=DM+Mono:wght@500&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: #f7f7f8;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            max-width: 1600px;
+            width: 100%;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            overflow: hidden;
+            border: 1px solid #ececec;
+        }
+        header {
+            background: #0a0a0a;
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 3px solid #df0a1e;
+        }
+        header h1 {
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-weight: 700;
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        header p {
+            font-size: 1.05em;
+            color: #cfcfcf;
+        }
+        .content {
+            padding: 40px;
+        }
+        .image-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        .image-wrapper {
+            position: relative;
+            background: #fafafa;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #ececec;
+        }
+        .image-wrapper img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .image-label {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: rgba(10,10,10,0.85);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-weight: 600;
+            z-index: 5;
+        }
+        .hotspot {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: rgba(223, 10, 30, 0.8);
+            border: 4px solid white;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            animation: pulse 2s infinite;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'DM Mono', monospace;
+            font-weight: 500;
+            color: white;
+            font-size: 13px;
+        }
+        .hotspot:hover {
+            transform: scale(1.4);
+            background: rgba(223, 10, 30, 1);
+            animation: none;
+            box-shadow: 0 0 20px rgba(223, 10, 30, 0.6);
+        }
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(223, 10, 30, 0.6);
+            }
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 0 0 10px rgba(223, 10, 30, 0);
+            }
+        }
+        .hotspot-label {
+            position: absolute;
+            background: #0a0a0a;
+            color: white;
+            padding: 12px 18px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 100;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            border: 2px solid #df0a1e;
+        }
+        .hotspot:hover .hotspot-label {
+            opacity: 1;
+        }
+        .hotspot.top-left .hotspot-label {
+            top: 50px;
+            left: 0;
+        }
+        .hotspot.top-right .hotspot-label {
+            top: 50px;
+            right: 0;
+        }
+        .hotspot.middle-left .hotspot-label {
+            top: 50%;
+            left: 0;
+            transform: translateY(-50%);
+        }
+        .hotspot.bottom .hotspot-label {
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .info-panel {
+            background: #fff5f6;
+            color: #0a0a0a;
+            padding: 25px;
+            border-radius: 10px;
+            border-left: 4px solid #df0a1e;
+            margin-bottom: 30px;
+        }
+        .info-panel h2 {
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-weight: 600;
+            font-size: 1.4em;
+            margin-bottom: 15px;
+            color: #0a0a0a;
+        }
+        .info-panel p {
+            color: #4a4a4a;
+            line-height: 1.6;
+        }
+        .wire-table {
+            width: 100%;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #ececec;
+            margin-bottom: 30px;
+        }
+        .wire-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .wire-table th {
+            background: #0a0a0a;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-weight: 600;
+            font-size: 1em;
+        }
+        .wire-table td {
+            padding: 15px;
+            border-bottom: 1px solid #ececec;
+        }
+        .wire-table tr:hover {
+            background: #fafafa;
+        }
+        .wire-table tbody tr {
+            cursor: pointer;
+        }
+        .wire-number {
+            display: inline-block;
+            background: #df0a1e;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-family: 'DM Mono', monospace;
+            font-weight: 500;
+            margin-right: 10px;
+        }
+        .instructions {
+            background: #fafafa;
+            border: 1px solid #ececec;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 30px;
+        }
+        .instructions h3 {
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-weight: 600;
+            color: #df0a1e;
+            margin-bottom: 10px;
+        }
+        .instructions p {
+            color: #4a4a4a;
+            line-height: 1.6;
+        }
+        .legend {
+            background: white;
+            border: 1px solid #ececec;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        .legend h3 {
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-weight: 600;
+            color: #0a0a0a;
+            margin-bottom: 15px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .legend-dot {
+            width: 30px;
+            height: 30px;
+            background: rgba(223, 10, 30, 0.8);
+            border: 3px solid white;
+            border-radius: 50%;
+            margin-right: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+        }
+        @media (max-width: 768px) {
+            .image-container {
+                grid-template-columns: 1fr;
+            }
+            header h1 {
+                font-size: 1.5em;
+            }
+            .content {
+                padding: 20px;
+            }
+            .hotspot {
+                width: 30px;
+                height: 30px;
+                font-size: 11px;
+            }
+        }
+ </style>
+ <div class="container">
+  <header>
+   <h1>
+    ⚡ DC Direction Lever
+   </h1>
+   <p>
+    FLEXI DC (ZAPI CONTROLLER) ELFIN Direction Switch - Interactive Wiring Guide
+   </p>
+  </header>
+  <div class="content">
+   <div class="info-panel">
+    <h2>
+     📍 Interactive DC Wiring Diagram
+    </h2>
+    <p>
+     Hover over or click the red numbered hotspots on the actual switch images below to view wire connection details. This guide shows the typical connections for the FLEXI DC (ZAPI CONTROLLER) ELFIN direction switch.
+    </p>
+   </div>
+   <div class="legend">
+    <h3>
+     🎯 How to Use This Guide
+    </h3>
+    <div class="legend-item">
+     <div class="legend-dot">
+     </div>
+     <span>
+      <strong>
+       Hover
+      </strong>
+      over the red dots to see wire details
+     </span>
+    </div>
+    <div class="legend-item">
+     <div class="legend-dot">
+     </div>
+     <span>
+      <strong>
+       Click
+      </strong>
+      on any hotspot for detailed information
+     </span>
+    </div>
+    <div class="legend-item">
+     <div class="legend-dot">
+     </div>
+     <span>
+      <strong>
+       Click table rows
+      </strong>
+      to highlight wire locations
+     </span>
+    </div>
+   </div>
+   <div class="image-container">
+    <div class="image-wrapper">
+     <div class="image-label">
+      LEFT VIEW
+     </div>
+     <img src="__IMG_LEFT__" alt="Left view of DC direction lever">
+     <!-- Wire 10 hotspot (top) -->
+     <div class="hotspot top-left" style="top: 8%; left: 15%;" data-wire="10" data-location="Top connection">
+      10
+      <div class="hotspot-label">
+       <strong>
+        WIRE NO. 10
+       </strong>
+       <br>
+       Top connection
+      </div>
+     </div>
+     <!-- Wire 41 hotspot (left side) -->
+     <div class="hotspot middle-left" style="top: 35%; left: 5%;" data-wire="41" data-location="Left side connection">
+      41
+      <div class="hotspot-label">
+       <strong>
+        WIRE NO. 41
+       </strong>
+       <br>
+       Left side connection
+      </div>
+     </div>
+     <!-- Wire 7 hotspot (bottom left) -->
+     <div class="hotspot bottom" style="bottom: 15%; left: 30%;" data-wire="7" data-location="Bottom left connection">
+      7
+      <div class="hotspot-label">
+       <strong>
+        WIRE NO. 7
+       </strong>
+       <br>
+       Bottom left connection
+      </div>
+     </div>
+     <!-- Wire 13 hotspot (bottom center) -->
+     <div class="hotspot bottom" style="bottom: 8%; left: 50%;" data-wire="13" data-location="Bottom center connection">
+      13
+      <div class="hotspot-label">
+       <strong>
+        WIRE NO. 13
+       </strong>
+       <br>
+       Bottom center connection
+       <br>
+       (Front of truck direction)
+      </div>
+     </div>
+    </div>
+    <div class="image-wrapper">
+     <div class="image-label">
+      RIGHT VIEW
+     </div>
+     <img src="__IMG_RIGHT__" alt="Right view of DC direction lever">
+     <!-- Wire 10 hotspot (top right) -->
+     <div class="hotspot top-right" style="top: 8%; right: 15%;" data-wire="10" data-location="Top connection">
+      10
+      <div class="hotspot-label">
+       <strong>
+        WIRE NO. 10
+       </strong>
+       <br>
+       Top connection
+      </div>
+     </div>
+     <!-- Wire 41 hotspot (right side top) -->
+     <div class="hotspot top-right" style="top: 25%; right: 5%;" data-wire="41" data-location="Right side top connection">
+      41
+      <div class="hotspot-label">
+       <strong>
+        WIRE NO. 41
+       </strong>
+       <br>
+       Right side top connection
+      </div>
+     </div>
+     <!-- Wire 14 hotspot (bottom right area) -->
+     <div class="hotspot bottom" style="bottom: 25%; left: 45%;" data-wire="14" data-location="Bottom connection">
+      14
+      <div class="hotspot-label">
+       <strong>
+        WIRE NO. 14
+       </strong>
+       <br>
+       Bottom connection
+      </div>
+     </div>
+     <!-- Wire 42 hotspot (bottom center) -->
+     <div class="hotspot bottom" style="bottom: 10%; left: 50%;" data-wire="42" data-location="Bottom center connection">
+      42
+      <div class="hotspot-label">
+       <strong>
+        WIRE NO. 42
+       </strong>
+       <br>
+       Bottom center connection
+      </div>
+     </div>
+    </div>
+   </div>
+   <div class="wire-table">
+    <table>
+     <thead>
+      <tr>
+       <th>
+        Wire Number
+       </th>
+       <th>
+        Location
+       </th>
+       <th>
+        View
+       </th>
+      </tr>
+     </thead>
+     <tbody>
+      <tr onclick="highlightWire(10)">
+       <td>
+        <span class="wire-number">
+         10
+        </span>
+        Wire No. 10
+       </td>
+       <td>
+        Top connection
+       </td>
+       <td>
+        Both views
+       </td>
+      </tr>
+      <tr onclick="highlightWire(41)">
+       <td>
+        <span class="wire-number">
+         41
+        </span>
+        Wire No. 41
+       </td>
+       <td>
+        Side connections
+       </td>
+       <td>
+        Both views
+       </td>
+      </tr>
+      <tr onclick="highlightWire(7)">
+       <td>
+        <span class="wire-number">
+         7
+        </span>
+        Wire No. 7
+       </td>
+       <td>
+        Bottom left connection
+       </td>
+       <td>
+        Left view
+       </td>
+      </tr>
+      <tr onclick="highlightWire(13)">
+       <td>
+        <span class="wire-number">
+         13
+        </span>
+        Wire No. 13
+       </td>
+       <td>
+        Bottom center connection (Front of truck)
+       </td>
+       <td>
+        Left view
+       </td>
+      </tr>
+      <tr onclick="highlightWire(14)">
+       <td>
+        <span class="wire-number">
+         14
+        </span>
+        Wire No. 14
+       </td>
+       <td>
+        Bottom connection
+       </td>
+       <td>
+        Right view
+       </td>
+      </tr>
+      <tr onclick="highlightWire(42)">
+       <td>
+        <span class="wire-number">
+         42
+        </span>
+        Wire No. 42
+       </td>
+       <td>
+        Bottom center connection
+       </td>
+       <td>
+        Right view
+       </td>
+      </tr>
+     </tbody>
+    </table>
+   </div>
+   <div class="instructions">
+    <h3>
+     🔌 DC Installation Instructions
+    </h3>
+    <p>
+     <strong>
+      Important:
+     </strong>
+     This switch controls the direction of the FLEXI DC (ZAPI CONTROLLER) ELFIN system. 
+                    Wire connections include: Wire No. 10 (top on both sides), Wire No. 41 (side connections on both views), 
+                    Wire No. 7 (bottom left), Wire No. 13 (bottom center - front of truck direction), Wire No. 14 (bottom right view), 
+                    and Wire No. 42 (bottom center right view).
+    </p>
+    <p style="margin-top: 15px;">
+     <strong>
+      Safety Note:
+     </strong>
+     Always disconnect power before servicing. This is a DC controller system - ensure proper polarity 
+                    and verify all wire connections before operation. The lever should point toward the front of the truck for proper orientation. 
+                    Improper wiring can result in incorrect directional control or equipment damage.
+    </p>
+   </div>
+  </div>
+ </div>
+ <script>
+  // Add click functionality to hotspots
+        document.querySelectorAll('.hotspot').forEach(hotspot => {
+            hotspot.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const wire = this.dataset.wire;
+                const location = this.dataset.location;
+                alert(`WIRE NO. ${wire}\n\nLocation: ${location}\n\nClick OK to continue exploring the wiring diagram.`);
+            });
+        });
+        // Add table row click functionality
+        function highlightWire(wireNum) {
+            const hotspots = document.querySelectorAll(`[data-wire="${wireNum}"]`);
+            hotspots.forEach(hotspot => {
+                // Temporarily highlight the hotspot
+                hotspot.style.animation = 'none';
+                hotspot.style.transform = 'scale(1.5)';
+                hotspot.style.background = 'rgba(231, 76, 60, 1)';
+                setTimeout(() => {
+                    hotspot.style.transform = 'scale(1)';
+                    hotspot.style.background = 'rgba(231, 76, 60, 0.7)';
+                    hotspot.style.animation = 'pulse 2s infinite';
+                }, 1000);
+            });
+            // Scroll to first hotspot
+            if (hotspots.length > 0) {
+                hotspots[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+        // Add smooth fade-in animation on load
+        window.addEventListener('load', function() {
+            document.body.style.opacity = '0';
+            setTimeout(() => {
+                document.body.style.transition = 'opacity 0.5s ease';
+                document.body.style.opacity = '1';
+            }, 100);
+        });
+ </script>
