@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#df0a1e">
+<title>Hour Meter Memory Feature - AC-3</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #ffffff;
+    color: #101010;
+    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    padding: 0 0 32px;
+    min-height: 100vh;
+  }
+  .page { max-width: 1100px; margin: 0 auto; }
+
+  .fh { background: #ffffff; border: 1px solid #e8e8e8; border-left: 4px solid #df0a1e; border-radius: 16px; margin: 16px 16px 0; padding: 20px 24px; display: flex; align-items: center; gap: 16px; }
+  .flogo { height: 40px; filter: invert(1); }
+  .fh h1 { font-family: 'IBM Plex Sans', sans-serif; font-size: 26px; font-weight: 700; text-transform: uppercase; line-height: 1.1; color: #101010; }
+  .fh p { font-size: 13px; color: #707070; margin-top: 4px; }
+
+  .fbadges { display: flex; gap: 8px; margin: 12px 16px 0; flex-wrap: wrap; }
+  .fb { background: #fafafa; border: 1px solid #e8e8e8; border-radius: 6px; padding: 5px 12px; font-size: 12px; color: #707070; font-weight: 500; }
+
+  .fs { margin: 20px 16px 0; }
+  .fc { background: #ffffff; border: 1px solid #e8e8e8; border-radius: 12px; padding: 20px; }
+  .fct { font-family: 'IBM Plex Sans', sans-serif; font-size: 16px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: #101010; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #e8e8e8; }
+
+  .fa { border-radius: 8px; padding: 14px 16px; margin: 10px 0; font-size: 14px; line-height: 1.5; }
+  .fa-w { background: #fffbeb; border-left: 4px solid #f59e0b; color: #92650d; }
+  .fa-s { background: #f0fdf4; border-left: 4px solid #22c55e; color: #15803d; }
+  .fa strong { display: block; margin-bottom: 4px; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; font-family: 'IBM Plex Sans', sans-serif; }
+
+  .fcards { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-top: 12px; }
+  .fcard { background: #fafafa; border: 1px solid #e8e8e8; border-radius: 8px; padding: 14px; }
+  .fcard-t { font-family: 'IBM Plex Sans', sans-serif; font-size: 13px; font-weight: 700; color: #df0a1e; text-transform: uppercase; margin-bottom: 4px; }
+  .fcard p { font-size: 12px; color: #707070; line-height: 1.5; }
+
+  .fsteps { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+  .fstep { background: #fafafa; border-left: 4px solid #df0a1e; border-radius: 0 8px 8px 0; padding: 14px 16px; display: flex; gap: 14px; align-items: flex-start; }
+  .fstep-n { background: #df0a1e; color: #fff; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; flex-shrink: 0; margin-top: 1px; font-family: 'IBM Plex Sans', sans-serif; }
+  .fstep-t { font-family: 'IBM Plex Sans', sans-serif; font-weight: 700; font-size: 15px; color: #101010; text-transform: uppercase; margin-bottom: 4px; }
+  .fstep-d { font-size: 13px; color: #707070; line-height: 1.55; font-weight: 400; }
+
+  .hl { background: #df0a1e; color: #fff; padding: 1px 7px; border-radius: 4px; font-size: 12px; font-weight: 700; font-family: 'IBM Plex Sans', sans-serif; letter-spacing: 0.03em; }
+  .ml { background: #f0fdf4; color: #15803d; padding: 1px 7px; border-radius: 4px; font-size: 12px; font-weight: 700; font-family: 'DM Mono', monospace; border: 1px solid #bbf7d0; }
+
+  .fkp { background: #0a0a0a; border: 1px solid #2a2a2a; border-radius: 10px; padding: 16px; max-width: 320px; margin: 12px auto 0; }
+  .fdisp { background: #0a0a0a; border: 2px solid #df0a1e; border-radius: 6px; padding: 16px; text-align: center; font-family: monospace; font-size: 13px; color: #4ade80; min-height: 54px; display: flex; align-items: center; justify-content: center; white-space: pre; margin-bottom: 12px; transition: all 0.3s; }
+  .fdisp.ok { border-color: #22c55e; background: #001a08; }
+  .fkeys { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .fkey { background: #df0a1e; color: #fff; border: none; padding: 12px 6px; border-radius: 6px; cursor: pointer; font-family: 'IBM Plex Sans', sans-serif; font-weight: 700; font-size: 12px; text-align: center; line-height: 1.2; transition: background 0.15s; }
+  .fkey:hover { background: #c3161e; }
+  .fkey.nav { background: #1a1a1a; border: 1px solid #2a2a2a; color: #fff; }
+  .fkey.nav:hover { background: #2a2a2a; }
+  .fkey.ok { background: #14532d; border: 1px solid #22c55e; color: #4ade80; }
+  .fkey.ok:hover { background: #166534; }
+
+  .fflow { display: flex; flex-direction: column; gap: 0; margin-top: 12px; }
+  .fflow-step { background: #fafafa; border: 1px solid #e8e8e8; border-radius: 8px; padding: 12px 16px; font-size: 13px; color: #101010; }
+  .fflow-step strong { color: #df0a1e; font-family: 'IBM Plex Sans', sans-serif; font-size: 14px; text-transform: uppercase; }
+  .fflow-arrow { text-align: center; color: #df0a1e; font-size: 18px; line-height: 1; padding: 2px 0; }
+
+  .fft { background: #fafafa; border: 1px solid #e8e8e8; margin: 24px 16px 0; border-radius: 12px; padding: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; }
+  .fft h3 { font-family: 'IBM Plex Sans', sans-serif; font-size: 13px; font-weight: 700; text-transform: uppercase; color: #df0a1e; margin-bottom: 6px; letter-spacing: 0.05em; }
+  .fft p { font-size: 12px; color: #707070; line-height: 1.6; }
+
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: #f0f0f0; }
+  ::-webkit-scrollbar-thumb { background: #df0a1e; border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: #c3161e; }
+</style>
+</head>
+<body>
+<div class="page">
+ <div class="fh">
+  <img class="flogo" src="https://narrowaisleservice.github.io/Flexi-Parts-System/flexi-logo-white.svg" alt="Flexi">
+  <div>
+   <h1>Hour Meter Memory Feature</h1>
+   <p>AC-3 Inverter System — Transfer &amp; Reload Procedure</p>
+  </div>
+ </div>
+
+ <div class="fbadges">
+  <span class="fb">AC-3 Inverter</span>
+  <span class="fb">MDI</span>
+  <span class="fb">Digital Console Required</span>
+  <span class="fb">~5–10 min</span>
+ </div>
+
+ <div class="fs">
+  <div class="fc">
+   <div class="fct">Overview</div>
+   <p style="font-size:13px;color:#707070;line-height:1.6">
+    The MDI retains the Hour Meter value in its own memory. If a replacement inverter is required, the hour count can be transferred from the 1st inverter to the 2nd — ensuring no loss of the Hour Meter record for the machine.
+   </p>
+   <div class="fcards">
+    <div class="fcard">
+     <div class="fcard-t">Equipment</div>
+     <p>Digital Console for MDI configuration and hour meter transfer</p>
+    </div>
+    <div class="fcard">
+     <div class="fcard-t">System</div>
+     <p>AC-3 Inverter with MDI (Motor Drive Interface)</p>
+    </div>
+    <div class="fcard">
+     <div class="fcard-t">Data Integrity</div>
+     <p>No loss of maintenance records or operational history</p>
+    </div>
+   </div>
+  </div>
+ </div>
+
+ <div class="fs">
+  <div class="fc">
+   <div class="fct">Console Simulator</div>
+   <div class="fkp">
+    <div class="fdisp" id="disp">Ready to begin transfer...</div>
+    <div class="fkeys">
+     <button class="fkey" onclick="kp('combo')">Top Left<br>+ Right</button>
+     <button class="fkey nav" onclick="kp('scroll')">Scroll</button>
+     <button class="fkey nav" onclick="kp('topright')">Top Right<br>(Toggle)</button>
+     <button class="fkey ok" onclick="kp('enter')">Enter</button>
+     <button class="fkey" onclick="kp('out')">Out</button>
+     <button class="fkey nav" onclick="rst()">Reset</button>
+    </div>
+   </div>
+  </div>
+ </div>
+
+ <div class="fs">
+  <div class="fc">
+   <div class="fct">Step-by-Step Procedure</div>
+   <div class="fsteps">
+    <div class="fstep">
+     <div class="fstep-n">1</div>
+     <div>
+      <div class="fstep-t">Preparation</div>
+      <div class="fstep-d">Disconnect the MDI and connect a Digital Console.</div>
+     </div>
+    </div>
+    <div class="fstep">
+     <div class="fstep-n">2</div>
+     <div>
+      <div class="fstep-t">Access Configuration Menu</div>
+      <div class="fstep-d">From the Opening Menu, press <span class="hl">Top Left</span> + <span class="hl">Top Right</span> simultaneously to enter the CONFIGURATION menu.</div>
+     </div>
+    </div>
+    <div class="fstep">
+     <div class="fstep-n">3</div>
+     <div>
+      <div class="fstep-t">Navigate to Adjustments</div>
+      <div class="fstep-d">Scroll to <span class="ml">CONFIG.MENU – ADJUSTMENTS</span>. Press Enter, then scroll until display shows <span class="ml">LOAD HM FROM MDI – OFF</span>.</div>
+     </div>
+    </div>
+    <div class="fstep">
+     <div class="fstep-n">4</div>
+     <div>
+      <div class="fstep-t">Enable Load Function</div>
+      <div class="fstep-d">Press <span class="hl">Top Right</span> once to change OFF to <span class="ml">ON</span>.</div>
+     </div>
+    </div>
+    <div class="fstep">
+     <div class="fstep-n">5</div>
+     <div>
+      <div class="fstep-t">Confirmation</div>
+      <div class="fstep-d">Display asks <span class="hl">ARE YOU SURE?</span> — press Enter to confirm.</div>
+     </div>
+    </div>
+    <div class="fstep">
+     <div class="fstep-n">6</div>
+     <div>
+      <div class="fstep-t">Return to Menu</div>
+      <div class="fstep-d">Display shows <span class="ml">CONFIG.MENU – ADJUSTMENTS</span>. Press Out.</div>
+     </div>
+    </div>
+    <div class="fstep">
+     <div class="fstep-n">7</div>
+     <div>
+      <div class="fstep-t">Complete Transfer</div>
+      <div class="fstep-d">Open Key switch, disconnect Console, reconnect MDI. Close Key switch. The replacement inverter will now retain the hour meter value of the previous inverter.</div>
+     </div>
+    </div>
+   </div>
+  </div>
+ </div>
+
+ <div class="fs">
+  <div class="fc">
+   <div class="fct">Process Flow</div>
+   <div class="fflow">
+    <div class="fflow-step"><strong>1</strong> — Disconnect MDI → Connect Digital Console</div>
+    <div class="fflow-arrow">↓</div>
+    <div class="fflow-step"><strong>2</strong> — Press Top Left + Right → Enter Configuration Menu</div>
+    <div class="fflow-arrow">↓</div>
+    <div class="fflow-step"><strong>3</strong> — Scroll to <span style="color:#15803d;font-family:monospace">LOAD HM FROM MDI – OFF</span></div>
+    <div class="fflow-arrow">↓</div>
+    <div class="fflow-step"><strong>4</strong> — Press Top Right → Change to ON</div>
+    <div class="fflow-arrow">↓</div>
+    <div class="fflow-step"><strong>5</strong> — Confirm with Enter</div>
+    <div class="fflow-arrow">↓</div>
+    <div class="fflow-step"><strong>6</strong> — Exit with Out</div>
+    <div class="fflow-arrow">↓</div>
+    <div class="fflow-step" style="border-color:#22c55e"><strong style="color:#22c55e">7</strong> — Reconnect MDI — Hour meter transferred ✓</div>
+   </div>
+  </div>
+ </div>
+
+ <div class="fs">
+  <div class="fa fa-w">
+   <strong>Important</strong>
+   Ensure the Key switch is Open before disconnecting or connecting any components to prevent damage to electronic systems.
+  </div>
+  <div class="fa fa-s">
+   <strong>Success Indicator</strong>
+   After reconnecting the MDI, the replacement inverter will display the previous hour meter value — confirming a successful transfer.
+  </div>
+ </div>
+
+ <div class="fft">
+  <div>
+   <h3>System</h3>
+   <p>AC-3 Inverter<br>MDI (Motor Drive Interface)</p>
+  </div>
+  <div>
+   <h3>Memory</h3>
+   <p>MDI stores hour meter data independently for seamless transfer</p>
+  </div>
+  <div>
+   <h3>Process</h3>
+   <p>One-time config change enables new inverter to read from MDI memory</p>
+  </div>
+ </div>
+</div>
+
+<script>
+  const msgs = ['Ready to begin transfer...', 'CONFIGURATION MENU', 'CONFIG.MENU\nADJUSTMENTS', 'LOAD HM FROM MDI\nOFF', 'LOAD HM FROM MDI\nON', 'ARE YOU SURE ?', 'CONFIG.MENU\nADJUSTMENTS', 'Transfer Complete! ✓'];
+  let si = 0;
+  function kp(a) {
+    const d = document.getElementById('disp');
+    if (a === 'combo' && si === 0) si = 1;
+    else if (a === 'scroll' && si === 1) si = 2;
+    else if (a === 'enter' && si === 2) si = 3;
+    else if (a === 'topright' && si === 3) si = 4;
+    else if (a === 'enter' && si === 4) si = 5;
+    else if (a === 'enter' && si === 5) si = 6;
+    else if (a === 'out' && si === 6) si = 7;
+    d.textContent = msgs[si];
+    d.className = 'fdisp' + (si === 7 ? ' ok' : '');
+  }
+  function rst() {
+    si = 0;
+    const d = document.getElementById('disp');
+    d.textContent = msgs[0];
+    d.className = 'fdisp';
+  }
+</script>
+</body>
+</html>
