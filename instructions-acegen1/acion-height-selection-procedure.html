@@ -1,0 +1,1028 @@
+<meta>
+ 
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ 
+ <title>
+  ACiON Height Selection Procedure
+ </title>
+ <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&amp;family=DM+Sans:wght@400;500;700&amp;family=DM+Mono:wght@500&amp;display=swap" rel="stylesheet">
+ <style>
+  :root {
+      --red: #df0a1e;
+      --red-dim: #a80716;
+      --red-glow: rgba(223, 10, 30, 0.25);
+      --red-subtle: rgba(223, 10, 30, 0.06);
+      --green: #16a34a;
+      --green-subtle: rgba(22, 163, 74, 0.08);
+      --green-dim: rgba(22, 163, 74, 0.3);
+      --amber: #d97706;
+      --amber-subtle: rgba(217, 119, 6, 0.08);
+      --amber-dim: rgba(217, 119, 6, 0.25);
+      --blue: #0284c7;
+      --blue-subtle: rgba(2, 132, 199, 0.06);
+      --blue-dim: rgba(2, 132, 199, 0.2);
+      --bg: #f7f7f8;
+      --bg-card: #ffffff;
+      --bg-elevated: #fafafa;
+      --border: #ececec;
+      --border-bright: #d8d8d8;
+      --text: #0a0a0a;
+      --text-muted: #6b6b6b;
+      --text-dim: #9a9a9a;
+      --mono: 'DM Mono', monospace;
+      --display: 'IBM Plex Sans', sans-serif;
+      --ui: 'DM Sans', sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--ui);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(223, 10, 30, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(223, 10, 30, 0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 32px 20px 60px;
+    }
+    /* ── HEADER ── */
+    .header {
+      text-align: center;
+      padding: 40px 0 36px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 28px;
+      position: relative;
+    }
+    .header::after {
+      content: '';
+      position: absolute;
+      bottom: -1px; left: 50%;
+      transform: translateX(-50%);
+      width: 200px; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--red), transparent);
+    }
+    .header-eyebrow {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.3em;
+      color: var(--red);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .header h1 {
+      font-family: var(--display);
+      font-size: clamp(32px, 5vw, 56px);
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      text-transform: uppercase;
+      color: var(--text);
+      line-height: 1;
+    }
+    .header h1 span { color: var(--red); }
+    .header-sub {
+      margin-top: 10px;
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.15em;
+      color: var(--text-muted);
+    }
+    /* ── ALERTS ── */
+    .alert {
+      padding: 14px 20px;
+      margin-bottom: 14px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .alert.critical {
+      background: var(--red-subtle);
+      border: 1px solid rgba(223, 10, 30, 0.25);
+      border-left: 3px solid var(--red);
+      color: #4a4a4a;
+    }
+    .alert.critical strong { color: var(--red); }
+    .alert.info {
+      background: var(--blue-subtle);
+      border: 1px solid var(--blue-dim);
+      border-left: 3px solid var(--blue);
+      color: #4a4a4a;
+    }
+    .alert.info strong { color: var(--blue); }
+    .alert.warning {
+      background: var(--amber-subtle);
+      border: 1px solid var(--amber-dim);
+      border-left: 3px solid var(--amber);
+      color: #4a4a4a;
+    }
+    .alert.warning strong { color: var(--amber); }
+    .alert ul, .alert ol {
+      margin-top: 6px;
+      margin-left: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    /* ── QUICK REF TABLE ── */
+    .ref-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+    }
+    .ref-table thead th {
+      background: var(--bg-elevated);
+      padding: 9px 14px;
+      text-align: left;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.22em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border);
+      font-weight: 500;
+    }
+    .ref-table tbody tr { border-bottom: 1px solid var(--border); }
+    .ref-table tbody tr:last-child { border-bottom: none; }
+    .ref-table tbody tr:nth-child(even) { background: var(--bg-elevated); }
+    .ref-table td {
+      padding: 9px 14px;
+      font-size: 13px;
+      color: #4a4a4a;
+    }
+    .ref-table .ref-param {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.07em;
+      color: var(--red);
+    }
+    .param-val {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: #4ade80;
+      background: #050f08;
+      border: 1px solid rgba(74, 222, 128, 0.2);
+      padding: 2px 10px;
+      letter-spacing: 0.12em;
+      text-shadow: 0 0 8px rgba(74, 222, 128, 0.4);
+      display: inline-block;
+    }
+    /* ── PHASE ACCORDIONS ── */
+    .phase-block {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+    .phase-trigger {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      cursor: pointer;
+      background: var(--bg-elevated);
+      user-select: none;
+      transition: background 0.15s;
+      border-left: 3px solid var(--border);
+    }
+    .phase-trigger:hover { background: var(--red-subtle); }
+    .phase-trigger.open {
+      background: var(--red-subtle);
+      border-left-color: var(--red);
+    }
+    .phase-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .phase-num {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      color: var(--red);
+      background: var(--red-subtle);
+      border: 1px solid var(--red-dim);
+      padding: 3px 10px;
+      text-transform: uppercase;
+      flex-shrink: 0;
+    }
+    .phase-title {
+      font-family: var(--display);
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      color: var(--text);
+    }
+    .phase-arrow {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text-dim);
+      transition: transform 0.2s;
+    }
+    .phase-trigger.open .phase-arrow { transform: rotate(180deg); }
+    .phase-body {
+      display: none;
+      border-top: 1px solid var(--border);
+      padding: 20px;
+    }
+    .phase-body.open { display: block; }
+    /* ── STEP ITEMS ── */
+    .step-item {
+      display: flex;
+      gap: 14px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+      align-items: flex-start;
+    }
+    .step-item:last-of-type { border-bottom: none; }
+    .step-num-box {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      color: var(--red);
+      background: var(--red-subtle);
+      border: 1px solid var(--red-dim);
+      min-width: 28px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .step-text {
+      font-size: 13px;
+      color: #4a4a4a;
+      line-height: 1.65;
+      flex: 1;
+    }
+    .step-text strong { color: var(--text); }
+    .key {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-bright);
+      color: var(--text);
+      padding: 2px 8px;
+      display: inline-block;
+      text-transform: uppercase;
+    }
+    /* Height options list */
+    .height-opts {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      padding: 12px 16px;
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .height-opt-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .height-opt-row .arrow { color: var(--text-dim); }
+    /* Measurement display */
+    .measure-box {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--amber);
+      padding: 18px 20px;
+      margin: 12px 0;
+      text-align: center;
+    }
+    .measure-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.25em;
+      color: var(--amber);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .measure-value {
+      font-family: var(--mono);
+      font-size: 26px;
+      color: var(--amber);
+      letter-spacing: 0.1em;
+    }
+    .measure-sub {
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-top: 8px;
+    }
+    /* Parameter summary rows */
+    .param-rows {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      margin-top: 10px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+    .param-row-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+    .param-row-item:last-child { border-bottom: none; }
+    .param-row-item:nth-child(even) { background: var(--bg-elevated); }
+    .param-row-item .p-name {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.07em;
+      color: var(--red);
+      min-width: 160px;
+    }
+    .param-row-item .p-desc { color: var(--text-muted); font-size: 13px; flex: 1; }
+    /* ── FOOTER ── */
+    .footer {
+      text-align: center;
+      margin-top: 48px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      line-height: 2;
+    }
+ </style>
+ <div class="container">
+  <div class="header">
+   <div class="header-eyebrow">
+    Configuration Procedure &nbsp;/&nbsp; AE2PBH Node 5 "PUMP"
+   </div>
+   <h1>
+    ACiON
+    <span>
+     Height Selection
+    </span>
+    Procedure
+   </h1>
+   <div class="header-sub">
+    Narrow Aisle Ltd &nbsp;·&nbsp; Laser Positioning System &nbsp;·&nbsp; Up to 12 Height Positions
+   </div>
+  </div>
+  <div class="alert critical">
+   <p>
+    <strong>
+     Critical:
+    </strong>
+    The teaching procedure MUST be carried out in the order specified below. Failure to follow the correct sequence will cause the lifting function and height selection to fail.
+   </p>
+  </div>
+  <div class="alert info">
+   <p>
+    <strong>
+     Overview:
+    </strong>
+    This procedure configures the laser height selection system, allowing up to 12 programmable height positions. Heights can be grouped — for example, Heights 1–6 for Warehouse A and Heights 7–12 for Warehouse B.
+   </p>
+  </div>
+  <div class="alert info">
+   <div>
+    <strong>
+     Required Equipment:
+    </strong>
+    <ul>
+     <li>
+      Zapi Smart Console
+     </li>
+     <li>
+      Measuring tape or laser distance meter
+     </li>
+     <li>
+      Access to AE2PBH Node 5 "PUMP"
+     </li>
+    </ul>
+   </div>
+  </div>
+  <!-- QUICK REF -->
+  <div style="background:var(--bg-card); border:1px solid var(--border); margin-bottom:24px; overflow:hidden;">
+   <div style="padding:10px 16px; background:var(--bg-elevated); border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px;">
+    <span style="font-family:var(--mono); font-size:10px; letter-spacing:0.22em; color:var(--text-dim); text-transform:uppercase;">
+     Quick Reference — Parameter Summary
+    </span>
+   </div>
+   <table class="ref-table">
+    <thead>
+     <tr>
+      <th>
+       Parameter
+      </th>
+      <th>
+       Setting
+      </th>
+     </tr>
+    </thead>
+    <tbody>
+     <tr>
+      <td class="ref-param">
+       HEIGHT SELECTION
+      </td>
+      <td>
+       <span class="param-val">
+        ON
+       </span>
+      </td>
+     </tr>
+     <tr>
+      <td class="ref-param">
+       OPT. HEIGHT #1–12
+      </td>
+      <td>
+       <span class="param-val">
+        ON
+       </span>
+       <span style="color:var(--text-dim); font-size:12px;">
+        (as required)
+       </span>
+      </td>
+     </tr>
+     <tr>
+      <td class="ref-param">
+       LIFT HEIGHT CTB
+      </td>
+      <td>
+       <span class="param-val">
+        20%
+       </span>
+      </td>
+     </tr>
+     <tr>
+      <td class="ref-param">
+       LIFT HEIGHT S.D
+      </td>
+      <td>
+       <span class="param-val">
+        0.5V
+       </span>
+      </td>
+     </tr>
+    </tbody>
+   </table>
+  </div>
+  <!-- PHASE 1 -->
+  <div class="phase-block">
+   <div class="phase-trigger" onclick="togglePhase(this)">
+    <div class="phase-left">
+     <span class="phase-num">
+      Phase 01
+     </span>
+     <span class="phase-title">
+      Set Laser — Initial Measurement
+     </span>
+    </div>
+    <span class="phase-arrow">
+     ▼
+    </span>
+   </div>
+   <div class="phase-body">
+    <div class="measure-box">
+     <div class="measure-label">
+      Measure Distance X
+     </div>
+     <div class="measure-value">
+      X = _______ mm
+     </div>
+     <div class="measure-sub">
+      From front (glass) face of sensor to target — mast in
+      <strong style="color:var(--amber)">
+       LOWERED POSITION
+      </strong>
+     </div>
+    </div>
+    <div class="step-item">
+     <span class="step-num-box">
+      01
+     </span>
+     <div class="step-text">
+      <strong>
+       Position mast in the fully lowered position
+      </strong>
+     </div>
+    </div>
+    <div class="step-item">
+     <span class="step-num-box">
+      02
+     </span>
+     <div class="step-text">
+      <strong>
+       Measure the distance from the sensor glass face to the target reflector
+      </strong>
+     </div>
+    </div>
+    <div class="step-item">
+     <span class="step-num-box">
+      03
+     </span>
+     <div class="step-text">
+      <strong>
+       Record this as Distance 'X' — this is your baseline measurement
+      </strong>
+     </div>
+    </div>
+    <div class="alert info" style="margin-top:14px;">
+     <p>
+      <strong>
+       Sensor Setup:
+      </strong>
+      Ensure the laser sensor is properly mounted and aligned. The glass face should be clean and the target reflector properly positioned on the mast.
+     </p>
+    </div>
+   </div>
+  </div>
+  <!-- PHASE 2 -->
+  <div class="phase-block">
+   <div class="phase-trigger" onclick="togglePhase(this)">
+    <div class="phase-left">
+     <span class="phase-num">
+      Phase 02
+     </span>
+     <span class="phase-title">
+      Height Selection Menu Options
+     </span>
+    </div>
+    <span class="phase-arrow">
+     ▼
+    </span>
+   </div>
+   <div class="phase-body">
+    <p style="font-size:13px; color:var(--text-muted); margin-bottom:14px;">
+     Using Zapi Smart Console — AE2PBH Node 5 "PUMP"
+    </p>
+    <div class="step-item">
+     <span class="step-num-box">
+      01
+     </span>
+     <div class="step-text">
+      Connect Zapi Smart Console and access
+      <strong>
+       AE2PBH Node 5 "PUMP"
+      </strong>
+     </div>
+    </div>
+    <div class="step-item">
+     <span class="step-num-box">
+      02
+     </span>
+     <div class="step-text">
+      Scroll to
+      <span class="key">
+       Menu Options
+      </span>
+      and press
+      <span class="key">
+       Enter
+      </span>
+     </div>
+    </div>
+    <div class="step-item">
+     <span class="step-num-box">
+      03
+     </span>
+     <div class="step-text">
+      Scroll to
+      <span class="key">
+       Height Selection
+      </span>
+      — set to
+      <span class="param-val" style="font-size:12px; padding:2px 8px;">
+       ON
+      </span>
+     </div>
+    </div>
+    <div class="step-item">
+     <span class="step-num-box">
+      04
+     </span>
+     <div class="step-text">
+      Scroll to
+      <span class="key">
+       OPT. HEIGHT #1
+      </span>
+      — set to
+      <span class="param-val" style="font-size:12px; padding:2px 8px;">
+       ON
+      </span>
+     </div>
+    </div>
+    <div class="step-item">
+     <span class="step-num-box">
+      05
+     </span>
+     <div class="step-text">
+      <strong>
+       If more heights are required, enable additional heights:
+      </strong>
+      <div class="height-opts">
+       <div class="height-opt-row">
+        <span class="key">
+         OPT. HEIGHT #2
+        </span>
+        <span class="arrow">
+         →
+        </span>
+        <span class="param-val" style="font-size:11px; padding:1px 7px;">
+         ON
+        </span>
+       </div>
+       <div class="height-opt-row">
+        <span class="key">
+         OPT. HEIGHT #3
+        </span>
+        <span class="arrow">
+         →
+        </span>
+        <span class="param-val" style="font-size:11px; padding:1px 7px;">
+         ON
+        </span>
+       </div>
+       <div class="height-opt-row" style="color:var(--text-dim); font-family:var(--mono); font-size:11px; padding-left:4px;">
+        ... continue up to ...
+       </div>
+       <div class="height-opt-row">
+        <span class="key">
+         OPT. HEIGHT #12
+        </span>
+        <span class="arrow">
+         →
+        </span>
+        <span class="param-val" style="font-size:11px; padding:1px 7px;">
+         ON
+        </span>
+       </div>
+      </div>
+      <div class="alert warning" style="margin-top:10px;">
+       <p>
+        <strong>
+         Maximum Heights:
+        </strong>
+        Up to 12 heights can be selected. Enable only the heights needed — e.g. 1–6 for Warehouse A, 7–12 for Warehouse B.
+       </p>
+      </div>
+     </div>
+    </div>
+    <div class="step-item">
+     <span class="step-num-box">
+      06
+     </span>
+     <div class="step-text">
+      <strong>
+       When all required heights are selected:
+      </strong>
+      <div style="margin-top:8px; display:flex; flex-direction:column; gap:5px;">
+       <span>
+        Press
+        <span class="key">
+         ESC
+        </span>
+       </span>
+       <span>
+        Press
+        <span class="key">
+         OK
+        </span>
+       </span>
+       <span style="color:var(--text);">
+        Re-cycle the key to store settings
+       </span>
+      </div>
+     </div>
+    </div>
+   </div>
+  </div>
+  <!-- PHASE 3 -->
+  <div class="phase-block">
+   <div class="phase-trigger" onclick="togglePhase(this)">
+    <div class="phase-left">
+     <span class="phase-num">
+      Phase 03
+     </span>
+     <span class="phase-title">
+      Adjustment — Teaching Procedure
+     </span>
+    </div>
+    <span class="phase-arrow">
+     ▼
+    </span>
+   </div>
+   <div class="phase-body">
+    <div class="step-item">
+     <span class="step-num-box">
+      01
+     </span>
+     <div class="step-text">
+      Scroll to
+      <span class="key">
+       Menu Adjustment
+      </span>
+      and press
+      <span class="key">
+       Enter
+      </span>
+     </div>
+    </div>
+    <div class="step-item">
+     <span class="step-num-box">
+      02
+     </span>
+     <div class="step-text">
+      Scroll to
+      <span class="key">
+       Lift Height #1
+      </span>
+     </div>
+    </div>
+    <div class="step-item">
+     <span class="step-num-box">
+      03
+     </span>
+     <div class="step-text">
+      <strong>
+       Raise forks to the first height position required
+      </strong>
+      <div class="alert info" style="margin-top:8px;">
+       <p>
+        <strong>
+         Note:
+        </strong>
+        You will see the laser value change as the forks are raised. Position the forks at the desired height before pressing OK.
+       </p>
+      </div>
+     </div>
+    </div>
+    <div class="step-item">
+     <span class="step-num-box">
+      04
+     </span>
+     <div class="step-text">
+      When forks are at the correct height, press
+      <span class="key">
+       OK
+      </span>
+      — this
+      <strong>
+       teaches Height #1
+      </strong>
+     </div>
+    </div>
+    <div class="step-item">
+     <span class="step-num-box">
+      05
+     </span>
+     <div class="step-text">
+      <strong>
+       If more heights are required, repeat for each:
+      </strong>
+      <div class="height-opts">
+       <div class="height-opt-row" style="color:#4a4a4a;">
+        Scroll to
+        <span class="key" style="margin:0 6px;">
+         Lift Height #2
+        </span>
+        → Raise forks → Press
+        <span class="key" style="margin:0 6px;">
+         OK
+        </span>
+       </div>
+       <div class="height-opt-row" style="color:#4a4a4a;">
+        Scroll to
+        <span class="key" style="margin:0 6px;">
+         Lift Height #3
+        </span>
+        → Raise forks → Press
+        <span class="key" style="margin:0 6px;">
+         OK
+        </span>
+       </div>
+       <div class="height-opt-row" style="color:var(--text-dim); font-family:var(--mono); font-size:11px; padding-left:4px;">
+        ... continue up to Height #12 ...
+       </div>
+      </div>
+     </div>
+    </div>
+    <div class="step-item">
+     <span class="step-num-box">
+      06
+     </span>
+     <div class="step-text">
+      <strong>
+       When all height positions are taught:
+      </strong>
+      <div style="margin-top:8px; display:flex; flex-direction:column; gap:5px;">
+       <span>
+        Press
+        <span class="key">
+         ESC
+        </span>
+       </span>
+       <span>
+        Press
+        <span class="key">
+         OK
+        </span>
+       </span>
+      </div>
+     </div>
+    </div>
+    <div class="alert critical" style="margin-top:14px;">
+     <p>
+      <strong>
+       Critical:
+      </strong>
+      Each height must be taught in sequence. Do not skip heights or teach out of order — this will cause lifting function and height selection to fail.
+     </p>
+    </div>
+   </div>
+  </div>
+  <!-- PHASE 4 -->
+  <div class="phase-block">
+   <div class="phase-trigger" onclick="togglePhase(this)">
+    <div class="phase-left">
+     <span class="phase-num">
+      Phase 04
+     </span>
+     <span class="phase-title">
+      Final Parameters &amp; Testing
+     </span>
+    </div>
+    <span class="phase-arrow">
+     ▼
+    </span>
+   </div>
+   <div class="phase-body">
+    <div class="step-item">
+     <span class="step-num-box">
+      01
+     </span>
+     <div class="step-text">
+      Scroll to
+      <span class="key">
+       Parameters Menu
+      </span>
+      and press
+      <span class="key">
+       Enter
+      </span>
+     </div>
+    </div>
+    <div class="step-item">
+     <span class="step-num-box">
+      02
+     </span>
+     <div class="step-text">
+      <strong>
+       Set the following parameters:
+      </strong>
+      <div class="param-rows" style="margin-top:10px;">
+       <div class="param-row-item">
+        <span class="p-name">
+         LIFT HEIGHT CTB
+        </span>
+        <span class="p-desc">
+         Scroll to parameter and set to
+        </span>
+        <span class="param-val">
+         20%
+        </span>
+       </div>
+       <div class="param-row-item">
+        <span class="p-name">
+         LIFT HEIGHT S.D
+        </span>
+        <span class="p-desc">
+         Scroll to parameter and set to
+        </span>
+        <span class="param-val">
+         0.5V
+        </span>
+       </div>
+      </div>
+     </div>
+    </div>
+    <div class="step-item">
+     <span class="step-num-box">
+      03
+     </span>
+     <div class="step-text">
+      <strong>
+       After setting parameters:
+      </strong>
+      <div style="margin-top:8px; display:flex; flex-direction:column; gap:5px;">
+       <span>
+        Press
+        <span class="key">
+         ESC
+        </span>
+       </span>
+       <span>
+        Press
+        <span class="key">
+         OK
+        </span>
+       </span>
+       <span style="color:var(--text);">
+        Re-cycle the key to store all settings
+       </span>
+      </div>
+     </div>
+    </div>
+    <div class="step-item">
+     <span class="step-num-box">
+      04
+     </span>
+     <div class="step-text">
+      <strong>
+       Run and test all selected heights
+      </strong>
+      <div class="alert critical" style="margin-top:10px;">
+       <div>
+        <strong>
+         Operational Test Required:
+        </strong>
+        <ul>
+         <li>
+          Test each programmed height position
+         </li>
+         <li>
+          Verify forks stop at correct heights
+         </li>
+         <li>
+          Check laser sensor is reading correctly
+         </li>
+         <li>
+          Ensure smooth operation without errors
+         </li>
+         <li>
+          Document all heights in service log
+         </li>
+        </ul>
+       </div>
+      </div>
+     </div>
+    </div>
+   </div>
+  </div>
+  <!-- CRITICAL NOTES -->
+  <div class="alert warning" style="margin-top:8px;">
+   <div>
+    <strong>
+     Critical Notes:
+    </strong>
+    <ol style="margin-top:8px; margin-left:16px; display:flex; flex-direction:column; gap:6px;">
+     <li>
+      <strong>
+       Teaching procedure MUST be carried out in the order specified.
+      </strong>
+      Incorrect sequence will cause lifting function and height select to fail.
+     </li>
+     <li>
+      Heights can be grouped as required — e.g. Heights 1–6 for Warehouse A, Heights 7–12 for Warehouse B.
+     </li>
+     <li>
+      Always re-cycle the key after making changes to store settings in memory.
+     </li>
+     <li>
+      Perform thorough operational testing after setup is complete.
+     </li>
+    </ol>
+   </div>
+  </div>
+  <div class="footer">
+   Flexi Narrow Aisle Ltd &nbsp;·&nbsp; ACiON Height Selection Configuration &nbsp;·&nbsp; Internal Use Only
+   <br>
+   Authored by: S. Seymour
+  </div>
+ </div>
+ <script>
+  function togglePhase(trigger) {
+    var body = trigger.nextElementSibling;
+    var isOpen = trigger.classList.contains('open');
+    trigger.classList.toggle('open', !isOpen);
+    body.classList.toggle('open', !isOpen);
+  }
+ </script>
