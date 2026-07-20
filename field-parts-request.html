@@ -120,6 +120,31 @@
   .thumb img { width: 100%; height: 100%; object-fit: contain; padding: 4px; }
   .thumb.no-img { background: var(--surface); }
   .thumb .placeholder { font-size: 18px; opacity: 0.25; }
+  .thumb.clickable { cursor: pointer; }
+
+  /* Lightbox */
+  .lightbox-overlay {
+    position: fixed; inset: 0; z-index: 100;
+    background: rgba(0,0,0,0.85);
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  .lightbox-overlay.hidden { display: none; }
+  .lightbox-overlay img {
+    max-width: 100%; max-height: 100%;
+    border-radius: 10px;
+    background: #fff;
+    object-fit: contain;
+  }
+  .lightbox-close {
+    position: absolute; top: max(16px, env(safe-area-inset-top)); right: 16px;
+    width: 36px; height: 36px;
+    background: rgba(255,255,255,0.15);
+    border: none; border-radius: 50%;
+    color: #fff; font-size: 20px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+  }
 
   .empty-msg { text-align: center; color: var(--muted); padding: 40px 20px; font-size: 14px; }
 
@@ -278,6 +303,12 @@
     </div>
   </div>
 
+  <!-- Lightbox -->
+  <div class="lightbox-overlay hidden" id="lightboxOverlay">
+    <button class="lightbox-close" id="lightboxClose">✕</button>
+    <img src="" alt="" id="lightboxImg">
+  </div>
+
 <script>
   // ---- CONFIG ----
   // Use the SAME Web App URL your existing Flexi Parts System is deployed at —
@@ -358,7 +389,8 @@
           description: p['Description'] || '',
           category: p['System'] || '',
           location: p['Location'] || '',
-          imageUrl: driveImageUrl(p['Image URL'] || '')
+          imageUrl: driveImageUrl(p['Image URL'] || '', 'w200'),
+          imageUrlLarge: driveImageUrl(p['Image URL'] || '', 'w1200')
         }));
         partsLoaded = true;
         saveCachedParts(allParts);
@@ -396,12 +428,18 @@
   }
 
   // Converts a Drive "view" link (or an already-direct link) into a
-  // thumbnail URL that will actually render in an <img> tag.
-  function driveImageUrl(raw) {
+  // thumbnail URL that will actually render in an <img> tag. `size` controls
+  // the requested pixel width (e.g. 'w200' for a small thumb, 'w1200' for a
+  // full-size lightbox view).
+  function driveImageUrl(raw, size) {
+    size = size || 'w200';
     if (!raw || typeof raw !== 'string') return '';
     raw = raw.trim();
     if (!raw) return '';
-    if (raw.includes('drive.google.com/thumbnail') || raw.includes('drive.google.com/uc')) return raw;
+    if (raw.includes('drive.google.com/thumbnail')) {
+      return raw.replace(/sz=w\d+/, 'sz=' + size);
+    }
+    if (raw.includes('drive.google.com/uc')) return raw;
     let id = null;
     const m1 = raw.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
     if (m1) id = m1[1];
@@ -410,16 +448,16 @@
       if (m2) id = m2[1];
     }
     if (!id) return raw;
-    return `https://drive.google.com/thumbnail?id=${id}&sz=w200`;
+    return `https://drive.google.com/thumbnail?id=${id}&sz=${size}`;
   }
 
   function thumbHtml(part) {
     if (!part.imageUrl) {
       return `<div class="thumb no-img"><span class="placeholder">📦</span></div>`;
     }
-    return `<div class="thumb">
+    return `<div class="thumb clickable" data-large="${part.imageUrlLarge || part.imageUrl}">
       <img src="${part.imageUrl}" alt="" loading="lazy"
-           onerror="this.parentElement.classList.add('no-img'); this.parentElement.innerHTML='<span class=&quot;placeholder&quot;>📦</span>';">
+           onerror="this.parentElement.classList.add('no-img'); this.parentElement.classList.remove('clickable'); this.parentElement.innerHTML='<span class=&quot;placeholder&quot;>📦</span>';">
     </div>`;
   }
 
@@ -451,6 +489,10 @@
         item.querySelector('.inc').addEventListener('click', () => changeQty(p, 1));
       } else {
         item.querySelector('.add-btn').addEventListener('click', () => changeQty(p, 1));
+      }
+      const thumbEl = item.querySelector('.thumb.clickable');
+      if (thumbEl) {
+        thumbEl.addEventListener('click', () => openLightbox(thumbEl.dataset.large));
       }
       list.appendChild(item);
     });
@@ -579,6 +621,21 @@
   function escapeHtml(str) {
     return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
+
+  // ---- Lightbox ----
+  function openLightbox(url) {
+    if (!url) return;
+    el('lightboxImg').src = url;
+    el('lightboxOverlay').classList.remove('hidden');
+  }
+  function closeLightbox() {
+    el('lightboxOverlay').classList.add('hidden');
+    el('lightboxImg').src = '';
+  }
+  el('lightboxOverlay').addEventListener('click', (e) => {
+    if (e.target === el('lightboxOverlay')) closeLightbox();
+  });
+  el('lightboxClose').addEventListener('click', closeLightbox);
 
   // Kick the catalog fetch off right away — it runs in parallel while the
   // engineer is still typing their name on screen 1, so by the time they
