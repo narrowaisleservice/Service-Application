@@ -104,7 +104,56 @@
   }
   .qty-controls span { min-width: 18px; text-align: center; font-weight: 700; }
 
+  /* Thumbnail */
+  .thumb {
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    background: #fff;
+    border: 1.5px solid var(--border);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .thumb img { width: 100%; height: 100%; object-fit: contain; padding: 4px; }
+  .thumb.no-img { background: var(--surface); }
+  .thumb .placeholder { font-size: 18px; opacity: 0.25; }
+
   .empty-msg { text-align: center; color: var(--muted); padding: 40px 20px; font-size: 14px; }
+
+  /* Skeleton loading state */
+  .skeleton-item { pointer-events: none; }
+  .skeleton-block, .skeleton-line {
+    background: linear-gradient(90deg, #e9e9e9 25%, #f6f6f6 50%, #e9e9e9 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.3s infinite;
+    border-radius: 6px;
+  }
+  .skeleton-line { height: 10px; }
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  .updating-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--muted);
+    padding: 0 0 8px;
+  }
+  .updating-pill.hidden { display: none; }
+  .updating-pill .spin {
+    width: 10px; height: 10px;
+    border: 2px solid var(--border);
+    border-top-color: var(--red);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
   /* Basket bar */
   .basket-bar {
@@ -194,7 +243,7 @@
       <input type="text" id="searchInput" placeholder="Search part number or description...">
     </div>
     <div class="error-banner hidden" id="errorCatalog"></div>
-    <div id="loadingMsg" class="empty-msg">Loading parts catalog...</div>
+    <div class="updating-pill hidden" id="updatingPill"><span class="spin"></span> Updating catalog…</div>
     <div class="part-list" id="partList"></div>
     <div class="empty-msg hidden" id="noResults">No parts match your search.</div>
   </div>
@@ -239,6 +288,9 @@
   let allParts = [];
   let basket = {}; // partNumber -> { partNumber, description, qty }
   let urgency = 'Standard';
+  let partsLoading = false;
+  let partsLoaded = false;
+  const CACHE_KEY = 'fpp_parts_cache_v1';
 
   const el = id => document.getElementById(id);
 
@@ -261,28 +313,114 @@
     el('headerSub').textContent = name;
     el('screenDetails').classList.add('hidden');
     el('screenCatalog').classList.remove('hidden');
-    if (allParts.length === 0) loadParts();
+    if (!partsLoaded && !partsLoading) loadParts();
   });
+
+  // ---- Catalog cache (instant re-visits) ----
+  function loadCachedParts() {
+    try {
+      const raw = localStorage.getItem(CACHE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed.parts) ? parsed.parts : null;
+    } catch (e) {
+      return null;
+    }
+  }
+  function saveCachedParts(parts) {
+    try {
+      localStorage.setItem(CACHE_KEY, JSON.stringify({ parts, savedAt: Date.now() }));
+    } catch (e) {}
+  }
 
   // ---- Screen 2: catalog ----
   function loadParts() {
-    el('loadingMsg').classList.remove('hidden');
+    if (partsLoading) return;
+    partsLoading = true;
+
+    const cached = loadCachedParts();
+    if (cached && cached.length) {
+      // Show what we have instantly, then quietly refresh underneath it.
+      allParts = cached;
+      partsLoaded = true;
+      renderParts(currentFiltered());
+      el('updatingPill').classList.remove('hidden');
+    } else {
+      renderSkeleton();
+    }
+
     fetch(GAS_ENDPOINT + '?action=getAllParts')
       .then(r => r.json())
       .then(res => {
-        el('loadingMsg').classList.add('hidden');
         if (!res.success) throw new Error(res.error || 'Failed to load parts');
         allParts = res.parts.map(p => ({
           partNumber: p['Part Number'] || '',
           description: p['Description'] || '',
-          category: p['System'] || ''
+          category: p['System'] || '',
+          location: p['Location'] || '',
+          imageUrl: driveImageUrl(p['Image URL'] || '')
         }));
-        renderParts(allParts);
+        partsLoaded = true;
+        saveCachedParts(allParts);
+        renderParts(currentFiltered());
       })
       .catch(err => {
-        el('loadingMsg').classList.add('hidden');
-        showError('errorCatalog', 'Could not load parts: ' + err.message);
+        if (!cached || !cached.length) {
+          el('partList').innerHTML = '';
+          showError('errorCatalog', 'Could not load parts: ' + err.message);
+        }
+        // If we had cached data, keep showing it silently rather than
+        // interrupting the engineer with an error for a background refresh.
+      })
+      .finally(() => {
+        partsLoading = false;
+        el('updatingPill').classList.add('hidden');
       });
+  }
+
+  function renderSkeleton(count = 6) {
+    const list = el('partList');
+    list.innerHTML = '';
+    for (let i = 0; i < count; i++) {
+      const row = document.createElement('div');
+      row.className = 'part-item skeleton-item';
+      row.innerHTML = `
+        <div class="thumb skeleton-block"></div>
+        <div class="info" style="flex:1;">
+          <div class="skeleton-line" style="width:70px;"></div>
+          <div class="skeleton-line" style="width:160px; margin-top:6px;"></div>
+        </div>
+      `;
+      list.appendChild(row);
+    }
+  }
+
+  // Converts a Drive "view" link (or an already-direct link) into a
+  // thumbnail URL that will actually render in an <img> tag.
+  function driveImageUrl(raw) {
+    if (!raw || typeof raw !== 'string') return '';
+    raw = raw.trim();
+    if (!raw) return '';
+    if (raw.includes('drive.google.com/thumbnail') || raw.includes('drive.google.com/uc')) return raw;
+    let id = null;
+    const m1 = raw.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+    if (m1) id = m1[1];
+    if (!id) {
+      const m2 = raw.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+      if (m2) id = m2[1];
+    }
+    if (!id) return raw;
+    return `https://drive.google.com/thumbnail?id=${id}&sz=w200`;
+  }
+
+  function thumbHtml(part) {
+    if (!part.imageUrl) {
+      return `<div class="thumb no-img"><span class="placeholder">📦</span></div>`;
+    }
+    return `<div class="thumb">
+      <img src="${part.imageUrl}" alt="" loading="lazy"
+           onerror="this.parentElement.classList.add('no-img'); this.parentElement.innerHTML='<span class=&quot;placeholder&quot;>📦</span>';">
+    </div>`;
   }
 
   function renderParts(parts) {
@@ -294,6 +432,7 @@
       item.className = 'part-item';
       const inBasket = basket[p.partNumber];
       item.innerHTML = `
+        ${thumbHtml(p)}
         <div class="info">
           <div class="pn">${escapeHtml(p.partNumber)}</div>
           <div class="desc">${escapeHtml(p.description)}</div>
@@ -440,6 +579,11 @@
   function escapeHtml(str) {
     return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
+
+  // Kick the catalog fetch off right away — it runs in parallel while the
+  // engineer is still typing their name on screen 1, so by the time they
+  // tap "Continue to Parts" it's often already loaded.
+  loadParts();
 </script>
 </body>
 </html>
