@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Weld Review | Narrow Aisle Service</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --red: #df0a1e;
+    --black: #111111;
+    --grey-bg: #f5f5f5;
+    --border: #e0e0e0;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'IBM Plex Sans', sans-serif; background: var(--grey-bg); color: var(--black); }
+
+  header {
+    background: var(--black);
+    color: #fff;
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  header .title { display: flex; align-items: center; gap: 10px; }
+  header .bar { width: 6px; height: 26px; background: var(--red); border-radius: 2px; }
+  header h1 { font-size: 18px; font-weight: 700; margin: 0; font-family: 'DM Sans', sans-serif; }
+  header p { margin: 2px 0 0; font-size: 12px; color: #bbb; }
+
+  .filters { display: flex; gap: 8px; }
+  .filters button {
+    padding: 8px 14px;
+    border-radius: 20px;
+    border: 1px solid #444;
+    background: transparent;
+    color: #ddd;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .filters button.active { background: var(--red); border-color: var(--red); color: #fff; }
+
+  main { max-width: 900px; margin: 0 auto; padding: 20px 16px 60px; }
+
+  .empty { text-align: center; color: #888; padding: 60px 20px; font-size: 15px; }
+
+  .card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px;
+    margin-bottom: 16px;
+  }
+  .card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+  .card-top h2 { margin: 0; font-size: 16px; font-family: 'DM Sans', sans-serif; }
+  .card-top .meta { font-size: 12px; color: #888; margin-top: 3px; font-family: 'DM Mono', monospace; }
+  .badge {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 20px;
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .badge.pending { background: #fff8e6; color: #8a6d00; }
+  .badge.reviewed { background: #e8f7ec; color: #1a7a34; }
+
+  .desc { font-size: 14px; color: #333; margin: 10px 0; line-height: 1.5; }
+
+  .photos {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .photos a {
+    display: block;
+    aspect-ratio: 1;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .photos img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+  .review-box { border-top: 1px solid var(--border); padding-top: 14px; }
+  .review-box.done { color: #444; font-size: 14px; }
+  .review-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+  select, textarea {
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 14px;
+  }
+  select { flex: 1; min-width: 160px; }
+  textarea { width: 100%; min-height: 60px; resize: vertical; margin-bottom: 10px; }
+
+  button.reviewBtn {
+    padding: 10px 18px;
+    background: var(--red);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-weight: 700;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+  }
+  button.reviewBtn:disabled { background: #ccc; cursor: not-allowed; }
+
+  .verdict-line { font-weight: 600; }
+  .refresh {
+    background: transparent;
+    border: 1px solid #444;
+    color: #ddd;
+    padding: 8px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title">
+    <div class="bar"></div>
+    <div>
+      <h1>Weld Review</h1>
+      <p>Crack reports from the field</p>
+    </div>
+  </div>
+  <div class="filters">
+    <button class="active" data-filter="Pending">Pending</button>
+    <button data-filter="all">All</button>
+    <button class="refresh" id="refreshBtn">↻ Refresh</button>
+  </div>
+</header>
+
+<main id="main">
+  <div class="empty">Loading…</div>
+</main>
+
+<script>
+// ===== CONFIG =====
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbyljdioh3n8FOVtvXkqKBrUtFafdzkPAWnAw8Mm4UJJSRuN25hwGrcYCkJ2x71vpPQoiQ/exec';
+
+let currentFilter = 'Pending';
+let allRows = [];
+
+function load() {
+  document.getElementById('main').innerHTML = '<div class="empty">Loading…</div>';
+  fetch(GAS_URL + '?action=list')
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+      if (res.success) {
+        allRows = res.data;
+        render();
+      } else {
+        document.getElementById('main').innerHTML = '<div class="empty">Error: ' + res.error + '</div>';
+      }
+    })
+    .catch(function(err) {
+      document.getElementById('main').innerHTML = '<div class="empty">Could not reach the server: ' + err.message + '</div>';
+    });
+}
+
+function render() {
+  const main = document.getElementById('main');
+  const rows = currentFilter === 'all' ? allRows : allRows.filter(function(r) { return r.Status === currentFilter; });
+
+  if (rows.length === 0) {
+    main.innerHTML = '<div class="empty">Nothing here right now.</div>';
+    return;
+  }
+
+  main.innerHTML = rows.map(cardHtml).join('');
+
+  rows.forEach(function(row) {
+    if (row.Status === 'Pending') {
+      const btn = document.getElementById('submit-' + row.ID);
+      if (btn) {
+        btn.addEventListener('click', function() { submitReview(row.ID); });
+      }
+    }
+  });
+}
+
+function cardHtml(row) {
+  const photoUrls = (row.PhotoURLs || '').split(',').filter(Boolean);
+  const photosHtml = photoUrls.map(function(url) {
+    const thumb = url.replace('uc?id=', 'thumbnail?sz=w400&id=');
+    return '<a href="' + url + '" target="_blank"><img src="' + thumb + '" loading="lazy"></a>';
+  }).join('');
+
+  const isPending = row.Status === 'Pending';
+  const timestamp = row.Timestamp ? new Date(row.Timestamp).toLocaleString('en-GB') : '';
+
+  let reviewHtml;
+  if (isPending) {
+    reviewHtml =
+      '<div class="review-box">' +
+        '<div class="review-row">' +
+          '<select id="verdict-' + row.ID + '">' +
+            '<option value="Weld required">Weld required — needs a visit</option>' +
+            '<option value="Filler only">Filler only — not structural</option>' +
+            '<option value="Not actionable">Not actionable / no fault found</option>' +
+            '<option value="Need more photos">Need more photos before deciding</option>' +
+          '</select>' +
+        '</div>' +
+        '<textarea id="notes-' + row.ID + '" placeholder="Notes for the engineer (optional)"></textarea>' +
+        '<button class="reviewBtn" id="submit-' + row.ID + '">Send verdict</button>' +
+      '</div>';
+  } else {
+    reviewHtml =
+      '<div class="review-box done">' +
+        '<div class="verdict-line">' + (row.Verdict || '') + '</div>' +
+        (row.MikeNotes ? '<div>' + escapeHtml(row.MikeNotes) + '</div>' : '') +
+      '</div>';
+  }
+
+  return (
+    '<div class="card">' +
+      '<div class="card-top">' +
+        '<div>' +
+          '<h2>' + escapeHtml(row.CustomerName) + ' — ' + escapeHtml(row.TruckSerial) + '</h2>' +
+          '<div class="meta">' + escapeHtml(row.EngineerName) + ' · ' + timestamp + (row.TruckModel ? ' · ' + escapeHtml(row.TruckModel) : '') + '</div>' +
+        '</div>' +
+        '<span class="badge ' + (isPending ? 'pending' : 'reviewed') + '">' + row.Status + '</span>' +
+      '</div>' +
+      '<div class="desc">' + escapeHtml(row.Description) + '</div>' +
+      '<div class="photos">' + photosHtml + '</div>' +
+      reviewHtml +
+    '</div>'
+  );
+}
+
+function submitReview(id) {
+  const btn = document.getElementById('submit-' + id);
+  const verdict = document.getElementById('verdict-' + id).value;
+  const notes = document.getElementById('notes-' + id).value;
+
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+
+  fetch(GAS_URL, {
+    method: 'POST',
+    body: JSON.stringify({ action: 'review', id: id, verdict: verdict, notes: notes })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(res) {
+    if (res.success) {
+      load();
+    } else {
+      btn.disabled = false;
+      btn.textContent = 'Send verdict';
+      alert('Error: ' + res.error);
+    }
+  })
+  .catch(function(err) {
+    btn.disabled = false;
+    btn.textContent = 'Send verdict';
+    alert('Could not reach the server: ' + err.message);
+  });
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str || '';
+  return div.innerHTML;
+}
+
+document.querySelectorAll('.filters button[data-filter]').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.filters button[data-filter]').forEach(function(b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+    currentFilter = btn.dataset.filter;
+    render();
+  });
+});
+document.getElementById('refreshBtn').addEventListener('click', load);
+
+load();
+</script>
+
+</body>
+</html>
