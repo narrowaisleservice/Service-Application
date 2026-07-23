@@ -388,6 +388,18 @@ document.querySelectorAll('.tab').forEach(tab=>{
   };
 });
 
+// Deep-link support: asset-tracking.html?tab=Calibration|Jack|PAT
+(function applyTabFromUrl(){
+  const params = new URLSearchParams(window.location.search);
+  const requested = params.get('tab');
+  if(requested && ['Calibration','Jack','PAT'].includes(requested)){
+    currentType = requested;
+    document.querySelectorAll('.tab').forEach(t=>{
+      t.classList.toggle('active', t.dataset.type === requested);
+    });
+  }
+})();
+
 document.getElementById('assetForm').onsubmit = async (e) => {
   e.preventDefault();
   const id = document.getElementById('f_id').value;
