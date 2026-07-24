@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#df0a1e">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&family=DM+Sans:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>Quote Builder - Narrow Aisle Service Portal</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { background: white !important; color-scheme: light only; }
+    body {
+        font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        color: #101010;
+        min-height: 100vh;
+        padding-bottom: 100px;
+    }
+
+    .header {
+        background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+        border-bottom: 3px solid #df0a1e;
+        padding: 24px 32px;
+        position: sticky;
+        top: 0;
+        z-index: 50;
+    }
+
+    .back-link { font-size: 12px; color: #707070; text-decoration: none; font-weight: 600; }
+    .back-link:hover { color: #df0a1e; }
+
+    .header-title { font-family: 'IBM Plex Sans', sans-serif; font-size: 28px; font-weight: 700; margin-top: 4px; }
+    .header-subtitle { font-size: 13px; color: #707070; margin-top: 2px; }
+
+    .content { max-width: 1000px; margin: 0 auto; padding: 32px; }
+
+    .customer-panel {
+        background: white;
+        border: 1px solid #e8e8e8;
+        border-radius: 12px;
+        padding: 20px 24px;
+        margin-bottom: 20px;
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+    .customer-panel input {
+        flex: 1;
+        min-width: 180px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 14px;
+        padding: 10px 14px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        color: #101010;
+    }
+    .customer-panel input:focus { outline: none; border-color: #df0a1e; }
+    .customer-panel label { font-size: 11px; color: #707070; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; display: block; margin-bottom: 4px; }
+    .customer-field { flex: 1; min-width: 180px; }
+
+    .search-panel {
+        background: white;
+        border: 1px solid #e8e8e8;
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 20px;
+        display: flex;
+        gap: 12px;
+    }
+
+    .search-panel input {
+        flex: 1;
+        font-family: 'DM Mono', monospace;
+        font-size: 16px;
+        padding: 14px 16px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        color: #101010;
+    }
+    .search-panel input:focus { outline: none; border-color: #df0a1e; }
+
+    .search-btn {
+        padding: 14px 28px;
+        background: #df0a1e;
+        border: none;
+        border-radius: 8px;
+        color: white;
+        font-family: 'IBM Plex Sans', sans-serif;
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .search-btn:hover { background: #c3161e; }
+    .search-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .result-count {
+        font-family: 'DM Mono', monospace;
+        font-size: 12px;
+        color: #707070;
+        margin-bottom: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+    .result-item {
+        background: white;
+        border: 1px solid #e8e8e8;
+        border-radius: 10px;
+        padding: 14px 18px;
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    .result-info { flex: 1; min-width: 200px; }
+    .result-code { font-family: 'DM Mono', monospace; font-size: 11px; color: #df0a1e; font-weight: 600; }
+    .result-desc { font-size: 14px; font-weight: 600; margin-top: 2px; }
+    .result-price { font-family: 'DM Mono', monospace; font-size: 15px; font-weight: 700; color: #101010; white-space: nowrap; }
+
+    .add-btn {
+        padding: 8px 16px;
+        background: #101010;
+        border: none;
+        border-radius: 6px;
+        color: white;
+        font-family: 'IBM Plex Sans', sans-serif;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+    .add-btn:hover { background: #df0a1e; }
+    .add-btn.added { background: #4caf50; }
+
+    .empty-state, .loading-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: #909090;
+        font-size: 14px;
+    }
+
+    .section-label {
+        font-family: 'DM Mono', monospace;
+        font-size: 12px;
+        font-weight: 600;
+        color: #707070;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        margin: 32px 0 12px;
+    }
+
+    .quote-bar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: #101010;
+        border-top: 3px solid #df0a1e;
+        z-index: 60;
+        max-height: 70vh;
+        overflow-y: auto;
+    }
+
+    .quote-summary {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 24px;
+        cursor: pointer;
+    }
+
+    .quote-summary-left { color: #fff; font-family: 'IBM Plex Sans', sans-serif; font-size: 14px; font-weight: 700; }
+    .quote-summary-left span { color: #a0a0a0; font-weight: 500; font-size: 12px; }
+    .quote-summary-total { font-family: 'DM Mono', monospace; color: #df0a1e; font-size: 20px; font-weight: 700; }
+
+    .quote-items { padding: 0 24px; display: none; }
+    .quote-items.open { display: block; }
+
+    .quote-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 0;
+        border-bottom: 1px solid #2a2a2a;
+        color: #e0e0e0;
+        font-size: 13px;
+    }
+    .quote-item-info { flex: 1; min-width: 0; }
+    .quote-item-code { font-family: 'DM Mono', monospace; font-size: 10px; color: #df0a1e; }
+    .quote-item-desc { font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .qty-controls { display: flex; align-items: center; gap: 8px; }
+    .qty-btn {
+        width: 26px; height: 26px;
+        border-radius: 5px;
+        border: 1px solid #3a3a3a;
+        background: #1a1a1a;
+        color: #fff;
+        cursor: pointer;
+        font-size: 14px;
+        line-height: 1;
+    }
+    .qty-btn:hover { border-color: #df0a1e; color: #df0a1e; }
+    .qty-val { font-family: 'DM Mono', monospace; min-width: 20px; text-align: center; }
+    .quote-item-total { font-family: 'DM Mono', monospace; font-weight: 700; color: #fff; white-space: nowrap; min-width: 70px; text-align: right; }
+    .remove-btn { background: none; border: none; color: #707070; font-size: 16px; cursor: pointer; padding: 0 4px; }
+    .remove-btn:hover { color: #df0a1e; }
+
+    .quote-footer {
+        padding: 16px 24px 24px;
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .vat-toggle { display: flex; align-items: center; gap: 6px; color: #ccc; font-size: 12px; }
+
+    .quote-action-btn {
+        padding: 10px 18px;
+        border-radius: 6px;
+        border: 1px solid #3a3a3a;
+        background: #1a1a1a;
+        color: #fff;
+        font-family: 'IBM Plex Sans', sans-serif;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+    .quote-action-btn:hover { border-color: #df0a1e; color: #df0a1e; }
+    .quote-action-btn.primary { background: #df0a1e; border-color: #df0a1e; }
+    .quote-action-btn.primary:hover { background: #c3161e; color: #fff; }
+
+    .toggle-chevron { color: #707070; font-size: 12px; }
+
+    #printArea { display: none; }
+
+    @media print {
+        .header, .customer-panel, .search-panel, .section-label, #resultsWrap, .quote-bar { display: none !important; }
+        #printArea { display: block !important; }
+    }
+
+    @media (max-width: 640px) {
+        .header { padding: 16px 20px; }
+        .header-title { font-size: 22px; }
+        .content { padding: 16px; }
+        .search-panel { flex-direction: column; }
+        .result-item { flex-direction: column; align-items: flex-start; }
+    }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <a class="back-link" href="portal-hub-professional.html">&larr; Back to Portal</a>
+    <div class="header-title">Quote Builder</div>
+    <div class="header-subtitle">Search parts and build a rough quote on site</div>
+</div>
+
+<div class="content">
+    <div class="customer-panel">
+        <div class="customer-field">
+            <label>Customer</label>
+            <input type="text" id="customerName" placeholder="Customer name (optional)">
+        </div>
+        <div class="customer-field">
+            <label>Truck / Serial</label>
+            <input type="text" id="truckRef" placeholder="Truck serial (optional)">
+        </div>
+    </div>
+
+    <div class="search-panel">
+        <input type="text" id="partInput" placeholder="Search part code or description..." autofocus>
+        <button class="search-btn" id="searchBtn">Search</button>
+    </div>
+
+    <div id="resultsWrap"></div>
+</div>
+
+<div id="printArea">
+    <div style="padding:40px;font-family:Arial,sans-serif;">
+        <h1 style="color:#df0a1e;">Narrow Aisle Ltd — Rough Quote</h1>
+        <p id="printMeta" style="color:#555;margin:8px 0 24px;"></p>
+        <table style="width:100%;border-collapse:collapse;" id="printTable"></table>
+        <p id="printTotals" style="margin-top:20px;font-size:16px;"></p>
+        <p style="margin-top:32px;font-size:11px;color:#888;">This is a rough estimate only, generated on site. Final pricing subject to confirmation. Prices shown ex-VAT unless stated.</p>
+    </div>
+</div>
+
+<div class="quote-bar" id="quoteBar" style="display:none;">
+    <div class="quote-summary" onclick="toggleQuoteItems()">
+        <div class="quote-summary-left">
+            Quote <span id="quoteItemCount">0 items</span>
+            <span class="toggle-chevron" id="quoteChevron">▲</span>
+        </div>
+        <div class="quote-summary-total" id="quoteSummaryTotal">£0.00</div>
+    </div>
+    <div class="quote-items" id="quoteItemsList"></div>
+    <div class="quote-footer">
+        <label class="vat-toggle"><input type="checkbox" id="vatToggle" onchange="renderQuote()"> Include VAT (20%)</label>
+        <button class="quote-action-btn" onclick="copyQuote()">📋 Copy Quote</button>
+        <button class="quote-action-btn" onclick="printQuote()">🖨️ Print / PDF</button>
+        <button class="quote-action-btn primary" onclick="clearQuote()">Clear Quote</button>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    if (!localStorage.getItem('portalUser')) {
+        window.location.href = 'login.html';
+    }
+
+    // ===== Supabase project config =====
+    const SUPABASE_URL = 'https://dontubctlexlvifwhmbj.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_99HLzSv4wMwFZHlR81yIsQ_z0A0Jpth';
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    // =====================================
+
+    let quote = []; // { code, desc, price, qty }
+    let quoteOpen = false;
+
+    function money(n) {
+        return '£' + n.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function renderResults(items) {
+        const wrap = document.getElementById('resultsWrap');
+        if (!items.length) {
+            wrap.innerHTML = '<div class="empty-state">No parts found.</div>';
+            return;
+        }
+        wrap.innerHTML = `<div class="result-count">${items.length} result${items.length === 1 ? '' : 's'}</div>` +
+            items.map(item => {
+                const hasPrice = item.price !== null && item.price !== undefined;
+                return `
+                <div class="result-item">
+                    <div class="result-info">
+                        <div class="result-code">${item.product_code}</div>
+                        <div class="result-desc">${item.description || ''}</div>
+                    </div>
+                    ${hasPrice ? `
+                        <div class="result-price">${money(item.price)}</div>
+                        <button class="add-btn" onclick="addToQuote('${item.product_code}', this)">+ Add</button>
+                    ` : `<div class="result-price" style="color:#aaa;font-size:12px;">Price on request</div>`}
+                </div>`;
+            }).join('');
+    }
+
+    async function runSearch() {
+        const q = document.getElementById('partInput').value.trim();
+        if (!q) return;
+        const btn = document.getElementById('searchBtn');
+        btn.disabled = true;
+        btn.textContent = 'Searching...';
+        document.getElementById('resultsWrap').innerHTML = '<div class="loading-state">Searching price list...</div>';
+
+        try {
+            const { data, error } = await db
+                .from('price_list')
+                .select('*')
+                .or(`product_code.ilike.%${q}%,description.ilike.%${q}%`)
+                .order('description', { ascending: true })
+                .limit(50);
+            if (error) throw error;
+            renderResults(data || []);
+        } catch (err) {
+            document.getElementById('resultsWrap').innerHTML = '<div class="empty-state">Could not reach Supabase.<br>' + (err.message || err) + '</div>';
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Search';
+        }
+    }
+
+    function addToQuote(code, btnEl) {
+        const existing = quote.find(i => i.code === code);
+        if (existing) {
+            existing.qty += 1;
+        } else {
+            // pull details back off the result card
+            const card = btnEl.closest('.result-item');
+            const desc = card.querySelector('.result-desc').textContent;
+            const priceText = card.querySelector('.result-price').textContent.replace('£', '').replace(/,/g, '');
+            const price = parseFloat(priceText);
+            quote.push({ code, desc, price, qty: 1 });
+        }
+        btnEl.textContent = '✓ Added';
+        btnEl.classList.add('added');
+        setTimeout(() => { btnEl.textContent = '+ Add'; btnEl.classList.remove('added'); }, 1200);
+        renderQuote();
+    }
+
+    function changeQty(code, delta) {
+        const item = quote.find(i => i.code === code);
+        if (!item) return;
+        item.qty += delta;
+        if (item.qty <= 0) {
+            quote = quote.filter(i => i.code !== code);
+        }
+        renderQuote();
+    }
+
+    function removeItem(code) {
+        quote = quote.filter(i => i.code !== code);
+        renderQuote();
+    }
+
+    function clearQuote() {
+        if (quote.length && !confirm('Clear the whole quote?')) return;
+        quote = [];
+        renderQuote();
+    }
+
+    function toggleQuoteItems() {
+        quoteOpen = !quoteOpen;
+        document.getElementById('quoteItemsList').classList.toggle('open', quoteOpen);
+        document.getElementById('quoteChevron').textContent = quoteOpen ? '▼' : '▲';
+    }
+
+    function getTotals() {
+        const subtotal = quote.reduce((sum, i) => sum + i.price * i.qty, 0);
+        const vat = document.getElementById('vatToggle').checked ? subtotal * 0.2 : 0;
+        return { subtotal, vat, total: subtotal + vat };
+    }
+
+    function renderQuote() {
+        const bar = document.getElementById('quoteBar');
+        if (!quote.length) {
+            bar.style.display = 'none';
+            return;
+        }
+        bar.style.display = 'block';
+        document.getElementById('quoteItemCount').textContent = quote.reduce((s, i) => s + i.qty, 0) + ' item' + (quote.length === 1 ? '' : 's');
+
+        document.getElementById('quoteItemsList').innerHTML = quote.map(i => `
+            <div class="quote-item">
+                <div class="quote-item-info">
+                    <div class="quote-item-code">${i.code}</div>
+                    <div class="quote-item-desc">${i.desc}</div>
+                </div>
+                <div class="qty-controls">
+                    <button class="qty-btn" onclick="changeQty('${i.code}', -1)">−</button>
+                    <span class="qty-val">${i.qty}</span>
+                    <button class="qty-btn" onclick="changeQty('${i.code}', 1)">+</button>
+                </div>
+                <div class="quote-item-total">${money(i.price * i.qty)}</div>
+                <button class="remove-btn" onclick="removeItem('${i.code}')">✕</button>
+            </div>
+        `).join('');
+
+        const { subtotal, vat, total } = getTotals();
+        document.getElementById('quoteSummaryTotal').textContent = money(total);
+    }
+
+    function copyQuote() {
+        const { subtotal, vat, total } = getTotals();
+        const customer = document.getElementById('customerName').value.trim();
+        const truck = document.getElementById('truckRef').value.trim();
+        let text = 'Narrow Aisle Ltd — Rough Quote\n';
+        if (customer) text += 'Customer: ' + customer + '\n';
+        if (truck) text += 'Truck/Serial: ' + truck + '\n';
+        text += '\n';
+        quote.forEach(i => {
+            text += `${i.qty} x ${i.desc} (${i.code}) — ${money(i.price)} each — ${money(i.price * i.qty)}\n`;
+        });
+        text += '\nSubtotal: ' + money(subtotal) + '\n';
+        if (vat > 0) text += 'VAT (20%): ' + money(vat) + '\n';
+        text += 'Total: ' + money(total) + '\n';
+        text += '\nThis is a rough estimate only. Final pricing subject to confirmation.';
+
+        navigator.clipboard.writeText(text).then(() => alert('Quote copied to clipboard.'));
+    }
+
+    function printQuote() {
+        const { subtotal, vat, total } = getTotals();
+        const customer = document.getElementById('customerName').value.trim();
+        const truck = document.getElementById('truckRef').value.trim();
+
+        document.getElementById('printMeta').textContent =
+            [customer ? 'Customer: ' + customer : null, truck ? 'Truck/Serial: ' + truck : null, 'Date: ' + new Date().toLocaleDateString('en-GB')]
+                .filter(Boolean).join('   |   ');
+
+        let rows = '<tr style="border-bottom:2px solid #101010;text-align:left;"><th style="padding:8px 0;">Qty</th><th>Description</th><th>Code</th><th style="text-align:right;">Unit Price</th><th style="text-align:right;">Total</th></tr>';
+        quote.forEach(i => {
+            rows += `<tr style="border-bottom:1px solid #ddd;"><td style="padding:8px 0;">${i.qty}</td><td>${i.desc}</td><td style="font-family:monospace;font-size:12px;">${i.code}</td><td style="text-align:right;">${money(i.price)}</td><td style="text-align:right;">${money(i.price * i.qty)}</td></tr>`;
+        });
+        document.getElementById('printTable').innerHTML = rows;
+
+        let totalsHtml = `Subtotal: ${money(subtotal)}<br>`;
+        if (vat > 0) totalsHtml += `VAT (20%): ${money(vat)}<br>`;
+        totalsHtml += `<strong style="font-size:20px;">Total: ${money(total)}</strong>`;
+        document.getElementById('printTotals').innerHTML = totalsHtml;
+
+        window.print();
+    }
+
+    document.getElementById('searchBtn').addEventListener('click', runSearch);
+    document.getElementById('partInput').addEventListener('keydown', e => {
+        if (e.key === 'Enter') runSearch();
+    });
+</script>
+</body>
+</html>
