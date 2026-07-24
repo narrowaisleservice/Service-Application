@@ -198,11 +198,11 @@
                 <div class="job-card" data-idx="${i}">
                     <div class="job-top">
                         <div class="job-desc">${job.short_desc || 'Job ' + (job.job_id || '')}</div>
-                        <div class="job-date">${formatDate(job.date)}</div>
+                        <div class="job-date">${formatDate(job.visit_date)}</div>
                     </div>
                     <div class="job-meta">
                         <span><strong>Job ID:</strong> ${job.job_id || '—'}</span>
-                        <span><strong>Type:</strong> ${job.job_type || '—'}</span>
+                        <span><strong>Type:</strong> ${job.job_type_name || '—'}</span>
                         <span><strong>Customer:</strong> ${job.customer_name || '—'}</span>
                         <span><strong>Engineer:</strong> ${job.employee || '—'}</span>
                     </div>
@@ -238,10 +238,10 @@
 
         try {
             const { data, error } = await db
-                .from('service_history')
+                .from('Service History')
                 .select('*')
                 .ilike('serial_no', `%${serial}%`)
-                .order('date', { ascending: false });
+                .order('visit_date', { ascending: false });
             if (error) throw error;
             renderJobs(data || []);
         } catch (err) {
