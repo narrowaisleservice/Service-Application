@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Weld Damage Report — Narrow Aisle Service Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=DM+Sans:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --red:#df0a1e;
+    --black:#0a0a0a;
+    --white:#ffffff;
+    --gray-line:#e6e6e6;
+    --gray-fill:#f6f6f6;
+    --gray-text:#6b6b6b;
+    --font-display:'Barlow Condensed',sans-serif;
+    --font-body:'DM Sans',sans-serif;
+    --font-mono:'DM Mono',monospace;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--white);
+    font-family:var(--font-body);
+    color:var(--black);
+    -webkit-tap-highlight-color:transparent;
+  }
+  header{
+    background:var(--black);
+    color:var(--white);
+    padding:18px 20px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  header .title{
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:22px;
+    letter-spacing:0.3px;
+  }
+  header .title small{
+    display:block;
+    font-family:var(--font-mono);
+    font-size:11px;
+    font-weight:400;
+    color:#b0b0b0;
+    letter-spacing:0.5px;
+    margin-top:2px;
+  }
+  header .mark{
+    width:10px;height:10px;border-radius:50%;
+    background:var(--red);
+    flex-shrink:0;
+  }
+  main{
+    max-width:560px;
+    margin:0 auto;
+    padding:20px 20px 100px;
+  }
+  .intro{
+    font-size:14px;
+    color:var(--gray-text);
+    line-height:1.5;
+    margin:18px 0 24px;
+    padding:14px 16px;
+    background:var(--gray-fill);
+    border-left:3px solid var(--red);
+    border-radius:2px;
+  }
+  .field{
+    margin-bottom:18px;
+  }
+  label{
+    display:block;
+    font-family:var(--font-display);
+    font-weight:600;
+    font-size:15px;
+    margin-bottom:6px;
+    letter-spacing:0.2px;
+  }
+  label .req{ color:var(--red); }
+  input[type=text], textarea{
+    width:100%;
+    border:1px solid var(--gray-line);
+    border-radius:8px;
+    padding:12px 14px;
+    font-family:var(--font-body);
+    font-size:15px;
+    background:var(--white);
+    color:var(--black);
+  }
+  input[type=text]:focus, textarea:focus{
+    outline:none;
+    border-color:var(--red);
+    box-shadow:0 0 0 3px rgba(223,10,30,0.08);
+  }
+  textarea{ min-height:90px; resize:vertical; }
+  .photo-input-wrap{
+    border:2px dashed var(--gray-line);
+    border-radius:10px;
+    padding:20px;
+    text-align:center;
+    cursor:pointer;
+    transition:border-color .15s;
+  }
+  .photo-input-wrap:active{ border-color:var(--red); }
+  .photo-input-wrap svg{ display:block; margin:0 auto 8px; }
+  .photo-input-wrap .hint{ font-size:13px; color:var(--gray-text); }
+  input[type=file]{ display:none; }
+  #thumbs{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-top:12px;
+  }
+  .thumb{
+    position:relative;
+    width:76px; height:76px;
+    border-radius:8px;
+    overflow:hidden;
+    border:1px solid var(--gray-line);
+  }
+  .thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .thumb button{
+    position:absolute; top:2px; right:2px;
+    width:20px; height:20px;
+    border-radius:50%;
+    border:none;
+    background:rgba(10,10,10,0.75);
+    color:#fff;
+    font-size:12px;
+    line-height:1;
+    cursor:pointer;
+  }
+  .submit-bar{
+    position:fixed;
+    left:0; right:0; bottom:0;
+    background:var(--white);
+    border-top:1px solid var(--gray-line);
+    padding:14px 20px calc(14px + env(safe-area-inset-bottom));
+    max-width:560px;
+    margin:0 auto;
+  }
+  button.primary{
+    width:100%;
+    background:var(--red);
+    color:var(--white);
+    border:none;
+    padding:14px;
+    border-radius:8px;
+    font-family:var(--font-display);
+    font-weight:600;
+    font-size:17px;
+    letter-spacing:0.3px;
+    cursor:pointer;
+  }
+  button.primary:disabled{ background:#e5a2a8; cursor:not-allowed; }
+  .status{
+    text-align:center;
+    font-size:13px;
+    font-family:var(--font-mono);
+    color:var(--gray-text);
+    margin-top:8px;
+    min-height:16px;
+  }
+  .status.err{ color:var(--red); }
+  #success{
+    display:none;
+    text-align:center;
+    padding:60px 20px;
+  }
+  #success svg{ margin:0 auto 16px; display:block; }
+  #success h2{
+    font-family:var(--font-display);
+    font-size:26px;
+    margin:0 0 8px;
+  }
+  #success p{ color:var(--gray-text); font-size:14px; margin:0 0 24px; }
+  #success button{
+    background:none;
+    border:1px solid var(--gray-line);
+    padding:10px 20px;
+    border-radius:8px;
+    font-family:var(--font-body);
+    font-size:14px;
+    cursor:pointer;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title">Weld Damage Report<small>NARROW AISLE SERVICE PORTAL</small></div>
+  <div class="mark"></div>
+</header>
+
+<main>
+  <form id="form">
+    <div class="intro">Spotted a possible chassis crack or weld failure on site? Log it here with photos so Mike can assess it remotely before anyone travels out.</div>
+
+    <div class="field">
+      <label>Your name <span class="req">*</span></label>
+      <input type="text" id="engineer_name" required autocomplete="name">
+    </div>
+
+    <div class="field">
+      <label>Customer / site name <span class="req">*</span></label>
+      <input type="text" id="customer_name" required>
+    </div>
+
+    <div class="field">
+      <label>Site address</label>
+      <input type="text" id="site_address" placeholder="Optional">
+    </div>
+
+    <div class="field">
+      <label>Truck serial no.</label>
+      <input type="text" id="serial_no" placeholder="e.g. FX12345">
+    </div>
+
+    <div class="field">
+      <label>Truck model / equip code</label>
+      <input type="text" id="equip_code" placeholder="e.g. H2B DC">
+    </div>
+
+    <div class="field">
+      <label>Damage location &amp; description <span class="req">*</span></label>
+      <textarea id="description" required placeholder="Where on the chassis, how it looks, anything the customer said, whether it's load-bearing etc."></textarea>
+    </div>
+
+    <div class="field">
+      <label>Photos <span class="req">*</span></label>
+      <label for="photos" class="photo-input-wrap">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#df0a1e" stroke-width="1.6"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="14" r="3.5"/></svg>
+        <div class="hint">Tap to take or choose photos<br>(add as many angles as you can)</div>
+      </label>
+      <input type="file" id="photos" accept="image/*" capture="environment" multiple>
+      <div id="thumbs"></div>
+    </div>
+  </form>
+
+  <div class="submit-bar">
+    <button type="button" class="primary" id="submitBtn">Submit Report</button>
+    <div class="status" id="status"></div>
+  </div>
+
+  <div id="success">
+    <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#df0a1e" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><path d="M8 12.5l2.5 2.5 5-5"/></svg>
+    <h2>Report sent</h2>
+    <p>Mike will review the photos and get back with a verdict.</p>
+    <button type="button" id="newReportBtn">Submit another report</button>
+  </div>
+</main>
+
+<script>
+const SUPABASE_URL = 'https://dontubctlexlvifwhmbj.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_99HLzSv4wMwFZHlR81yIsQ_z0A0Jpth';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let selectedFiles = [];
+
+const photosInput = document.getElementById('photos');
+const thumbsEl = document.getElementById('thumbs');
+const statusEl = document.getElementById('status');
+const submitBtn = document.getElementById('submitBtn');
+
+photosInput.addEventListener('change', (e) => {
+  selectedFiles = selectedFiles.concat(Array.from(e.target.files));
+  renderThumbs();
+  photosInput.value = '';
+});
+
+function renderThumbs(){
+  thumbsEl.innerHTML = '';
+  selectedFiles.forEach((file, idx) => {
+    const div = document.createElement('div');
+    div.className = 'thumb';
+    const img = document.createElement('img');
+    img.src = URL.createObjectURL(file);
+    const btn = document.createElement('button');
+    btn.textContent = '✕';
+    btn.onclick = () => { selectedFiles.splice(idx,1); renderThumbs(); };
+    div.appendChild(img);
+    div.appendChild(btn);
+    thumbsEl.appendChild(div);
+  });
+}
+
+function setStatus(msg, isErr){
+  statusEl.textContent = msg || '';
+  statusEl.classList.toggle('err', !!isErr);
+}
+
+submitBtn.addEventListener('click', async () => {
+  const engineer_name = document.getElementById('engineer_name').value.trim();
+  const customer_name = document.getElementById('customer_name').value.trim();
+  const site_address = document.getElementById('site_address').value.trim();
+  const serial_no = document.getElementById('serial_no').value.trim();
+  const equip_code = document.getElementById('equip_code').value.trim();
+  const description = document.getElementById('description').value.trim();
+
+  if(!engineer_name || !customer_name || !description){
+    setStatus('Please fill in name, customer and description.', true);
+    return;
+  }
+  if(selectedFiles.length === 0){
+    setStatus('Please add at least one photo.', true);
+    return;
+  }
+
+  submitBtn.disabled = true;
+
+  try{
+    setStatus(`Uploading photo 1 of ${selectedFiles.length}...`);
+    const photo_urls = [];
+
+    for(let i=0; i<selectedFiles.length; i++){
+      setStatus(`Uploading photo ${i+1} of ${selectedFiles.length}...`);
+      const file = selectedFiles[i];
+      const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+      const path = `${Date.now()}_${i}_${Math.random().toString(36).slice(2,8)}.${ext}`;
+
+      const { error: upErr } = await sb.storage
+        .from('weld-photos')
+        .upload(path, file, { contentType: file.type || 'image/jpeg' });
+
+      if(upErr) throw upErr;
+
+      const { data: pub } = sb.storage.from('weld-photos').getPublicUrl(path);
+      photo_urls.push(pub.publicUrl);
+    }
+
+    setStatus('Saving report...');
+
+    const { error: insErr } = await sb.from('weld_reports').insert({
+      engineer_name, customer_name, site_address, serial_no, equip_code, description,
+      photo_urls, status: 'pending'
+    });
+
+    if(insErr) throw insErr;
+
+    document.getElementById('form').style.display = 'none';
+    document.querySelector('.submit-bar').style.display = 'none';
+    document.getElementById('success').style.display = 'block';
+
+  } catch(err){
+    console.error(err);
+    setStatus('Something went wrong — check your connection and try again.', true);
+    submitBtn.disabled = false;
+  }
+});
+
+document.getElementById('newReportBtn').addEventListener('click', () => location.reload());
+</script>
+
+</body>
+</html>
