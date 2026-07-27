@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#df0a1e">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="icons/favicon.ico" sizes="any">
+    <link rel="icon" href="icons/favicon-32.png" type="image/png">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&family=DM+Sans:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <title>Narrow Aisle Service Portal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            background-color: white !important;
+            background: white !important;
+        }
+
+        body {
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            color: #101010;
+            min-height: 100vh;
+            display: flex;
+        }
+
+        .sidebar {
+            width: 260px;
+            background: #1a1a1a;
+            border-right: 3px solid #df0a1e;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            left: -260px;
+            transition: left 0.3s ease;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 150;
+        }
+
+        .sidebar.open {
+            left: 0;
+        }
+
+        .sidebar-logo {
+            padding: 32px 24px;
+            border-bottom: 1px solid #2a2a2a;
+            text-align: center;
+        }
+
+        .sidebar-logo img {
+            height: 50px;
+            margin-bottom: 8px;
+        }
+
+        .sidebar-tagline {
+            font-size: 11px;
+            color: #808080;
+            font-weight: 500;
+        }
+
+        .nav-section {
+            padding: 24px 16px;
+            border-bottom: 1px solid #2a2a2a;
+        }
+
+        .nav-section-title {
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 10px;
+            font-weight: 700;
+            color: #606060;
+            text-transform: uppercase;
+            letter-spacing: 0.7px;
+            margin-bottom: 12px;
+            padding: 0 8px;
+        }
+
+        .nav-item {
+            padding: 12px 12px;
+            margin-bottom: 4px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 14px;
+            color: #c0c0c0;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item:hover {
+            background: rgba(223, 10, 30, 0.15);
+            color: #df0a1e;
+            border-left-color: #df0a1e;
+        }
+
+        .nav-item.active {
+            background: rgba(223, 10, 30, 0.2);
+            color: #df0a1e;
+            border-left-color: #df0a1e;
+            font-weight: 600;
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 16px;
+            border-top: 1px solid #2a2a2a;
+        }
+
+        .logout-btn {
+            width: 100%;
+            padding: 12px 16px;
+            background: #df0a1e;
+            border: none;
+            border-radius: 6px;
+            color: #ffffff;
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .logout-btn:hover {
+            background: #c3161e;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(223, 10, 30, 0.3);
+        }
+
+        .main-content {
+            margin-left: 0;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: white;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+            border-bottom: 1px solid #e0e0e0;
+            padding: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: stretch;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .header-left {
+            flex: 1;
+            padding: 32px 40px;
+            border-bottom: 3px solid #df0a1e;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .mobile-menu-toggle {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: none;
+            border: none;
+            color: #101010;
+            font-size: 26px;
+            line-height: 1;
+            cursor: pointer;
+            padding: 4px;
+            flex-shrink: 0;
+            transition: color 0.2s ease;
+        }
+
+        .mobile-menu-toggle:hover {
+            color: #df0a1e;
+        }
+
+        .header-title {
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 32px;
+            font-weight: 700;
+            color: #101010;
+            margin-bottom: 4px;
+        }
+
+        .header-subtitle {
+            font-size: 13px;
+            color: #707070;
+        }
+
+        .header-right {
+            padding: 32px 40px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .profile-btn {
+            padding: 12px 24px;
+            background: #df0a1e;
+            border: none;
+            border-radius: 8px;
+            color: #ffffff;
+            cursor: pointer;
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .profile-btn:hover {
+            background: #c3161e;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(223, 10, 30, 0.2);
+        }
+
+        .content-area {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+            background-color: white;
+        }
+
+        .section-header {
+            margin-bottom: 32px;
+        }
+
+        .section-eyebrow {
+            font-family: 'DM Mono', monospace;
+            font-size: 11px;
+            font-weight: 500;
+            color: #df0a1e;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 10px;
+        }
+
+        .section-title {
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 28px;
+            font-weight: 700;
+            color: #101010;
+            margin-bottom: 8px;
+            letter-spacing: -0.3px;
+        }
+
+        .section-subtitle {
+            font-size: 14px;
+            color: #707070;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        /* Home screen */
+        .home-hero {
+            position: relative;
+            padding: 48px 40px;
+            border-radius: 20px;
+            background: #0a0a0a;
+            overflow: hidden;
+            margin-bottom: 32px;
+        }
+
+        .home-hero::before {
+            content: '';
+            position: absolute;
+            top: -30%;
+            right: -10%;
+            width: 420px;
+            height: 420px;
+            background: radial-gradient(circle, rgba(223, 10, 30, 0.35) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .home-hero::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #df0a1e 0%, transparent 100%);
+        }
+
+        .home-greeting {
+            position: relative;
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 34px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 8px;
+        }
+
+        .home-date {
+            position: relative;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            color: #a0a0a0;
+            letter-spacing: 0.2px;
+        }
+
+        .dash-search-eyebrow {
+            font-family: 'DM Mono', monospace;
+            font-size: 11px;
+            font-weight: 500;
+            color: #909090;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 14px;
+        }
+
+        .dash-search-panel {
+            background: #ffffff;
+            border: 1px solid #e8e8e8;
+            border-radius: 16px;
+            padding: 26px;
+        }
+
+        .dash-search-toggle {
+            display: inline-flex;
+            gap: 6px;
+            background: #f2f2f2;
+            border-radius: 8px;
+            padding: 4px;
+            margin-bottom: 16px;
+        }
+
+        .toggle-btn {
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+            color: #707070;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .toggle-btn.active {
+            background: #df0a1e;
+            color: #ffffff;
+        }
+
+        .dash-search-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .dash-search-row input {
+            flex: 1;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 16px;
+            padding: 14px 16px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            color: #101010;
+        }
+
+        .dash-search-row input:focus {
+            outline: none;
+            border-color: #df0a1e;
+        }
+
+        .dash-search-btn {
+            padding: 14px 28px;
+            background: #df0a1e;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .dash-search-btn:hover {
+            background: #c3161e;
+        }
+
+        @media (max-width: 640px) {
+            .dash-search-row {
+                flex-direction: column;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .home-hero {
+                padding: 32px 24px;
+            }
+            .home-greeting {
+                font-size: 24px;
+            }
+        }
+
+        .stat-card {
+            background: #fafafa;
+            border: 1px solid #eee;
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .stat-value {
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 32px;
+            font-weight: 700;
+            color: #df0a1e;
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 11px;
+            color: #707070;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            margin-top: 8px;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid #e8e8e8;
+            border-radius: 14px;
+            padding: 26px;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+            min-height: 220px;
+            box-shadow: 0 1px 2px rgba(16, 16, 16, 0.03);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 0;
+            background: linear-gradient(135deg, #df0a1e, #c3161e);
+            opacity: 0;
+            transition: all 0.25s ease;
+        }
+
+        .card::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 120px;
+            height: 120px;
+            background: radial-gradient(circle, rgba(223, 10, 30, 0.06) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .card:hover {
+            border-color: #df0a1e;
+            transform: translateY(-4px);
+            box-shadow: 0 16px 32px rgba(16, 16, 16, 0.08);
+        }
+
+        .card:hover::before {
+            height: 3px;
+            opacity: 1;
+        }
+
+        .card-inner {
+            position: relative;
+            z-index: 1;
+        }
+
+        .card-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 12px;
+            background: rgba(223, 10, 30, 0.07);
+            border: 1px solid rgba(223, 10, 30, 0.14);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 18px;
+            color: #df0a1e;
+            transition: all 0.25s ease;
+        }
+
+        .card-icon svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .card:hover .card-icon {
+            background: #df0a1e;
+            border-color: #df0a1e;
+            color: #ffffff;
+            transform: scale(1.05);
+        }
+
+        .card-title {
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 17px;
+            font-weight: 700;
+            color: #101010;
+            margin-bottom: 6px;
+            letter-spacing: -0.1px;
+        }
+
+        .card-description {
+            font-size: 13.5px;
+            color: #707070;
+            line-height: 1.55;
+            margin-bottom: 16px;
+        }
+
+        .card-badge {
+            display: inline-block;
+            width: fit-content;
+            padding: 4px 11px;
+            background: #f2f2f2;
+            border-radius: 6px;
+            font-size: 10.5px;
+            font-weight: 700;
+            color: #606060;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .card-badge.featured {
+            background: rgba(223, 10, 30, 0.1);
+            color: #df0a1e;
+        }
+
+        .card-badge.urgent {
+            background: rgba(255, 107, 107, 0.1);
+            color: #ff6b6b;
+        }
+
+        .card-badge.new {
+            background: rgba(76, 175, 80, 0.1);
+            color: #4caf50;
+        }
+
+        .card:hover .card-badge.featured {
+            background: #df0a1e;
+            color: white;
+        }
+
+        .profile-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 200;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .profile-modal.show {
+            display: flex;
+        }
+
+        .profile-panel {
+            background: white;
+            width: 100%;
+            max-width: 420px;
+            height: 100vh;
+            padding: 32px;
+            border-left: 3px solid #df0a1e;
+            overflow-y: auto;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+            }
+            to {
+                transform: translateX(0);
+            }
+        }
+
+        .profile-close {
+            float: right;
+            font-size: 28px;
+            cursor: pointer;
+            color: #707070;
+            transition: color 0.2s ease;
+            background: none;
+            border: none;
+            padding: 0;
+        }
+
+        .profile-close:hover {
+            color: #df0a1e;
+        }
+
+        .profile-header {
+            clear: both;
+            margin-top: 24px;
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 2px solid #df0a1e;
+        }
+
+        .profile-name {
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 22px;
+            font-weight: 700;
+            color: #101010;
+            margin-bottom: 8px;
+        }
+
+        .profile-role {
+            font-size: 13px;
+            color: #707070;
+            font-weight: 500;
+        }
+
+        .profile-info {
+            margin-bottom: 24px;
+        }
+
+        .profile-label {
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 10px;
+            font-weight: 700;
+            color: #606060;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .profile-value {
+            font-size: 14px;
+            color: #101010;
+            font-weight: 500;
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 140;
+        }
+
+        .sidebar-overlay.show {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 220px;
+                left: -220px;
+            }
+
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header-left {
+                padding: 24px;
+            }
+
+            .header-right {
+                padding: 24px;
+            }
+
+            .content-area {
+                padding: 24px;
+            }
+
+            .section-title {
+                font-size: 22px;
+            }
+
+            .profile-panel {
+                max-width: 100%;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .header-title {
+                font-size: 22px;
+            }
+
+            .cards-grid {
+                gap: 16px;
+            }
+
+            .card {
+                padding: 20px;
+                min-height: 240px;
+            }
+
+            .header-left {
+                padding: 16px;
+                gap: 12px;
+            }
+
+            .header-right {
+                padding: 16px;
+            }
+
+            .content-area {
+                padding: 16px;
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f0f0f0;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #df0a1e;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #c3161e;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-logo">
+            <img src="flexi-logo-white.svg?v=2" alt="Flexi Logo">
+            <div class="sidebar-tagline">Service Portal</div>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-section-title">Overview</div>
+            <div class="nav-item active" data-section="dashboard">📊 Dashboard</div>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-section-title">Management</div>
+            <div class="nav-item" onclick="window.location.href='routing.html'">🗺️ Routing</div>
+            <div class="nav-item" onclick="window.location.href='asset-tracking.html'">🧰 Asset Tracking</div>
+            <div class="nav-item" onclick="window.location.href='asset-tracking.html?tab=Calibration'">📏 Calibration Management</div>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-section-title">Field Service</div>
+            <div class="nav-item" data-section="field-service">📦 Field Service</div>
+            <div class="nav-item" onclick="window.location.href='weld-report.html'">📸 Report Weld Damage</div>
+            <div class="nav-item" onclick="window.location.href='weld-review.html'">🔥 Weld Review</div>
+            <div class="nav-item" onclick="window.location.href='controller-order-form.html'">🎛️ Controller Order Form</div>
+            <div class="nav-item" onclick="window.location.href='controller-order-dashboard.html'">📋 Controller Orders</div>
+            <div class="nav-item" data-section="instructions">📖 Instructions</div>
+            <div class="nav-item" data-section="technical-docs">📘 Manuals</div>
+            <div class="nav-item" data-section="customer-info">👥 Customer Info</div>
+            <div class="nav-item" data-section="troubleshooting">🔍 Troubleshooting</div>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-section-title">Compliance</div>
+            <div class="nav-item" data-section="safety-checks">☑️ Safety Checks</div>
+            <div class="nav-item" data-section="health-safety">🛡️ H&S Docs</div>
+        </div>
+
+        <div class="sidebar-footer">
+            <button class="logout-btn" id="logoutBtn">Logout</button>
+        </div>
+    </div>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <div class="main-content">
+        <div class="header">
+            <div class="header-left">
+                <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle menu">☰</button>
+                <div>
+                    <div class="header-title">Service Portal</div>
+                    <div class="header-subtitle" id="headerSubtitle">Your daily work companion</div>
+                </div>
+            </div>
+            <div class="header-right">
+                <button class="profile-btn" id="profileBtn">👤 Profile</button>
+            </div>
+        </div>
+
+        <div class="content-area" id="contentArea">
+        </div>
+    </div>
+
+    <div class="profile-modal" id="profileModal">
+        <div class="profile-panel">
+            <button class="profile-close" id="profileClose">&times;</button>
+            <div class="profile-header">
+                <div class="profile-name" id="profileName">Engineer</div>
+                <div class="profile-role" id="profileRole">Field Engineer</div>
+            </div>
+            <div class="profile-info">
+                <span class="profile-label">Login Time</span>
+                <div class="profile-value" id="profileTime">—</div>
+            </div>
+            <div class="profile-info">
+                <span class="profile-label">Status</span>
+                <div class="profile-value">🟢 Online</div>
+            </div>
+            <div class="profile-info">
+                <span class="profile-label">Fingerprint / Face ID</span>
+                <div id="passkeyList" style="margin-bottom:8px;"></div>
+                <button class="logout-btn" id="setupPasskeyBtn" style="background:#101010;">🔒 Set Up Fingerprint / Face ID</button>
+                <div id="passkeyMsg" style="font-size:12px;margin-top:8px;"></div>
+            </div>
+            <div class="profile-info">
+                <span class="profile-label">Portal Version</span>
+                <div class="profile-value">2.1.0</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // ===== Supabase project config =====
+        const SUPABASE_URL = 'https://dontubctlexlvifwhmbj.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_99HLzSv4wMwFZHlR81yIsQ_z0A0Jpth';
+        const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+            auth: { experimental: { passkey: true } }
+        });
+        // =====================================
+
+        db.auth.getSession().then(({ data: { session } }) => {
+            if (!session) {
+                window.location.href = 'login.html';
+            }
+        });
+
+        const portalUser = localStorage.getItem('portalUser');
+        const portalRole = localStorage.getItem('portalRole');
+        const portalName = localStorage.getItem('portalName');
+        const portalLoginTime = localStorage.getItem('portalLoginTime');
+
+        document.getElementById('profileName').textContent = portalName || 'Engineer';
+        document.getElementById('profileRole').textContent = portalRole || 'Field Engineer';
+        document.getElementById('profileTime').textContent = portalLoginTime || '—';
+
+        const ICONS = {
+            box: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5z"></path><path d="M3 8v8l9 5 9-5V8"></path><path d="M12 13v8"></path></svg>',
+            send: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"></path><path d="M22 2l-7 20-4-9-9-4 20-7z"></path></svg>',
+            currency: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M15 9.5c0-1.4-1.3-2.5-3-2.5s-3 1.1-3 2.5 1.3 2 3 2.5 3 1.1 3 2.5-1.3 2.5-3 2.5-3-1.1-3-2.5"></path><path d="M12 5.5v13"></path></svg>',
+            chart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5"></path><path d="M4 19h16"></path><rect x="7" y="11" width="3" height="8"></rect><rect x="12" y="7" width="3" height="12"></rect><rect x="17" y="14" width="3" height="5"></rect></svg>',
+            undo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10h11a5 5 0 0 1 0 10H9"></path><path d="M8 5L3 10l5 5"></path></svg>',
+            warning: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l10 18H2L12 3z"></path><path d="M12 10v4"></path><circle cx="12" cy="17" r="0.5" fill="currentColor"></circle></svg>',
+            book: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v17H6.5A2.5 2.5 0 0 0 4 21.5z"></path><path d="M4 4.5v17"></path><path d="M20 19H6.5A2.5 2.5 0 0 0 4 21.5"></path></svg>',
+            mast: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="4" height="20" rx="1"></rect><rect x="16" y="2" width="4" height="20" rx="1"></rect><rect x="8" y="6" width="8" height="2.5" rx=".5"></rect><rect x="8" y="12" width="8" height="2.5" rx=".5"></rect><rect x="8" y="17.5" width="8" height="2.5" rx=".5"></rect></svg>',
+            people: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"></circle><path d="M2.5 20c0-3.5 3-6 6.5-6s6.5 2.5 6.5 6"></path><path d="M16 4.3a3.2 3.2 0 0 1 0 7.4"></path><path d="M17.5 14c2.8.4 4 2.4 4 6"></path></svg>',
+            clipboard: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"></rect><path d="M9 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1"></path><path d="M9 11h6M9 15h6M9 7h6"></path></svg>',
+            forklift: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4v13"></path><path d="M3 17h4"></path><path d="M7 8h4l3 9"></path><rect x="14" y="14" width="7" height="4" rx="1"></rect><circle cx="8" cy="20" r="1.6"></circle><circle cx="18" cy="20" r="1.6"></circle></svg>',
+            search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="M20 20l-4.8-4.8"></path></svg>',
+            wrench: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L2 19l3 3 7.3-7.3a4 4 0 0 0 5.4-5.4l-2.8 2.8-2.2-2.2 2.8-2.8z"></path></svg>',
+            gear: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"></circle><path d="M12 3v2.5M12 18.5V21M4.2 7.5l2.2 1.3M17.6 15.2l2.2 1.3M4.2 16.5l2.2-1.3M17.6 8.8l2.2-1.3M3 12h2.5M18.5 12H21"></path></svg>',
+            checklist: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"></rect><path d="M8 8l1.5 1.5L12 7"></path><path d="M8 14l1.5 1.5L12 13"></path><path d="M14.5 8.5h4M14.5 14.5h4"></path></svg>',
+            scale: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"></path><path d="M6 7h12"></path><path d="M6 7l-3.5 7a3.5 3.5 0 0 0 7 0z"></path><path d="M18 7l-3.5 7a3.5 3.5 0 0 0 7 0z"></path></svg>',
+            van: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 16V8a1 1 0 0 1 1-1h11l4 4v5"></path><path d="M2.5 16h1.5m14.5 0h-9m9 0h1"></path><circle cx="7" cy="18" r="1.8"></circle><circle cx="17" cy="18" r="1.8"></circle></svg>',
+            shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 3.5v6c0 5-3.4 8.4-8 10.5-4.6-2.1-8-5.5-8-10.5v-6z"></path><path d="M8.5 12l2.3 2.3L15.5 9.5"></path></svg>',
+            phonealert: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4.5c0-.8.7-1.5 1.5-1.5h3l1.5 4-2 1.5a11 11 0 0 0 6 6l1.5-2 4 1.5v3c0 .8-.7 1.5-1.5 1.5C9.6 19 4 13.4 4 4.5z"></path></svg>',
+            hazard: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"></circle><path d="M12 6.5V9M12 15v2.5M6.5 12H9M15 12h2.5M8.4 8.4l1.6 1.6M14 14l1.6 1.6M8.4 15.6L10 14M14 10l1.6-1.6"></path></svg>',
+            ruler: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 16.5L16.5 3l4.5 4.5L7.5 21z"></path><path d="M13 6.5l1.5 1.5M9.5 10l1.5 1.5M6 13.5l1.5 1.5"></path></svg>',
+            siren: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12a7 7 0 0 1 14 0v6H5z"></path><path d="M12 2v2.5M4.5 6l1.8 1.8M19.5 6l-1.8 1.8"></path><path d="M3 21h18"></path></svg>',
+            clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3.5 2"></path></svg>',
+            stop: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><rect x="9" y="9" width="6" height="6" rx="1"></rect></svg>',
+            timer: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2h4"></path><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2.5 1.5"></path><path d="M18.5 6.5l1-1"></path></svg>',
+            fuel: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="10" height="17" rx="1.5"></rect><path d="M7 8h4"></path><path d="M14 9.5l3 2v6a1.5 1.5 0 0 0 3 0V9l-2.5-2.5"></path></svg>',
+            camera: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8a1.5 1.5 0 0 1 1.5-1.5h2l1-2h7l1 2h2A1.5 1.5 0 0 1 20 8v10.5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5z"></path><circle cx="12" cy="13" r="4"></circle></svg>',
+            lightning: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4 14h6l-1 8 9-12h-6z"></path></svg>',
+            note: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"></path><path d="M15 3v4h4"></path><path d="M8 12h8M8 16h5"></path></svg>',
+        };
+
+        const sections = {
+            'dashboard': {
+                title: 'Management Dashboard',
+                subtitle: 'Your daily work companion'
+            },
+            'field-service': {
+                title: 'Field Service',
+                subtitle: 'Essential tools for your daily work',
+                cards: [
+                    { title: 'Van Stock', desc: 'View and manage your van inventory', icon: 'box', link: 'https://narrowaisleservice.github.io/van-stock-management/index-WITH-AUDITS%20(3).html', badge: 'Essential' },
+                    { title: 'Parts Request', desc: 'Request parts from the field for delivery', icon: 'send', link: 'field-parts-request.html', badge: 'Featured' },
+                    { title: 'Quote Builder', desc: 'Build a rough customer quote on site', icon: 'currency', link: 'quote-builder.html', badge: 'New' },
+                    { title: 'Fault Tracker', desc: 'View and manage all reported faults', icon: 'chart', link: 'fault-tracker.html', badge: 'Featured' },
+                    { title: 'Return Parts', desc: 'Process and track part returns', icon: 'undo', link: 'https://narrowaisleservice.github.io/Service-Application/flexi-parts-return-white.html', badge: '' },
+                    { title: 'Faults & Issues', desc: 'Report and track truck issues', icon: 'warning', link: 'fault-reporter.html', badge: '' }
+                ]
+            },
+            'instructions': {
+                title: 'Instructions',
+                subtitle: 'Model-specific service instructions',
+                cards: [
+                    { title: 'H2B DC', desc: 'Service instructions for H2B DC trucks', icon: 'book', link: 'doc-library.html?folder=instructions-h2bdc&title=H2B%20DC%20Instructions&subtitle=Service%20instructions%20for%20H2B%20DC%20trucks&icon=📖&repo=Service-Application', badge: '' },
+                    { title: 'AC3', desc: 'Service instructions for AC3 trucks', icon: 'book', link: 'doc-library.html?folder=instructions-ac3&title=AC3%20Instructions&subtitle=Service%20instructions%20for%20AC3%20trucks&icon=📖&repo=Service-Application', badge: '' },
+                    { title: 'ACe Gen1', desc: 'Service instructions for ACe Gen1 trucks', icon: 'book', link: 'doc-library.html?folder=instructions-acegen1&title=ACe%20Gen1%20Instructions&subtitle=Service%20instructions%20for%20ACe%20Gen1%20trucks&icon=📖&repo=Service-Application', badge: '' },
+                    { title: 'ACe Gen2', desc: 'Service instructions for ACe Gen2 trucks', icon: 'book', link: 'doc-library.html?folder=instructions-acegen2&title=ACe%20Gen2%20Instructions&subtitle=Service%20instructions%20for%20ACe%20Gen2%20trucks&icon=📖&repo=Service-Application', badge: '' }
+                ]
+            },
+            'time-tracking': {
+                title: 'Time Tracking',
+                subtitle: 'Log your hours and manage your time',
+                cards: [
+                    { title: 'Clock In', desc: 'Start your working day', icon: 'clock', link: '#', badge: 'Essential' },
+                    { title: 'Clock Out', desc: 'End your shift', icon: 'stop', link: '#', badge: 'Essential' },
+                    { title: 'Job Time Log', desc: 'Log time spent on jobs', icon: 'timer', link: '#', badge: '' },
+                    { title: 'Time Report', desc: 'View your time entries', icon: 'chart', link: '#', badge: '' }
+                ]
+            },
+            'vehicle-check': {
+                title: 'Vehicle Checks',
+                subtitle: 'Daily vehicle safety and condition checks',
+                cards: [
+                    { title: 'Daily Safety Check', desc: 'Vehicle condition check', icon: 'van', link: 'https://narrowaisleservice.github.io/Service-Application/vw-transporter-daily-check.html', badge: 'Essential' },
+                    { title: 'Service History', desc: 'View vehicle maintenance', icon: 'wrench', link: '#', badge: '' },
+                    { title: 'Fuel Log', desc: 'Log fuel and expenses', icon: 'fuel', link: '#', badge: '' },
+                    { title: 'Damage Report', desc: 'Report vehicle damage', icon: 'camera', link: '#', badge: '' }
+                ]
+            },
+            'parts-ordering': {
+                title: 'Parts Ordering',
+                subtitle: 'Quick access to order parts on-site',
+                cards: [
+                    { title: 'Order Parts', desc: 'Place new parts orders instantly', icon: 'send', link: 'field-parts-request.html', badge: 'Featured' },
+                    { title: 'Parts Used Log', desc: 'Record parts installed on jobs', icon: 'note', link: '#', badge: '' },
+                    { title: 'Stock Levels', desc: 'Check van parts availability', icon: 'chart', link: '#', badge: '' },
+                    { title: 'Urgent Orders', desc: 'Express delivery options', icon: 'lightning', link: '#', badge: 'New' }
+                ]
+            },
+            'technical-docs': {
+                title: 'Technical Manuals',
+                subtitle: 'Quick reference guides and manuals',
+                cards: [
+                    { title: 'Gen1 Manual', desc: 'Interactive tablet parts manual with diagrams & cart', icon: 'book', link: 'https://narrowaisleservice.github.io/Service-Application/flexi-parts-manual-tablet.html', badge: 'New' },
+                    { title: 'Gen2 Manual', desc: 'First generation truck documentation', icon: 'book', link: 'gen1-instructions.html', badge: '' },
+                    { title: 'AC3/G4 Manual', desc: 'Pre-2019 truck documentation', icon: 'book', link: 'https://narrowaisleservice.github.io/Service-Application/flexi-g4-parts-manual-tablet.html', badge: 'Essential' },
+                    { title: 'H2B/G3 Manual', desc: 'Mid-generation truck documentation', icon: 'book', link: 'https://narrowaisleservice.github.io/Service-Application/G3_Parts_Manual_White.html', badge: 'Essential' },
+                    { title: 'Mast Manual', desc: 'Mast assembly and maintenance', icon: 'mast', link: 'https://narrowaisleservice.github.io/Service-Application/flexi-mast-system-manual.html', badge: '' }
+                ]
+            },
+            'customer-info': {
+                title: 'Customer Information',
+                subtitle: 'Access customer details and site info',
+                cards: [
+                    { title: 'Customer Database', desc: 'Find customer contact info', icon: 'people', link: 'contacts.html', badge: 'Essential' },
+                    { title: 'Service Records', desc: 'Customer truck service history', icon: 'clipboard', link: 'service-history.html', badge: '' },
+                    { title: 'Customer Equipment', desc: 'Browse equipment owned by each customer', icon: 'forklift', link: 'customer-equipment.html', badge: 'New' }
+                ]
+            },
+            'troubleshooting': {
+                title: 'Troubleshooting',
+                subtitle: 'Quick diagnostic and repair guides',
+                cards: [
+                    { title: 'Fault Codes', desc: 'Decode error codes quickly', icon: 'search', link: 'https://narrowaisleservice.github.io/Service-Application/flexi-fault-finder-white.html', badge: 'Featured' },
+                    { title: 'Common Issues', desc: 'Solutions to common problems', icon: 'wrench', link: 'https://narrowaisleservice.github.io/Service-Application/flexi-common-issues.html', badge: '' },
+                    { title: 'Diagnostic Guide', desc: 'Step-by-step troubleshooting', icon: 'gear', link: '#', badge: '' }
+                ]
+            },
+            'safety-checks': {
+                title: 'Safety Compliance',
+                subtitle: 'Daily safety checks and compliance tasks',
+                cards: [
+                    { title: 'Daily Safety Check', desc: 'Complete required safety checks', icon: 'checklist', link: 'https://narrowaisleservice.github.io/Service-Application/vw-transporter-daily-check.html', badge: 'Essential' },
+                    { title: 'Risk Assessment', desc: 'Browse site risk assessments', icon: 'scale', link: 'doc-library.html?folder=ra&title=Risk%20Assessments&subtitle=Site%20risk%20assessment%20documents&icon=⚖️', badge: '' },
+                    { title: 'Near Miss Report', desc: 'Report near misses and hazards', icon: 'warning', link: 'near-miss-report.html', badge: '' },
+                    { title: 'Van Safety Audit', desc: 'VW Transporter fleet safety checklist', icon: 'van', link: 'van-safety-audit.html', badge: 'New' }
+                ]
+            },
+            'health-safety': {
+                title: 'Health & Safety',
+                subtitle: 'Company H&S policies and procedures',
+                cards: [
+                    { title: 'H&S Policy', desc: 'Company policies and guidelines', icon: 'shield', link: 'doc-library.html?folder=docs&title=H%26S%20Policy&subtitle=Company%20policies%20and%20guidelines&icon=🛡️', badge: 'Essential' },
+                    { title: 'Incident Report', desc: 'Report injuries and incidents', icon: 'phonealert', link: '#', badge: 'Urgent' },
+                    { title: 'COSHH Sheets', desc: 'Chemical safety information', icon: 'hazard', link: 'doc-library.html?folder=coshh&title=COSHH%20Sheets&subtitle=Chemical%20safety%20information&icon=☠️', badge: '' },
+                    { title: 'Safe Work Procedures', desc: 'Browse SWP documents', icon: 'ruler', link: 'doc-library.html?folder=swp&title=Safe%20Work%20Procedures&subtitle=Safe%20work%20procedure%20documents&icon=📐', badge: 'New' },
+                    { title: 'Emergency Procedures', desc: 'Emergency response procedures', icon: 'siren', link: '#', badge: 'Essential' }
+                ]
+            }
+        };
+
+        let currentSection = 'dashboard';
+        let clockInterval = null;
+        let dashMode = localStorage.getItem('dashSearchMode') || 'serial';
+
+        loadSection(currentSection);
+
+        function renderHomeScreen() {
+            document.getElementById('headerSubtitle').textContent = 'Your daily work companion';
+            const content = document.getElementById('contentArea');
+            content.innerHTML = `
+                <div class="home-hero">
+                    <div class="home-greeting" id="homeGreeting"></div>
+                    <div class="home-date" id="homeDate"></div>
+                </div>
+                <div class="dash-search-panel">
+                    <div class="dash-search-eyebrow">Quick search</div>
+                    <div class="dash-search-toggle">
+                        <button class="toggle-btn ${dashMode === 'serial' ? 'active' : ''}" onclick="setDashMode('serial')">🔧 Serial</button>
+                        <button class="toggle-btn ${dashMode === 'customer' ? 'active' : ''}" onclick="setDashMode('customer')">👥 Customer</button>
+                    </div>
+                    <div class="dash-search-row">
+                        <input type="text" id="dashSearchInput" placeholder="${dashMode === 'serial' ? 'Enter serial number...' : 'Enter customer name...'}" onkeydown="if(event.key==='Enter') runDashSearch()">
+                        <button class="dash-search-btn" onclick="runDashSearch()">Go &rarr;</button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('dashSearchInput').focus();
+            updateClock();
+            if (clockInterval) clearInterval(clockInterval);
+            clockInterval = setInterval(updateClock, 1000);
+        }
+
+        function setDashMode(mode) {
+            dashMode = mode;
+            localStorage.setItem('dashSearchMode', mode);
+            document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            const input = document.getElementById('dashSearchInput');
+            if (input) {
+                input.placeholder = mode === 'serial' ? 'Enter serial number...' : 'Enter customer name...';
+                input.focus();
+            }
+        }
+
+        function runDashSearch() {
+            const val = document.getElementById('dashSearchInput').value.trim();
+            if (!val) return;
+            if (dashMode === 'serial') {
+                window.location.href = 'service-history.html?serial=' + encodeURIComponent(val);
+            } else {
+                window.location.href = 'customer-equipment.html?customer=' + encodeURIComponent(val);
+            }
+        }
+
+        function updateClock() {
+            const now = new Date();
+            const hour = now.getHours();
+            const greetingWord = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+            const name = (portalName || 'there').split(' ')[0];
+            const greetingEl = document.getElementById('homeGreeting');
+            const dateEl = document.getElementById('homeDate');
+            if (!greetingEl || !dateEl) { clearInterval(clockInterval); return; }
+            greetingEl.textContent = `${greetingWord}, ${name} 👋`;
+            dateEl.textContent = now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }) + ' · ' + now.toLocaleTimeString('en-GB');
+        }
+
+        function loadSection(sectionId) {
+            if (clockInterval) { clearInterval(clockInterval); clockInterval = null; }
+            if (sectionId === 'dashboard') { renderHomeScreen(); return; }
+            const section = sections[sectionId] || sections['dashboard'];
+            document.getElementById('headerSubtitle').textContent = section.subtitle;
+
+            const statsHtml = section.stats ? `
+                <div class="stats-row">
+                    ${section.stats.map(stat => `
+                        <div class="stat-card">
+                            <div class="stat-value">${stat.value}</div>
+                            <div class="stat-label">${stat.label}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            ` : '';
+
+            const html = `
+                <div class="section-header">
+                    <div class="section-eyebrow">${section.cards.length} ${section.cards.length === 1 ? 'tool' : 'tools'} available</div>
+                    <div class="section-title">${section.title}</div>
+                    <div class="section-subtitle">${section.subtitle}</div>
+                </div>
+                ${statsHtml}
+                <div class="cards-grid">
+                    ${section.cards.map(card => `
+                        <div class="card" onclick="if('${card.link}' !== '#') window.location.href = '${card.link}'">
+                            <div class="card-inner">
+                                <div class="card-icon">${ICONS[card.icon] || ''}</div>
+                                <div class="card-title">${card.title}</div>
+                                <div class="card-description">${card.desc}</div>
+                                ${card.badge ? `<div class="card-badge ${card.badge === 'Featured' ? 'featured' : card.badge === 'Urgent' ? 'urgent' : 'new'}">${card.badge}</div>` : ''}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            document.getElementById('contentArea').innerHTML = html;
+        }
+
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+
+        function openSidebar() {
+            sidebar.classList.add('open');
+            sidebarOverlay.classList.add('show');
+        }
+
+        function closeSidebar() {
+            sidebar.classList.remove('open');
+            sidebarOverlay.classList.remove('show');
+        }
+
+        mobileMenuToggle.addEventListener('click', () => {
+            if (sidebar.classList.contains('open')) {
+                closeSidebar();
+            } else {
+                openSidebar();
+            }
+        });
+
+        sidebarOverlay.addEventListener('click', closeSidebar);
+
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 640) {
+                closeSidebar();
+            }
+        });
+
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                if (!this.dataset.section) return;
+                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                const section = this.dataset.section;
+                currentSection = section;
+                loadSection(section);
+                closeSidebar();
+            });
+        });
+
+        document.getElementById('profileBtn').addEventListener('click', () => {
+            document.getElementById('profileModal').classList.add('show');
+            loadPasskeys();
+        });
+
+        async function loadPasskeys() {
+            const listEl = document.getElementById('passkeyList');
+            listEl.innerHTML = 'Loading...';
+            const { data, error } = await db.auth.passkey.list();
+            if (error) {
+                listEl.innerHTML = '';
+                return;
+            }
+            if (!data || !data.length) {
+                listEl.innerHTML = '<span style="color:#909090;font-size:13px;">None set up yet</span>';
+                return;
+            }
+            listEl.innerHTML = data.map(pk => `
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:13px;">
+                    <span>${pk.friendly_name || 'Passkey'}</span>
+                    <button onclick="deletePasskey('${pk.id}')" style="background:none;border:none;color:#df0a1e;cursor:pointer;font-size:12px;">Remove</button>
+                </div>
+            `).join('');
+        }
+
+        async function deletePasskey(passkeyId) {
+            if (!confirm('Remove this passkey? You\'ll need to set up a new one to use fingerprint/Face ID sign-in again.')) return;
+            await db.auth.passkey.delete({ passkeyId });
+            loadPasskeys();
+        }
+
+        document.getElementById('setupPasskeyBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('setupPasskeyBtn');
+            const msgEl = document.getElementById('passkeyMsg');
+            btn.disabled = true;
+            btn.textContent = 'Follow your device prompt...';
+            msgEl.textContent = '';
+
+            const { data, error } = await db.auth.registerPasskey();
+
+            btn.disabled = false;
+            btn.textContent = '🔒 Set Up Fingerprint / Face ID';
+
+            if (error) {
+                msgEl.style.color = '#df0a1e';
+                msgEl.textContent = error.message || 'Could not set up passkey.';
+                return;
+            }
+
+            msgEl.style.color = '#4caf50';
+            msgEl.textContent = 'Passkey registered — you can now sign in with fingerprint/Face ID.';
+            loadPasskeys();
+        });
+
+        document.getElementById('profileClose').addEventListener('click', () => {
+            document.getElementById('profileModal').classList.remove('show');
+        });
+
+        document.getElementById('profileModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('profileModal')) {
+                document.getElementById('profileModal').classList.remove('show');
+            }
+        });
+
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            await db.auth.signOut();
+            localStorage.clear();
+            window.location.href = 'login.html';
+        });
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js');
+        }
+    </script>
+</body>
+</html>
