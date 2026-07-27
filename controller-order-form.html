@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Controller Order Form — Narrow Aisle Service Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=DM+Sans:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --red:#df0a1e;
+    --black:#0a0a0a;
+    --white:#ffffff;
+    --gray-line:#e6e6e6;
+    --gray-fill:#f6f6f6;
+    --gray-text:#6b6b6b;
+    --font-display:'Barlow Condensed',sans-serif;
+    --font-body:'DM Sans',sans-serif;
+    --font-mono:'DM Mono',monospace;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--white);
+    font-family:var(--font-body);
+    color:var(--black);
+    -webkit-tap-highlight-color:transparent;
+    visibility:hidden;
+  }
+  header{
+    background:var(--black);
+    color:var(--white);
+    padding:18px 20px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  header .title{
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:22px;
+    letter-spacing:0.3px;
+  }
+  header .title small{
+    display:block;
+    font-family:var(--font-mono);
+    font-size:11px;
+    font-weight:400;
+    color:#b0b0b0;
+    letter-spacing:0.5px;
+    margin-top:2px;
+  }
+  header .mark{ width:10px;height:10px;border-radius:50%; background:var(--red); flex-shrink:0; }
+  .user-bar{
+    background:var(--gray-fill);
+    border-bottom:1px solid var(--gray-line);
+    padding:8px 20px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    font-family:var(--font-mono);
+    font-size:12px;
+    color:var(--gray-text);
+  }
+  .user-bar button{
+    background:none; border:none; color:var(--red);
+    font-family:var(--font-mono); font-size:12px; cursor:pointer;
+    text-decoration:underline; padding:0;
+  }
+  main{ max-width:640px; margin:0 auto; padding:20px 20px 100px; }
+  .field{ margin-bottom:18px; }
+  label{
+    display:block; font-family:var(--font-display); font-weight:600;
+    font-size:15px; margin-bottom:6px; letter-spacing:0.2px;
+  }
+  label .req{ color:var(--red); }
+  input[type=text], textarea{
+    width:100%; border:1px solid var(--gray-line); border-radius:8px;
+    padding:12px 14px; font-family:var(--font-body); font-size:15px;
+    background:var(--white); color:var(--black);
+  }
+  input[type=text]:focus, textarea:focus{
+    outline:none; border-color:var(--red);
+    box-shadow:0 0 0 3px rgba(223,10,30,0.08);
+  }
+  .row2{ display:flex; gap:12px; }
+  .row2 .field{ flex:1; }
+
+  .parts-section{
+    border-top:1px solid var(--gray-line);
+    margin-top:24px;
+    padding-top:20px;
+  }
+  .parts-section h2{
+    font-family:var(--font-display);
+    font-size:20px;
+    margin:0 0 12px;
+  }
+  #partSearch{
+    width:100%; border:1px solid var(--gray-line); border-radius:8px;
+    padding:12px 14px; font-family:var(--font-body); font-size:15px;
+  }
+  #partSearch:focus{ outline:none; border-color:var(--red); box-shadow:0 0 0 3px rgba(223,10,30,0.08); }
+  #searchResults{
+    border:1px solid var(--gray-line);
+    border-radius:8px;
+    margin-top:6px;
+    max-height:280px;
+    overflow-y:auto;
+    display:none;
+  }
+  #searchResults.open{ display:block; }
+  .result-row{
+    padding:10px 12px;
+    border-bottom:1px solid var(--gray-line);
+    cursor:pointer;
+    font-size:14px;
+  }
+  .result-row:last-child{ border-bottom:none; }
+  .result-row:hover, .result-row:active{ background:var(--gray-fill); }
+  .result-row .pn{
+    font-family:var(--font-mono);
+    font-weight:500;
+    color:var(--red);
+    font-size:12px;
+  }
+  .result-row .desc{ font-weight:500; }
+  .result-row .meta{ color:var(--gray-text); font-size:12px; margin-top:2px; }
+  #searchStatus{ font-size:13px; color:var(--gray-text); margin-top:6px; font-family:var(--font-mono); }
+
+  .cart{ margin-top:16px; }
+  .cart-empty{ color:var(--gray-text); font-size:14px; padding:16px 0; text-align:center; }
+  .cart-item{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:12px;
+    border:1px solid var(--gray-line);
+    border-radius:8px;
+    margin-bottom:8px;
+    background:var(--gray-fill);
+  }
+  .cart-item .info{ flex:1; min-width:0; }
+  .cart-item .pn{ font-family:var(--font-mono); font-size:11px; color:var(--red); }
+  .cart-item .desc{ font-size:14px; font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .cart-item .loc{ font-size:12px; color:var(--gray-text); }
+  .cart-item input[type=text].qty{
+    width:52px; text-align:center; padding:8px 4px; font-size:14px;
+    border:1px solid var(--gray-line); border-radius:6px;
+  }
+  .cart-item button.remove{
+    background:none; border:none; color:var(--gray-text);
+    font-size:18px; cursor:pointer; line-height:1; padding:4px 6px;
+  }
+
+  .submit-bar{
+    position:fixed; left:0; right:0; bottom:0;
+    background:var(--white); border-top:1px solid var(--gray-line);
+    padding:14px 20px calc(14px + env(safe-area-inset-bottom));
+    max-width:640px; margin:0 auto;
+  }
+  button.primary{
+    width:100%; background:var(--red); color:var(--white); border:none;
+    padding:14px; border-radius:8px; font-family:var(--font-display);
+    font-weight:600; font-size:17px; letter-spacing:0.3px; cursor:pointer;
+  }
+  button.primary:disabled{ background:#e5a2a8; cursor:not-allowed; }
+  .status{ text-align:center; font-size:13px; font-family:var(--font-mono); color:var(--gray-text); margin-top:8px; min-height:16px; }
+  .status.err{ color:var(--red); }
+
+  #success{ display:none; text-align:center; padding:60px 20px; }
+  #success svg{ margin:0 auto 16px; display:block; }
+  #success h2{ font-family:var(--font-display); font-size:26px; margin:0 0 8px; }
+  #success p{ color:var(--gray-text); font-size:14px; margin:0 0 24px; }
+  #success button{
+    background:none; border:1px solid var(--gray-line); padding:10px 20px;
+    border-radius:8px; font-family:var(--font-body); font-size:14px; cursor:pointer;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title">Controller Order Form<small>NARROW AISLE SERVICE PORTAL</small></div>
+  <div class="mark"></div>
+</header>
+<div class="user-bar">
+  <span id="userEmail"></span>
+  <button type="button" id="logoutBtn">Log out</button>
+</div>
+
+<main>
+  <form id="form">
+    <div class="row2">
+      <div class="field">
+        <label>Your name <span class="req">*</span></label>
+        <input type="text" id="controller_name" required autocomplete="name">
+      </div>
+      <div class="field">
+        <label>Ordering for (engineer) <span class="req">*</span></label>
+        <input type="text" id="engineer_name" required>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Truck serial no. <span class="req">*</span></label>
+      <input type="text" id="truck_serial" required placeholder="e.g. FX12345">
+    </div>
+
+    <div class="field">
+      <label>Notes</label>
+      <textarea id="notes" placeholder="Anything the stores team should know — urgency, job number, etc."></textarea>
+    </div>
+
+    <div class="parts-section">
+      <h2>Parts</h2>
+      <input type="text" id="partSearch" placeholder="Search by part number or description...">
+      <div id="searchResults"></div>
+      <div id="searchStatus"></div>
+
+      <div class="cart" id="cart">
+        <div class="cart-empty" id="cartEmpty">No parts added yet</div>
+      </div>
+    </div>
+  </form>
+
+  <div class="submit-bar">
+    <button type="button" class="primary" id="submitBtn">Submit Order</button>
+    <div class="status" id="status"></div>
+  </div>
+
+  <div id="success">
+    <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#df0a1e" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><path d="M8 12.5l2.5 2.5 5-5"/></svg>
+    <h2>Order sent</h2>
+    <p>It's now showing as Ordered on the dashboard.</p>
+    <button type="button" id="newOrderBtn">Submit another order</button>
+  </div>
+</main>
+
+<script>
+const SUPABASE_URL = 'https://dontubctlexlvifwhmbj.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_99HLzSv4wMwFZHlR81yIsQ_z0A0Jpth';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+(async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) {
+    window.location.href = 'login.html?redirect=' + encodeURIComponent(location.pathname.split('/').pop());
+    return;
+  }
+  document.getElementById('userEmail').textContent = 'Logged in as ' + session.user.email;
+  document.body.style.visibility = 'visible';
+})();
+
+sb.auth.onAuthStateChange((event, session) => {
+  if (event === 'SIGNED_OUT' || !session) {
+    window.location.href = 'login.html';
+  }
+});
+
+document.getElementById('logoutBtn').addEventListener('click', async () => {
+  await sb.auth.signOut();
+  window.location.href = 'login.html';
+});
+
+// ---- Parts search ----
+let cart = []; // { part_number, description, location, qty }
+let searchTimer = null;
+
+const searchInput = document.getElementById('partSearch');
+const resultsEl = document.getElementById('searchResults');
+const searchStatusEl = document.getElementById('searchStatus');
+
+searchInput.addEventListener('input', () => {
+  clearTimeout(searchTimer);
+  const q = searchInput.value.trim();
+  if (q.length < 2) {
+    resultsEl.classList.remove('open');
+    resultsEl.innerHTML = '';
+    searchStatusEl.textContent = '';
+    return;
+  }
+  searchStatusEl.textContent = 'Searching...';
+  searchTimer = setTimeout(() => runSearch(q), 250);
+});
+
+async function runSearch(q) {
+  const { data, error } = await sb
+    .from('parts')
+    .select('part_number, description, location, stock_level')
+    .or(`part_number.ilike.%${q}%,description.ilike.%${q}%`)
+    .limit(25);
+
+  if (error) {
+    searchStatusEl.textContent = 'Search failed — check connection.';
+    console.error(error);
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    resultsEl.classList.remove('open');
+    resultsEl.innerHTML = '';
+    searchStatusEl.textContent = 'No matches.';
+    return;
+  }
+
+  searchStatusEl.textContent = `${data.length} result${data.length === 1 ? '' : 's'}${data.length === 25 ? ' (showing first 25 — refine search)' : ''}`;
+  resultsEl.innerHTML = data.map(p => `
+    <div class="result-row" data-pn="${escapeAttr(p.part_number || '')}" data-desc="${escapeAttr(p.description || '')}" data-loc="${escapeAttr(p.location || '')}">
+      <div class="pn">${escapeHtml(p.part_number || '—')}</div>
+      <div class="desc">${escapeHtml(p.description || '(no description)')}</div>
+      <div class="meta">${p.location ? 'Location: ' + escapeHtml(p.location) : ''}${p.stock_level ? ' · Stock: ' + escapeHtml(p.stock_level) : ''}</div>
+    </div>
+  `).join('');
+  resultsEl.classList.add('open');
+
+  resultsEl.querySelectorAll('.result-row').forEach(row => {
+    row.addEventListener('click', () => {
+      addToCart(row.dataset.pn, row.dataset.desc, row.dataset.loc);
+      searchInput.value = '';
+      resultsEl.classList.remove('open');
+      resultsEl.innerHTML = '';
+      searchStatusEl.textContent = '';
+    });
+  });
+}
+
+function addToCart(pn, desc, loc) {
+  const existing = cart.find(c => c.part_number === pn);
+  if (existing) {
+    existing.qty += 1;
+  } else {
+    cart.push({ part_number: pn, description: desc, location: loc, qty: 1 });
+  }
+  renderCart();
+}
+
+function renderCart() {
+  const cartEl = document.getElementById('cart');
+  if (cart.length === 0) {
+    cartEl.innerHTML = '<div class="cart-empty" id="cartEmpty">No parts added yet</div>';
+    return;
+  }
+  cartEl.innerHTML = cart.map((item, idx) => `
+    <div class="cart-item">
+      <div class="info">
+        <div class="pn">${escapeHtml(item.part_number || '—')}</div>
+        <div class="desc">${escapeHtml(item.description || '(no description)')}</div>
+        ${item.location ? `<div class="loc">Location: ${escapeHtml(item.location)}</div>` : ''}
+      </div>
+      <input type="text" inputmode="numeric" class="qty" data-idx="${idx}" value="${item.qty}">
+      <button type="button" class="remove" data-idx="${idx}">✕</button>
+    </div>
+  `).join('');
+
+  cartEl.querySelectorAll('input.qty').forEach(inp => {
+    inp.addEventListener('change', () => {
+      const idx = parseInt(inp.dataset.idx, 10);
+      const val = parseInt(inp.value, 10);
+      cart[idx].qty = (isNaN(val) || val < 1) ? 1 : val;
+      renderCart();
+    });
+  });
+  cartEl.querySelectorAll('button.remove').forEach(btn => {
+    btn.addEventListener('click', () => {
+      cart.splice(parseInt(btn.dataset.idx, 10), 1);
+      renderCart();
+    });
+  });
+}
+
+// ---- Submit ----
+const submitBtn = document.getElementById('submitBtn');
+const statusEl = document.getElementById('status');
+
+function setStatus(msg, isErr) {
+  statusEl.textContent = msg || '';
+  statusEl.classList.toggle('err', !!isErr);
+}
+
+submitBtn.addEventListener('click', async () => {
+  const controller_name = document.getElementById('controller_name').value.trim();
+  const engineer_name = document.getElementById('engineer_name').value.trim();
+  const truck_serial = document.getElementById('truck_serial').value.trim();
+  const notes = document.getElementById('notes').value.trim();
+
+  if (!controller_name || !engineer_name || !truck_serial) {
+    setStatus('Please fill in your name, the engineer, and the truck serial.', true);
+    return;
+  }
+  if (cart.length === 0) {
+    setStatus('Please add at least one part.', true);
+    return;
+  }
+
+  submitBtn.disabled = true;
+  setStatus('Saving order...');
+
+  try {
+    const { data: orderRow, error: orderErr } = await sb
+      .from('controller_orders')
+      .insert({ controller_name, engineer_name, truck_serial, notes, status: 'Ordered' })
+      .select()
+      .single();
+
+    if (orderErr) throw orderErr;
+
+    const items = cart.map(c => ({
+      order_id: orderRow.id,
+      part_number: c.part_number,
+      description: c.description,
+      quantity: c.qty
+    }));
+
+    const { error: itemsErr } = await sb.from('controller_order_items').insert(items);
+    if (itemsErr) throw itemsErr;
+
+    document.getElementById('form').style.display = 'none';
+    document.querySelector('.submit-bar').style.display = 'none';
+    document.getElementById('success').style.display = 'block';
+
+  } catch (err) {
+    console.error(err);
+    setStatus('Something went wrong — check your connection and try again.', true);
+    submitBtn.disabled = false;
+  }
+});
+
+document.getElementById('newOrderBtn').addEventListener('click', () => location.reload());
+
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+function escapeAttr(str) { return escapeHtml(str); }
+</script>
+
+</body>
+</html>

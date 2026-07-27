@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Controller Orders — Narrow Aisle Service Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=DM+Sans:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --red:#df0a1e;
+    --black:#0a0a0a;
+    --white:#ffffff;
+    --gray-line:#e6e6e6;
+    --gray-fill:#f6f6f6;
+    --gray-text:#6b6b6b;
+    --amber:#b8860b;
+    --green:#1a7d3c;
+    --font-display:'Barlow Condensed',sans-serif;
+    --font-body:'DM Sans',sans-serif;
+    --font-mono:'DM Mono',monospace;
+  }
+  *{box-sizing:border-box;}
+  body{ margin:0; background:var(--gray-fill); font-family:var(--font-body); color:var(--black); visibility:hidden; }
+  header{
+    background:var(--black); color:var(--white); padding:18px 24px;
+    display:flex; align-items:center; justify-content:space-between;
+    position:sticky; top:0; z-index:10;
+  }
+  header .title{ font-family:var(--font-display); font-weight:700; font-size:22px; }
+  header .title small{
+    display:block; font-family:var(--font-mono); font-size:11px; font-weight:400;
+    color:#b0b0b0; letter-spacing:0.5px; margin-top:2px;
+  }
+  .user-bar{
+    background:var(--white); border-bottom:1px solid var(--gray-line);
+    padding:8px 24px; display:flex; align-items:center; justify-content:space-between;
+    font-family:var(--font-mono); font-size:12px; color:var(--gray-text);
+  }
+  .user-bar button{
+    background:none; border:none; color:var(--red); font-family:var(--font-mono);
+    font-size:12px; cursor:pointer; text-decoration:underline; padding:0;
+  }
+  .tabs{ display:flex; gap:6px; background:var(--white); padding:6px; border-bottom:1px solid var(--gray-line); }
+  .tab{
+    flex:1; text-align:center; padding:10px; font-family:var(--font-display);
+    font-weight:600; font-size:15px; border-radius:8px; cursor:pointer; color:var(--gray-text);
+  }
+  .tab.active{ background:var(--red); color:var(--white); }
+  main{ max-width:820px; margin:0 auto; padding:20px 16px 60px; }
+  #empty{ text-align:center; color:var(--gray-text); padding:60px 20px; font-size:14px; }
+
+  .card{ background:var(--white); border-radius:12px; border:1px solid var(--gray-line); margin-bottom:16px; overflow:hidden; }
+  .card-head{ padding:14px 16px 10px; display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
+  .card-head h3{ font-family:var(--font-display); font-size:20px; margin:0 0 2px; }
+  .meta{ font-family:var(--font-mono); font-size:12px; color:var(--gray-text); line-height:1.6; }
+
+  .timeline{ display:flex; align-items:center; padding:4px 16px 16px; }
+  .tl-step{ display:flex; flex-direction:column; align-items:center; flex:1; position:relative; }
+  .tl-dot{
+    width:22px; height:22px; border-radius:50%; background:var(--gray-line);
+    display:flex; align-items:center; justify-content:center; font-size:12px; color:var(--white);
+    font-family:var(--font-mono); font-weight:500; z-index:1;
+  }
+  .tl-dot.done{ background:var(--green); }
+  .tl-dot.current{ background:var(--red); }
+  .tl-label{ font-family:var(--font-display); font-weight:600; font-size:12px; margin-top:6px; color:var(--gray-text); text-transform:uppercase; letter-spacing:0.3px; }
+  .tl-label.active{ color:var(--black); }
+  .tl-line{ position:absolute; top:11px; left:50%; width:100%; height:2px; background:var(--gray-line); z-index:0; }
+  .tl-line.done{ background:var(--green); }
+  .tl-step:last-child .tl-line{ display:none; }
+
+  .items{ padding:0 16px 12px; }
+  .items table{ width:100%; border-collapse:collapse; font-size:13px; }
+  .items th{ text-align:left; font-family:var(--font-display); font-weight:600; font-size:12px; color:var(--gray-text); padding:4px 6px; border-bottom:1px solid var(--gray-line); }
+  .items td{ padding:6px; border-bottom:1px solid var(--gray-line); }
+  .items td.pn{ font-family:var(--font-mono); font-size:12px; color:var(--red); white-space:nowrap; }
+  .items td.qty{ text-align:right; font-family:var(--font-mono); }
+
+  .notes-line{ padding:0 16px 12px; font-size:13px; color:var(--gray-text); font-style:italic; }
+
+  .action-bar{ border-top:1px solid var(--gray-line); padding:12px 16px; background:var(--gray-fill); display:flex; justify-content:flex-end; gap:8px; }
+  button.advance{
+    background:var(--red); color:var(--white); border:none; padding:10px 18px;
+    border-radius:8px; font-family:var(--font-display); font-weight:600; font-size:14px; cursor:pointer;
+  }
+  button.advance:disabled{ background:#e5a2a8; cursor:not-allowed; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title">Controller Orders<small>NARROW AISLE SERVICE PORTAL</small></div>
+</header>
+<div class="user-bar">
+  <span id="userEmail"></span>
+  <button type="button" id="logoutBtn">Log out</button>
+</div>
+
+<div class="tabs">
+  <div class="tab active" data-filter="active">Active</div>
+  <div class="tab" data-filter="Sent">Sent</div>
+  <div class="tab" data-filter="all">All</div>
+</div>
+
+<main>
+  <div id="list"></div>
+  <div id="empty" style="display:none;">Nothing here.</div>
+</main>
+
+<script>
+const SUPABASE_URL = 'https://dontubctlexlvifwhmbj.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_99HLzSv4wMwFZHlR81yIsQ_z0A0Jpth';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const STAGES = ['Ordered', 'Picked', 'Sent'];
+let orders = [];
+let itemsByOrder = {};
+let currentFilter = 'active';
+
+(async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) {
+    window.location.href = 'login.html?redirect=' + encodeURIComponent(location.pathname.split('/').pop());
+    return;
+  }
+  document.getElementById('userEmail').textContent = 'Logged in as ' + session.user.email;
+  document.body.style.visibility = 'visible';
+  loadOrders();
+})();
+
+sb.auth.onAuthStateChange((event, session) => {
+  if (event === 'SIGNED_OUT' || !session) {
+    window.location.href = 'login.html';
+  }
+});
+
+document.getElementById('logoutBtn').addEventListener('click', async () => {
+  await sb.auth.signOut();
+  window.location.href = 'login.html';
+});
+
+async function loadOrders() {
+  const { data: orderData, error: orderErr } = await sb
+    .from('controller_orders')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (orderErr) {
+    document.getElementById('list').innerHTML = '<div id="empty">Couldn\'t load orders — check your connection.</div>';
+    console.error(orderErr);
+    return;
+  }
+  orders = orderData;
+
+  const { data: itemData, error: itemErr } = await sb
+    .from('controller_order_items')
+    .select('*');
+
+  if (itemErr) {
+    console.error(itemErr);
+  } else {
+    itemsByOrder = {};
+    (itemData || []).forEach(it => {
+      if (!itemsByOrder[it.order_id]) itemsByOrder[it.order_id] = [];
+      itemsByOrder[it.order_id].push(it);
+    });
+  }
+
+  render();
+}
+
+function render() {
+  const listEl = document.getElementById('list');
+  const emptyEl = document.getElementById('empty');
+
+  const filtered = orders.filter(o => {
+    if (currentFilter === 'all') return true;
+    if (currentFilter === 'active') return o.status !== 'Sent';
+    return o.status === currentFilter;
+  });
+
+  emptyEl.style.display = filtered.length === 0 ? 'block' : 'none';
+  listEl.innerHTML = '';
+
+  filtered.forEach(o => {
+    const card = document.createElement('div');
+    card.className = 'card';
+
+    const date = new Date(o.created_at).toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+    const stageIdx = STAGES.indexOf(o.status);
+    const items = itemsByOrder[o.id] || [];
+
+    const timelineHtml = STAGES.map((stage, i) => {
+      const done = i < stageIdx;
+      const current = i === stageIdx;
+      return `
+        <div class="tl-step">
+          <div class="tl-line ${done ? 'done' : ''}"></div>
+          <div class="tl-dot ${done ? 'done' : ''} ${current ? 'current' : ''}">${done ? '✓' : i + 1}</div>
+          <div class="tl-label ${done || current ? 'active' : ''}">${stage}</div>
+        </div>
+      `;
+    }).join('');
+
+    const itemsHtml = items.length ? `
+      <div class="items">
+        <table>
+          <tr><th>Part</th><th>Description</th><th style="text-align:right;">Qty</th></tr>
+          ${items.map(it => `<tr><td class="pn">${escapeHtml(it.part_number || '—')}</td><td>${escapeHtml(it.description || '')}</td><td class="qty">${it.quantity}</td></tr>`).join('')}
+        </table>
+      </div>
+    ` : '<div class="items"><em style="color:var(--gray-text); font-size:13px;">No line items recorded.</em></div>';
+
+    const nextStage = STAGES[stageIdx + 1];
+
+    card.innerHTML = `
+      <div class="card-head">
+        <div>
+          <h3>${escapeHtml(o.truck_serial || 'Unknown truck')}</h3>
+          <div class="meta">
+            Ordered by ${escapeHtml(o.controller_name || '—')} for ${escapeHtml(o.engineer_name || '—')}<br>
+            ${date}
+          </div>
+        </div>
+      </div>
+      <div class="timeline">${timelineHtml}</div>
+      ${itemsHtml}
+      ${o.notes ? `<div class="notes-line">${escapeHtml(o.notes)}</div>` : ''}
+      ${nextStage ? `<div class="action-bar"><button type="button" class="advance">Mark ${nextStage}</button></div>` : ''}
+    `;
+
+    if (nextStage) {
+      const btn = card.querySelector('button.advance');
+      btn.addEventListener('click', () => advanceStatus(o.id, nextStage, btn));
+    }
+
+    listEl.appendChild(card);
+  });
+}
+
+async function advanceStatus(id, nextStage, btn) {
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
+
+  const update = { status: nextStage };
+  if (nextStage === 'Picked') update.picked_at = new Date().toISOString();
+  if (nextStage === 'Sent') update.sent_at = new Date().toISOString();
+
+  const { error } = await sb.from('controller_orders').update(update).eq('id', id);
+
+  if (error) {
+    console.error(error);
+    alert('Something went wrong saving — try again.');
+    btn.disabled = false;
+    btn.textContent = 'Mark ' + nextStage;
+    return;
+  }
+
+  await loadOrders();
+}
+
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    currentFilter = tab.dataset.filter;
+    render();
+  });
+});
+
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+</script>
+
+</body>
+</html>
