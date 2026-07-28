@@ -53,11 +53,6 @@
 
   .card{ background:var(--white); border-radius:12px; border:1px solid var(--gray-line); margin-bottom:16px; overflow:hidden; }
   .card-head{ padding:14px 16px 10px; display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
-  .badge{
-    font-family:var(--font-mono); font-size:11px; font-weight:600; padding:4px 9px;
-    border-radius:20px; white-space:nowrap; text-transform:uppercase; letter-spacing:0.4px;
-    background:#fdecea; color:var(--red); flex-shrink:0;
-  }
   .card-head h3{ font-family:var(--font-display); font-size:20px; margin:0 0 2px; }
   .meta{ font-family:var(--font-mono); font-size:12px; color:var(--gray-text); line-height:1.6; }
 
@@ -223,12 +218,12 @@ function render() {
     card.innerHTML = `
       <div class="card-head">
         <div>
-          <h3>${escapeHtml(o.engineer_name || 'Unknown engineer')}</h3>
+          <h3>${escapeHtml(o.truck_serial || 'Unknown truck')}</h3>
           <div class="meta">
-            ${o.job_ref ? escapeHtml(o.job_ref) + ' · ' : ''}${date}
+            Ordered by ${escapeHtml(o.controller_name || '—')} for ${escapeHtml(o.engineer_name || '—')}<br>
+            ${date}
           </div>
         </div>
-        ${o.urgency === 'Urgent' ? '<div class="badge pending">URGENT</div>' : ''}
       </div>
       <div class="timeline">${timelineHtml}</div>
       ${itemsHtml}

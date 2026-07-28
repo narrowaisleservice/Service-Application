@@ -86,13 +86,6 @@
   }
   .row2{ display:flex; gap:12px; }
   .row2 .field{ flex:1; }
-  .urgency-row{ display:flex; gap:10px; }
-  .urgency-pill{
-    flex:1; padding:12px; text-align:center; border-radius:8px; border:1px solid var(--gray-line);
-    background:var(--gray-fill); font-family:var(--font-display); font-weight:600; font-size:15px;
-    cursor:pointer; color:var(--black);
-  }
-  .urgency-pill.active{ background:var(--red); border-color:var(--red); color:var(--white); }
 
   .parts-section{
     border-top:1px solid var(--gray-line);
@@ -199,27 +192,25 @@
 
 <main>
   <form id="form">
-    <div class="field">
-      <label>Your name <span class="req">*</span></label>
-      <input type="text" id="engineer_name" required autocomplete="name">
-    </div>
-
-    <div class="field">
-      <label>Truck / job reference</label>
-      <input type="text" id="job_ref" placeholder="e.g. FX12345 or job number (optional)">
-    </div>
-
-    <div class="field">
-      <label>Urgency</label>
-      <div class="urgency-row">
-        <button type="button" class="urgency-pill active" data-urgency="Standard">Standard</button>
-        <button type="button" class="urgency-pill" data-urgency="Urgent">Urgent</button>
+    <div class="row2">
+      <div class="field">
+        <label>Your name <span class="req">*</span></label>
+        <input type="text" id="controller_name" required autocomplete="name">
+      </div>
+      <div class="field">
+        <label>Ordering for (engineer) <span class="req">*</span></label>
+        <input type="text" id="engineer_name" required>
       </div>
     </div>
 
     <div class="field">
+      <label>Truck serial no. <span class="req">*</span></label>
+      <input type="text" id="truck_serial" required placeholder="e.g. FX12345">
+    </div>
+
+    <div class="field">
       <label>Notes</label>
-      <textarea id="notes" placeholder="Anything the stores team should know..."></textarea>
+      <textarea id="notes" placeholder="Anything the stores team should know — urgency, job number, etc."></textarea>
     </div>
 
     <div class="parts-section">
@@ -382,15 +373,6 @@ function renderCart() {
 // ---- Submit ----
 const submitBtn = document.getElementById('submitBtn');
 const statusEl = document.getElementById('status');
-let urgency = 'Standard';
-
-document.querySelectorAll('.urgency-pill').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.urgency-pill').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    urgency = btn.dataset.urgency;
-  });
-});
 
 function setStatus(msg, isErr) {
   statusEl.textContent = msg || '';
@@ -398,12 +380,13 @@ function setStatus(msg, isErr) {
 }
 
 submitBtn.addEventListener('click', async () => {
+  const controller_name = document.getElementById('controller_name').value.trim();
   const engineer_name = document.getElementById('engineer_name').value.trim();
-  const job_ref = document.getElementById('job_ref').value.trim();
+  const truck_serial = document.getElementById('truck_serial').value.trim();
   const notes = document.getElementById('notes').value.trim();
 
-  if (!engineer_name) {
-    setStatus('Please fill in your name.', true);
+  if (!controller_name || !engineer_name || !truck_serial) {
+    setStatus('Please fill in your name, the engineer, and the truck serial.', true);
     return;
   }
   if (cart.length === 0) {
@@ -417,7 +400,7 @@ submitBtn.addEventListener('click', async () => {
   try {
     const { data: orderRow, error: orderErr } = await sb
       .from('field_service_orders')
-      .insert({ engineer_name, job_ref, urgency, notes, status: 'Ordered' })
+      .insert({ controller_name, engineer_name, truck_serial, notes, status: 'Ordered' })
       .select()
       .single();
 
