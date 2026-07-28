@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Weld Review — Narrow Aisle Service Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=DM+Sans:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --red:#df0a1e;
+    --black:#0a0a0a;
+    --white:#ffffff;
+    --gray-line:#e6e6e6;
+    --gray-fill:#f6f6f6;
+    --gray-text:#6b6b6b;
+    --amber:#b8860b;
+    --green:#1a7d3c;
+    --font-display:'Barlow Condensed',sans-serif;
+    --font-body:'DM Sans',sans-serif;
+    --font-mono:'DM Mono',monospace;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--gray-fill);
+    font-family:var(--font-body);
+    color:var(--black);
+    visibility:hidden;
+  }
+  .user-bar{
+    background:var(--white);
+    border-bottom:1px solid var(--gray-line);
+    padding:8px 24px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    font-family:var(--font-mono);
+    font-size:12px;
+    color:var(--gray-text);
+  }
+  .user-bar button{
+    background:none;
+    border:none;
+    color:var(--red);
+    font-family:var(--font-mono);
+    font-size:12px;
+    cursor:pointer;
+    text-decoration:underline;
+    padding:0;
+  }
+  header{
+    background:var(--black);
+    color:var(--white);
+    padding:18px 24px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    position:sticky;
+    top:0;
+    z-index:10;
+  }
+  header .title{
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:22px;
+  }
+  header .title small{
+    display:block;
+    font-family:var(--font-mono);
+    font-size:11px;
+    font-weight:400;
+    color:#b0b0b0;
+    letter-spacing:0.5px;
+    margin-top:2px;
+  }
+  .tabs{
+    display:flex;
+    gap:6px;
+    background:var(--white);
+    padding:6px;
+    border-bottom:1px solid var(--gray-line);
+  }
+  .tab{
+    flex:1;
+    text-align:center;
+    padding:10px;
+    font-family:var(--font-display);
+    font-weight:600;
+    font-size:15px;
+    border-radius:8px;
+    cursor:pointer;
+    color:var(--gray-text);
+  }
+  .tab.active{ background:var(--red); color:var(--white); }
+  main{
+    max-width:820px;
+    margin:0 auto;
+    padding:20px 16px 60px;
+  }
+  #empty{
+    text-align:center;
+    color:var(--gray-text);
+    padding:60px 20px;
+    font-size:14px;
+  }
+  .card{
+    background:var(--white);
+    border-radius:12px;
+    border:1px solid var(--gray-line);
+    margin-bottom:16px;
+    overflow:hidden;
+  }
+  .card-head{
+    padding:14px 16px 8px;
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:10px;
+  }
+  .card-head h3{
+    font-family:var(--font-display);
+    font-size:20px;
+    margin:0 0 2px;
+  }
+  .meta{
+    font-family:var(--font-mono);
+    font-size:12px;
+    color:var(--gray-text);
+    line-height:1.6;
+  }
+  .badge{
+    font-family:var(--font-mono);
+    font-size:11px;
+    font-weight:500;
+    padding:4px 9px;
+    border-radius:20px;
+    white-space:nowrap;
+    text-transform:uppercase;
+    letter-spacing:0.4px;
+  }
+  .badge.pending{ background:#fdecea; color:var(--red); }
+  .badge.reviewed{ background:#e9f5ed; color:var(--green); }
+  .desc{
+    padding:6px 16px 12px;
+    font-size:14px;
+    line-height:1.5;
+  }
+  .movable-line{
+    padding:0 16px 8px;
+    font-family:var(--font-mono);
+    font-size:12px;
+    font-weight:500;
+  }
+  .movable-line.captive{ color:var(--red); }
+  .movable-line.can-move{ color:var(--green); }
+  .env-callout{
+    margin:0 16px 12px;
+    padding:10px 12px;
+    background:#fdecea;
+    border-left:3px solid var(--red);
+    border-radius:4px;
+    font-size:13px;
+    line-height:1.5;
+  }
+  .env-callout .label{
+    font-family:var(--font-display);
+    font-weight:600;
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:0.3px;
+    color:var(--red);
+    margin-bottom:3px;
+  }
+  .photos{
+    display:flex;
+    gap:8px;
+    padding:0 16px 14px;
+    overflow-x:auto;
+  }
+  .photos img{
+    width:110px; height:110px;
+    object-fit:cover;
+    border-radius:8px;
+    border:1px solid var(--gray-line);
+    flex-shrink:0;
+    cursor:zoom-in;
+  }
+  .review-area{
+    border-top:1px solid var(--gray-line);
+    padding:14px 16px 16px;
+    background:var(--gray-fill);
+  }
+  .review-area label{
+    font-family:var(--font-display);
+    font-weight:600;
+    font-size:14px;
+    display:block;
+    margin-bottom:5px;
+  }
+  select, textarea.notes{
+    width:100%;
+    border:1px solid var(--gray-line);
+    border-radius:8px;
+    padding:10px 12px;
+    font-family:var(--font-body);
+    font-size:14px;
+    background:var(--white);
+    margin-bottom:10px;
+  }
+  textarea.notes{ min-height:60px; resize:vertical; }
+  button.mark{
+    background:var(--red);
+    color:var(--white);
+    border:none;
+    padding:10px 18px;
+    border-radius:8px;
+    font-family:var(--font-display);
+    font-weight:600;
+    font-size:14px;
+    cursor:pointer;
+  }
+  button.mark:disabled{ background:#e5a2a8; cursor:not-allowed; }
+  .reviewed-summary{
+    border-top:1px solid var(--gray-line);
+    padding:12px 16px;
+    background:var(--gray-fill);
+    font-size:13px;
+  }
+  .reviewed-summary .verdict{
+    font-family:var(--font-display);
+    font-weight:600;
+    font-size:16px;
+    color:var(--green);
+    margin-bottom:4px;
+  }
+  .reviewed-summary .notes{ color:var(--black); margin-bottom:4px; }
+  .reviewed-summary .who{ color:var(--gray-text); font-family:var(--font-mono); font-size:11px; }
+
+  #lightbox{
+    display:none;
+    position:fixed; inset:0;
+    background:rgba(10,10,10,0.9);
+    z-index:100;
+    align-items:center;
+    justify-content:center;
+  }
+  #lightbox img{ max-width:92vw; max-height:88vh; border-radius:6px; }
+  #lightbox .close{
+    position:absolute; top:18px; right:22px;
+    color:#fff; font-size:28px;
+    background:none; border:none; cursor:pointer;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title">Weld Review<small>NARROW AISLE SERVICE PORTAL</small></div>
+</header>
+<div class="user-bar">
+  <span id="userEmail"></span>
+  <button type="button" id="logoutBtn">Log out</button>
+</div>
+
+<div class="tabs">
+  <div class="tab active" data-filter="pending">Pending</div>
+  <div class="tab" data-filter="reviewed">Reviewed</div>
+  <div class="tab" data-filter="all">All</div>
+</div>
+
+<main>
+  <div id="list"></div>
+  <div id="empty" style="display:none;">Nothing here.</div>
+</main>
+
+<div id="lightbox">
+  <button class="close" id="lbClose">✕</button>
+  <img id="lbImg" src="">
+</div>
+
+<script>
+const SUPABASE_URL = 'https://dontubctlexlvifwhmbj.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_99HLzSv4wMwFZHlR81yIsQ_z0A0Jpth';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let currentUserEmail = '';
+
+(async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) {
+    window.location.href = 'login.html?redirect=' + encodeURIComponent(location.pathname.split('/').pop());
+    return;
+  }
+  currentUserEmail = session.user.email;
+  document.getElementById('userEmail').textContent = 'Logged in as ' + currentUserEmail;
+  document.body.style.visibility = 'visible';
+  loadReports();
+})();
+
+sb.auth.onAuthStateChange((event, session) => {
+  if (event === 'SIGNED_OUT' || !session) {
+    window.location.href = 'login.html';
+  }
+});
+
+document.getElementById('logoutBtn').addEventListener('click', async () => {
+  await sb.auth.signOut();
+  window.location.href = 'login.html';
+});
+
+const VERDICTS = [
+  'Crack — repair needed',
+  'Crack — monitor, no visit yet',
+  'Not a crack (filler / cosmetic)',
+  'Needs site visit to confirm',
+  'Other — see notes'
+];
+
+let reports = [];
+let currentFilter = 'pending';
+
+const listEl = document.getElementById('list');
+const emptyEl = document.getElementById('empty');
+
+async function loadReports(){
+  const { data, error } = await sb
+    .from('weld_reports')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if(error){
+    listEl.innerHTML = `<div id="empty">Couldn't load reports — check your connection.</div>`;
+    console.error(error);
+    return;
+  }
+  reports = data;
+  render();
+}
+
+function render(){
+  const filtered = reports.filter(r => currentFilter === 'all' ? true : r.status === currentFilter);
+  emptyEl.style.display = filtered.length === 0 ? 'block' : 'none';
+  listEl.innerHTML = '';
+
+  filtered.forEach(r => {
+    const card = document.createElement('div');
+    card.className = 'card';
+
+    const date = new Date(r.created_at).toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+
+    let photosHtml = (r.photo_urls || []).map(url => `<img src="${escapeAttr(url)}" data-full="${escapeAttr(url)}">`).join('');
+
+    let bottomHtml;
+    if(r.status === 'reviewed'){
+      bottomHtml = `
+        <div class="reviewed-summary">
+          <div class="verdict">${escapeHtml(r.verdict || '—')}</div>
+          ${r.mike_notes ? `<div class="notes">${escapeHtml(r.mike_notes)}</div>` : ''}
+          <div class="who">Reviewed ${r.reviewed_at ? new Date(r.reviewed_at).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : ''}${r.reviewed_by ? ' by ' + escapeHtml(r.reviewed_by) : ''}</div>
+        </div>`;
+    } else {
+      bottomHtml = `
+        <div class="review-area">
+          <label>Verdict</label>
+          <select class="verdictSelect">
+            <option value="">Choose a verdict...</option>
+            ${VERDICTS.map(v => `<option value="${escapeAttr(v)}">${escapeHtml(v)}</option>`).join('')}
+          </select>
+          <label>Notes</label>
+          <textarea class="notes" placeholder="Any detail for the record — repair plan, what to tell the customer, etc."></textarea>
+          <button class="mark">Mark Reviewed</button>
+        </div>`;
+    }
+
+    card.innerHTML = `
+      <div class="card-head">
+        <div>
+          <h3>${escapeHtml(r.customer_name || 'Unknown customer')}</h3>
+          <div class="meta">
+            ${r.equip_code ? escapeHtml(r.equip_code) + ' · ' : ''}${r.serial_no ? 'S/N ' + escapeHtml(r.serial_no) : ''}<br>
+            Reported by ${escapeHtml(r.engineer_name || '—')} · ${date}
+            ${r.site_address ? '<br>' + escapeHtml(r.site_address) : ''}
+          </div>
+        </div>
+        <div class="badge ${r.status}">${r.status}</div>
+      </div>
+      <div class="desc">${escapeHtml(r.description || '')}</div>
+      ${r.truck_movable ? `<div class="movable-line ${r.truck_movable === 'no' ? 'captive' : 'can-move'}">${r.truck_movable === 'no' ? '⚠ Truck is captive — can\'t be moved' : '✓ Truck can be moved to a suitable area'}</div>` : ''}
+      ${r.truck_movable === 'no' && r.environment ? `<div class="env-callout"><div class="label">Welding environment on site</div>${escapeHtml(r.environment)}</div>` : ''}
+      <div class="photos">${photosHtml}</div>
+      ${bottomHtml}
+    `;
+
+    if(r.status !== 'reviewed'){
+      const btn = card.querySelector('button.mark');
+      btn.addEventListener('click', () => submitReview(r.id, card, btn));
+    }
+
+    card.querySelectorAll('.photos img').forEach(img => {
+      img.addEventListener('click', () => openLightbox(img.dataset.full));
+    });
+
+    listEl.appendChild(card);
+  });
+}
+
+async function submitReview(id, card, btn){
+  const verdict = card.querySelector('.verdictSelect').value;
+  const mike_notes = card.querySelector('.notes').value.trim();
+
+  if(!verdict){
+    alert('Please choose a verdict first.');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
+
+  const { error } = await sb
+    .from('weld_reports')
+    .update({
+      status: 'reviewed',
+      verdict,
+      mike_notes,
+      reviewed_at: new Date().toISOString(),
+      reviewed_by: currentUserEmail
+    })
+    .eq('id', id);
+
+  if(error){
+    console.error(error);
+    alert('Something went wrong saving — try again.');
+    btn.disabled = false;
+    btn.textContent = 'Mark Reviewed';
+    return;
+  }
+
+  await loadReports();
+}
+
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    currentFilter = tab.dataset.filter;
+    render();
+  });
+});
+
+function openLightbox(url){
+  document.getElementById('lbImg').src = url;
+  document.getElementById('lightbox').style.display = 'flex';
+}
+document.getElementById('lbClose').addEventListener('click', () => {
+  document.getElementById('lightbox').style.display = 'none';
+});
+document.getElementById('lightbox').addEventListener('click', (e) => {
+  if(e.target.id === 'lightbox') document.getElementById('lightbox').style.display = 'none';
+});
+
+function escapeHtml(str){
+  if(str === null || str === undefined) return '';
+  return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+function escapeAttr(str){ return escapeHtml(str); }
+</script>
+
+</body>
+</html>
