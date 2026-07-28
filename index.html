@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#df0a1e">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@200;300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/favicon.ico" sizes="any">
+<link rel="icon" href="icons/favicon-32.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<title>Sign In - Narrow Aisle Service Portal</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { background: white !important; color-scheme: light only; }
+    body {
+        font-family: 'Barlow Condensed', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        color: #101010;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+    }
+
+    .login-card {
+        width: 100%;
+        max-width: 380px;
+        background: white;
+        border: 1px solid #e8e8e8;
+        border-radius: 14px;
+        overflow: hidden;
+    }
+
+    .login-logo-panel {
+        background: #df0a1e;
+        padding: 32px;
+        text-align: center;
+    }
+
+    .login-logo-panel img {
+        height: 44px;
+        max-width: 80%;
+    }
+
+    .login-card-body {
+        padding: 40px 32px;
+    }
+
+    .login-brand {
+        text-align: center;
+        margin-bottom: 32px;
+    }
+
+    .login-brand-name {
+        font-family: 'Barlow Condensed', 'IBM Plex Sans', sans-serif;
+        font-size: 32px;
+        font-weight: 200;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: #101010;
+    }
+    .login-brand-name span { color: #101010; }
+
+    .login-brand-tag {
+        font-size: 12px;
+        color: #707070;
+        margin-top: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+    }
+
+    .login-title {
+        font-family: 'Barlow Condensed', sans-serif;
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    .field { margin-bottom: 16px; }
+
+    .field label {
+        display: block;
+        font-size: 11px;
+        font-weight: 600;
+        color: #606060;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        margin-bottom: 6px;
+    }
+
+    .field input {
+        width: 100%;
+        font-family: 'Barlow Condensed', sans-serif;
+        font-size: 15px;
+        padding: 12px 14px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        color: #101010;
+    }
+    .field input:focus { outline: none; border-color: #df0a1e; }
+
+    .login-btn {
+        width: 100%;
+        padding: 13px;
+        background: #df0a1e;
+        border: none;
+        border-radius: 8px;
+        color: white;
+        font-family: 'Barlow Condensed', sans-serif;
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-top: 8px;
+    }
+    .login-btn:hover { background: #c3161e; }
+    .login-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .login-msg {
+        font-size: 13px;
+        text-align: center;
+        margin-top: 16px;
+        min-height: 0;
+    }
+    .login-msg.error { color: #df0a1e; }
+    .login-msg.success { color: #4caf50; }
+
+    .divider {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 20px 0;
+        color: #b0b0b0;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .divider::before, .divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: #e8e8e8;
+    }
+
+    .passkey-btn {
+        width: 100%;
+        padding: 13px;
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        color: #101010;
+        font-family: 'Barlow Condensed', sans-serif;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+    .passkey-btn:hover { border-color: #df0a1e; color: #df0a1e; }
+    .passkey-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        text-align: center;
+        margin-top: 20px;
+    }
+
+    .forgot-link {
+        font-size: 12px;
+        color: #707070;
+        text-decoration: none;
+        cursor: pointer;
+        background: none;
+        border: none;
+        font-family: 'Barlow Condensed', sans-serif;
+    }
+    .forgot-link:hover { color: #df0a1e; }
+
+    @media (max-width: 420px) {
+        .login-card { padding: 32px 24px; }
+    }
+</style>
+</head>
+<body>
+
+<div class="login-card">
+    <div class="login-logo-panel">
+        <img src="flexi-logo-white.svg" alt="Narrow Aisle">
+    </div>
+    <div class="login-card-body">
+    <div class="login-brand">
+        <div class="login-brand-name">Narrow <span>Aisle</span></div>
+        <div class="login-brand-tag">Service Portal</div>
+    </div>
+
+    <div class="login-title">Sign in to continue</div>
+
+    <form id="loginForm">
+        <div class="field">
+            <label for="email">Email</label>
+            <input type="email" id="email" autocomplete="username" required autofocus>
+        </div>
+        <div class="field">
+            <label for="password">Password</label>
+            <input type="password" id="password" autocomplete="current-password" required>
+        </div>
+        <button type="submit" class="login-btn" id="loginBtn">Sign In</button>
+    </form>
+
+    <div class="login-msg" id="loginMsg"></div>
+
+    <div class="divider">or</div>
+
+    <button class="passkey-btn" id="passkeyBtn">🔒 Sign in with Passkey</button>
+
+    <div class="login-footer">
+        <button class="forgot-link" id="forgotBtn">Forgot your password?</button>
+    </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    // ===== Supabase project config =====
+    const SUPABASE_URL = 'https://dontubctlexlvifwhmbj.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_99HLzSv4wMwFZHlR81yIsQ_z0A0Jpth';
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+        auth: { experimental: { passkey: true } }
+    });
+    // =====================================
+
+    const msgEl = document.getElementById('loginMsg');
+
+    function showMsg(text, type) {
+        msgEl.textContent = text;
+        msgEl.className = 'login-msg ' + type;
+    }
+
+    // if already signed in, skip straight to the portal
+    db.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+            window.location.href = 'portal-hub-professional.html';
+        }
+    });
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+        const btn = document.getElementById('loginBtn');
+
+        btn.disabled = true;
+        btn.textContent = 'Signing in...';
+        showMsg('', '');
+
+        const { data, error } = await db.auth.signInWithPassword({ email, password });
+
+        if (error) {
+            btn.disabled = false;
+            btn.textContent = 'Sign In';
+            showMsg(error.message === 'Invalid login credentials' ? 'Incorrect email or password.' : error.message, 'error');
+            return;
+        }
+
+        // keep the legacy flags populated for pages that haven't been migrated to
+        // checking the real Supabase session yet
+        const user = data.user;
+        const meta = user.user_metadata || {};
+        localStorage.setItem('portalUser', user.email);
+        localStorage.setItem('portalName', meta.full_name || user.email.split('@')[0]);
+        localStorage.setItem('portalRole', meta.role || 'Field Engineer');
+        localStorage.setItem('portalLoginTime', new Date().toLocaleString('en-GB'));
+
+        window.location.href = 'portal-hub-professional.html';
+    });
+
+    document.getElementById('forgotBtn').addEventListener('click', async () => {
+        const email = document.getElementById('email').value.trim();
+        if (!email) {
+            showMsg('Enter your email above first, then tap "Forgot your password?" again.', 'error');
+            return;
+        }
+        const { error } = await db.auth.resetPasswordForEmail(email);
+        if (error) {
+            showMsg(error.message, 'error');
+        } else {
+            showMsg('Password reset email sent — check your inbox.', 'success');
+        }
+    });
+
+    document.getElementById('passkeyBtn').addEventListener('click', async () => {
+        const btn = document.getElementById('passkeyBtn');
+        btn.disabled = true;
+        btn.textContent = 'Waiting for fingerprint / Face ID...';
+        showMsg('', '');
+
+        const { data, error } = await db.auth.signInWithPasskey();
+
+        if (error) {
+            btn.disabled = false;
+            btn.textContent = '🔒 Sign in with Passkey';
+            const friendly = {
+                passkey_disabled: 'Passkey sign-in isn\'t enabled yet.',
+                webauthn_credential_not_found: 'That passkey isn\'t registered with any account.',
+            };
+            showMsg(friendly[error.code] || (error.message || 'Passkey sign-in was cancelled or failed.'), 'error');
+            return;
+        }
+
+        const user = data.user;
+        const meta = user.user_metadata || {};
+        localStorage.setItem('portalUser', user.email);
+        localStorage.setItem('portalName', meta.full_name || user.email.split('@')[0]);
+        localStorage.setItem('portalRole', meta.role || 'Field Engineer');
+        localStorage.setItem('portalLoginTime', new Date().toLocaleString('en-GB'));
+
+        window.location.href = 'portal-hub-professional.html';
+    });
+
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('service-worker.js');
+    }
+</script>
+</body>
+</html>
