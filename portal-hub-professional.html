@@ -446,6 +446,65 @@
             margin-top: 8px;
         }
 
+        .quick-access {
+            margin-top: 28px;
+        }
+
+        .qa-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 12px;
+            margin-top: 14px;
+        }
+
+        .qa-tile {
+            background: #ffffff;
+            border: 1px solid #e8e8e8;
+            border-radius: 12px;
+            padding: 18px 14px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .qa-tile:hover {
+            border-color: #df0a1e;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(16, 16, 16, 0.06);
+        }
+
+        .qa-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: rgba(223, 10, 30, 0.07);
+            border: 1px solid rgba(223, 10, 30, 0.14);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            color: #df0a1e;
+            transition: all 0.2s ease;
+        }
+
+        .qa-icon svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .qa-tile:hover .qa-icon {
+            background: #df0a1e;
+            border-color: #df0a1e;
+            color: #ffffff;
+        }
+
+        .qa-label {
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #101010;
+        }
+
         .card {
             background: white;
             border: 1px solid #e8e8e8;
@@ -916,7 +975,17 @@
             camera: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8a1.5 1.5 0 0 1 1.5-1.5h2l1-2h7l1 2h2A1.5 1.5 0 0 1 20 8v10.5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5z"></path><circle cx="12" cy="13" r="4"></circle></svg>',
             lightning: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4 14h6l-1 8 9-12h-6z"></path></svg>',
             note: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"></path><path d="M15 3v4h4"></path><path d="M8 12h8M8 16h5"></path></svg>',
+            route: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-7.5 7-12a7 7 0 0 0-14 0c0 4.5 7 12 7 12z"></path><circle cx="12" cy="9" r="2.3"></circle></svg>',
         };
+
+        const QUICK_ACCESS = [
+            { label: 'Order Parts', icon: 'send', link: 'field-parts-request.html' },
+            { label: 'Fault Tracker', icon: 'chart', link: 'fault-tracker.html' },
+            { label: 'Weld Review', icon: 'wrench', link: 'weld-review.html' },
+            { label: 'Routing', icon: 'route', link: 'routing.html' },
+            { label: 'Customers', icon: 'people', link: 'contacts.html' },
+            { label: 'Transport Quote', icon: 'van', link: 'transport-quote-calculator.html' }
+        ];
 
         const sections = {
             'dashboard': {
@@ -1043,6 +1112,7 @@
                     <div class="home-greeting" id="homeGreeting"></div>
                     <div class="home-date" id="homeDate"></div>
                 </div>
+                <div class="stats-row" id="homeStatsRow"></div>
                 <div class="dash-search-panel">
                     <div class="dash-search-eyebrow">Quick search</div>
                     <div class="dash-search-toggle">
@@ -1054,11 +1124,45 @@
                         <button class="dash-search-btn" onclick="runDashSearch()">Go &rarr;</button>
                     </div>
                 </div>
+                <div class="quick-access">
+                    <div class="dash-search-eyebrow">Quick access</div>
+                    <div class="qa-grid">
+                        ${QUICK_ACCESS.map(qa => `
+                            <div class="qa-tile" onclick="window.location.href='${qa.link}'">
+                                <div class="qa-icon">${ICONS[qa.icon] || ''}</div>
+                                <div class="qa-label">${qa.label}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
             `;
             document.getElementById('dashSearchInput').focus();
             updateClock();
             if (clockInterval) clearInterval(clockInterval);
             clockInterval = setInterval(updateClock, 1000);
+            loadHomeStats();
+        }
+
+        async function loadHomeStats() {
+            const statsEl = document.getElementById('homeStatsRow');
+            if (!statsEl) return;
+            try {
+                const [coRes, fsRes, weldRes, assetRes] = await Promise.all([
+                    db.from('controller_orders').select('id', { count: 'exact', head: true }).neq('status', 'Sent'),
+                    db.from('field_service_orders').select('id', { count: 'exact', head: true }).neq('status', 'Sent'),
+                    db.from('weld_reports').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+                    db.from('equipment_assets').select('id', { count: 'exact', head: true })
+                ]);
+                if (!document.getElementById('homeStatsRow')) return; // user navigated away
+                const ordersInProgress = (coRes.count || 0) + (fsRes.count || 0);
+                statsEl.innerHTML = `
+                    <div class="stat-card"><div class="stat-value">${ordersInProgress}</div><div class="stat-label">Orders In Progress</div></div>
+                    <div class="stat-card"><div class="stat-value">${weldRes.count || 0}</div><div class="stat-label">Weld Reports Pending</div></div>
+                    <div class="stat-card"><div class="stat-value">${assetRes.count || 0}</div><div class="stat-label">Tools Checked Out</div></div>
+                `;
+            } catch (e) {
+                statsEl.style.display = 'none';
+            }
         }
 
         function setDashMode(mode) {
