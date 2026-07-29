@@ -308,10 +308,15 @@
 
         .home-hero-lines {
             position: absolute;
-            inset: 0;
+            top: 50%;
+            left: 50%;
+            width: 100%;
+            height: 100%;
             background-image: url('lines.svg');
-            background-repeat: repeat;
-            background-size: 140px auto;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: cover;
+            transform: translate(-50%, -50%) rotate(90deg) scale(3);
             opacity: 0.35;
             pointer-events: none;
             z-index: 0;
