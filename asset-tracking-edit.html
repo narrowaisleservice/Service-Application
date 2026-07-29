@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#df0a1e">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&family=DM+Sans:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>Manage Assets - Narrow Aisle Service Portal</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { background: white !important; color-scheme: light only; }
+    body {
+        font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        color: #101010;
+        min-height: 100vh;
+        visibility: hidden;
+    }
+    .header {
+        background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+        border-bottom: 3px solid #df0a1e;
+        padding: 24px 32px;
+        position: sticky;
+        top: 0;
+        z-index: 50;
+    }
+    .back-link { font-size: 12px; color: #707070; text-decoration: none; font-weight: 600; }
+    .back-link:hover { color: #df0a1e; }
+    .header-title { font-family: 'IBM Plex Sans', sans-serif; font-size: 28px; font-weight: 700; margin-top: 4px; }
+    .header-subtitle { font-size: 13px; color: #707070; margin-top: 2px; }
+    .user-bar {
+        background: #fafafa;
+        border-bottom: 1px solid #eee;
+        padding: 8px 32px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-family: 'DM Mono', monospace;
+        font-size: 12px;
+        color: #707070;
+    }
+    .user-bar button {
+        background: none; border: none; color: #df0a1e;
+        font-family: 'DM Mono', monospace; font-size: 12px; cursor: pointer;
+        text-decoration: underline; padding: 0;
+    }
+    .content { max-width: 900px; margin: 0 auto; padding: 32px; }
+
+    .add-panel {
+        background: #fafafa;
+        border: 1px solid #e8e8e8;
+        border-radius: 14px;
+        padding: 22px;
+        margin-bottom: 28px;
+    }
+    .add-panel h2 {
+        font-family: 'IBM Plex Sans', sans-serif;
+        font-size: 16px;
+        margin-bottom: 14px;
+    }
+    .add-row {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    .add-row input {
+        flex: 1;
+        min-width: 140px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 14px;
+        padding: 12px 14px;
+        border: 1.5px solid #ddd;
+        border-radius: 8px;
+        color: #101010;
+    }
+    .add-row input:focus { outline: none; border-color: #df0a1e; }
+    .add-row button {
+        padding: 12px 22px;
+        background: #df0a1e;
+        border: none;
+        border-radius: 8px;
+        color: white;
+        font-family: 'IBM Plex Sans', sans-serif;
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+    .add-row button:hover { background: #c3161e; }
+    .add-status { font-size: 12px; margin-top: 8px; min-height: 14px; }
+    .add-status.error { color: #df0a1e; }
+    .add-status.success { color: #4caf50; }
+
+    table { width: 100%; border-collapse: collapse; }
+    th {
+        text-align: left;
+        font-family: 'IBM Plex Sans', sans-serif;
+        font-size: 11px;
+        font-weight: 700;
+        color: #707070;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        padding: 8px 10px;
+        border-bottom: 2px solid #e8e8e8;
+    }
+    td {
+        padding: 8px 10px;
+        border-bottom: 1px solid #f0f0f0;
+        vertical-align: middle;
+    }
+    td input {
+        width: 100%;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 13px;
+        padding: 8px 10px;
+        border: 1.5px solid transparent;
+        border-radius: 6px;
+        color: #101010;
+        background: transparent;
+    }
+    td input:focus { outline: none; border-color: #df0a1e; background: white; }
+    td input:hover { border-color: #ddd; }
+    .row-actions { display: flex; gap: 6px; white-space: nowrap; }
+    .save-btn, .delete-btn {
+        padding: 6px 12px;
+        border: none;
+        border-radius: 6px;
+        font-family: 'IBM Plex Sans', sans-serif;
+        font-size: 11px;
+        font-weight: 700;
+        cursor: pointer;
+        text-transform: uppercase;
+        letter-spacing: 0.2px;
+    }
+    .save-btn { background: #4caf50; color: white; }
+    .save-btn:hover { background: #3d8b40; }
+    .save-btn:disabled { background: #b7d9b9; cursor: not-allowed; }
+    .delete-btn { background: #f2f2f2; color: #df0a1e; }
+    .delete-btn:hover { background: #fdecea; }
+    .row-saved { font-size: 11px; color: #4caf50; font-family: 'DM Mono', monospace; }
+
+    .empty-state, .loading-state {
+        text-align: center;
+        color: #909090;
+        padding: 40px 20px;
+        font-size: 14px;
+    }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <a href="asset-tracking.html" class="back-link">&larr; Back to Asset Tracking</a>
+    <div class="header-title">Manage Assets</div>
+    <div class="header-subtitle">Add equipment, reassign holders, or remove entries</div>
+</div>
+<div class="user-bar">
+    <span id="userEmail"></span>
+    <button type="button" id="logoutBtn">Log out</button>
+</div>
+
+<div class="content">
+    <div class="add-panel">
+        <h2>Add new equipment</h2>
+        <div class="add-row">
+            <input type="text" id="newType" placeholder="Equipment (e.g. 1 Tonne Block & Tackle)">
+            <input type="text" id="newHolder" placeholder="Holder (e.g. Graham)">
+            <input type="text" id="newRegion" placeholder="Region (e.g. North)">
+            <input type="text" id="newNotes" placeholder="Notes (optional)">
+            <button type="button" id="addBtn">Add</button>
+        </div>
+        <div class="add-status" id="addStatus"></div>
+    </div>
+
+    <div id="tableWrap"><div class="loading-state">Loading...</div></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://dontubctlexlvifwhmbj.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_99HLzSv4wMwFZHlR81yIsQ_z0A0Jpth';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let allAssets = [];
+
+(async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) {
+    window.location.href = 'login.html?redirect=' + encodeURIComponent(location.pathname.split('/').pop());
+    return;
+  }
+  document.getElementById('userEmail').textContent = 'Logged in as ' + session.user.email;
+  document.body.style.visibility = 'visible';
+  loadAssets();
+})();
+
+sb.auth.onAuthStateChange((event, session) => {
+  if (event === 'SIGNED_OUT' || !session) {
+    window.location.href = 'login.html';
+  }
+});
+
+document.getElementById('logoutBtn').addEventListener('click', async () => {
+  await sb.auth.signOut();
+  window.location.href = 'login.html';
+});
+
+async function loadAssets() {
+  const { data, error } = await sb
+    .from('equipment_assets')
+    .select('*')
+    .order('equipment_type', { ascending: true });
+
+  if (error) {
+    document.getElementById('tableWrap').innerHTML = '<div class="empty-state">Could not reach Supabase.<br>' + (error.message || error) + '</div>';
+    return;
+  }
+  allAssets = data || [];
+  render();
+}
+
+function render() {
+  const wrap = document.getElementById('tableWrap');
+  if (allAssets.length === 0) {
+    wrap.innerHTML = '<div class="empty-state">No equipment yet — add some above.</div>';
+    return;
+  }
+
+  wrap.innerHTML = `
+    <table>
+      <tr><th>Equipment</th><th>Holder</th><th>Region</th><th>Notes</th><th></th></tr>
+      ${allAssets.map(a => `
+        <tr data-id="${a.id}">
+          <td><input type="text" class="f-type" value="${escapeAttr(a.equipment_type || '')}"></td>
+          <td><input type="text" class="f-holder" value="${escapeAttr(a.holder || '')}"></td>
+          <td><input type="text" class="f-region" value="${escapeAttr(a.region || '')}"></td>
+          <td><input type="text" class="f-notes" value="${escapeAttr(a.notes || '')}"></td>
+          <td>
+            <div class="row-actions">
+              <button type="button" class="save-btn">Save</button>
+              <button type="button" class="delete-btn">Delete</button>
+            </div>
+          </td>
+        </tr>
+      `).join('')}
+    </table>
+  `;
+
+  wrap.querySelectorAll('tr[data-id]').forEach(row => {
+    row.querySelector('.save-btn').addEventListener('click', () => saveRow(row));
+    row.querySelector('.delete-btn').addEventListener('click', () => deleteRow(row));
+  });
+}
+
+async function saveRow(row) {
+  const id = row.dataset.id;
+  const btn = row.querySelector('.save-btn');
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
+
+  const update = {
+    equipment_type: row.querySelector('.f-type').value.trim(),
+    holder: row.querySelector('.f-holder').value.trim(),
+    region: row.querySelector('.f-region').value.trim(),
+    notes: row.querySelector('.f-notes').value.trim(),
+  };
+
+  const { error } = await sb.from('equipment_assets').update(update).eq('id', id);
+
+  btn.disabled = false;
+  if (error) {
+    btn.textContent = 'Save';
+    alert('Could not save: ' + error.message);
+    return;
+  }
+  btn.textContent = 'Saved ✓';
+  setTimeout(() => { btn.textContent = 'Save'; }, 1500);
+}
+
+async function deleteRow(row) {
+  const id = row.dataset.id;
+  const type = row.querySelector('.f-type').value.trim();
+  const holder = row.querySelector('.f-holder').value.trim();
+  if (!confirm(`Remove "${type}"${holder ? ' (' + holder + ')' : ''}?`)) return;
+
+  const { error } = await sb.from('equipment_assets').delete().eq('id', id);
+  if (error) {
+    alert('Could not delete: ' + error.message);
+    return;
+  }
+  await loadAssets();
+}
+
+document.getElementById('addBtn').addEventListener('click', async () => {
+  const equipment_type = document.getElementById('newType').value.trim();
+  const holder = document.getElementById('newHolder').value.trim();
+  const region = document.getElementById('newRegion').value.trim();
+  const notes = document.getElementById('newNotes').value.trim();
+  const statusEl = document.getElementById('addStatus');
+
+  if (!equipment_type) {
+    statusEl.textContent = 'Please enter what the equipment is.';
+    statusEl.className = 'add-status error';
+    return;
+  }
+
+  const btn = document.getElementById('addBtn');
+  btn.disabled = true;
+  statusEl.textContent = '';
+
+  const { error } = await sb.from('equipment_assets').insert({ equipment_type, holder, region, notes });
+
+  btn.disabled = false;
+
+  if (error) {
+    statusEl.textContent = 'Could not add: ' + error.message;
+    statusEl.className = 'add-status error';
+    return;
+  }
+
+  document.getElementById('newType').value = '';
+  document.getElementById('newHolder').value = '';
+  document.getElementById('newRegion').value = '';
+  document.getElementById('newNotes').value = '';
+  statusEl.textContent = 'Added.';
+  statusEl.className = 'add-status success';
+  await loadAssets();
+});
+
+function escapeAttr(str) {
+  if (str === null || str === undefined) return '';
+  return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+</script>
+</body>
+</html>
