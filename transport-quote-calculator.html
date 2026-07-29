@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Transport Quote Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --red:#df0a1e;
+    --red-dark:#b7081a;
+    --black:#111111;
+    --grey-900:#1a1a1a;
+    --grey-600:#666666;
+    --grey-400:#9a9a9a;
+    --grey-200:#e4e4e4;
+    --grey-100:#f4f4f4;
+    --white:#ffffff;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--grey-100);
+    font-family:'DM Sans',sans-serif;
+    color:var(--grey-900);
+    padding-bottom:60px;
+  }
+  h1,h2,h3{font-family:'IBM Plex Sans',sans-serif;margin:0;}
+  .wrap{max-width:760px;margin:0 auto;padding:20px 16px 40px;}
+  header.top{
+    background:var(--black);
+    color:var(--white);
+    padding:22px 16px;
+  }
+  header.top .inner{max-width:760px;margin:0 auto;}
+  header.top h1{font-size:20px;font-weight:700;}
+  header.top .sub{
+    color:var(--grey-400);
+    font-size:13px;
+    margin-top:4px;
+    font-family:'DM Mono',monospace;
+  }
+  header.top .accent{color:var(--red);}
+  .card{
+    background:var(--white);
+    border-radius:var(--radius);
+    padding:18px;
+    margin-top:16px;
+    box-shadow:0 1px 3px rgba(0,0,0,0.06);
+    border:1px solid var(--grey-200);
+  }
+  .card h2{font-size:14px;text-transform:uppercase;letter-spacing:0.04em;color:var(--grey-600);margin-bottom:12px;}
+  label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--grey-900);}
+  input[type=text], input[type=number]{
+    width:100%;
+    padding:11px 12px;
+    border:1.5px solid var(--grey-200);
+    border-radius:8px;
+    font-size:16px;
+    font-family:'DM Sans',sans-serif;
+    background:var(--white);
+  }
+  input[type=text]:focus, input[type=number]:focus{
+    outline:none;
+    border-color:var(--red);
+  }
+  select{
+    width:100%;
+    padding:11px 12px;
+    border:1.5px solid var(--grey-200);
+    border-radius:8px;
+    font-size:15px;
+    font-family:'DM Sans',sans-serif;
+    background:var(--white);
+  }
+  .zone-banner{
+    margin-top:10px;
+    padding:10px 12px;
+    border-radius:8px;
+    font-size:13px;
+    line-height:1.5;
+    display:none;
+  }
+  .zone-banner.found{
+    background:#fef1f2;
+    border:1px solid #f6c6cb;
+    display:block;
+  }
+  .zone-banner.notfound{
+    background:#fff8e6;
+    border:1px solid #f0dba0;
+    display:block;
+  }
+  .zone-banner.poa{
+    background:#111;
+    color:#fff;
+    display:block;
+  }
+  .zone-banner b{color:var(--red);}
+  .zone-banner.poa b{color:#ff5a68;}
+  .service-tabs{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+  .service-tab{
+    flex:1;
+    min-width:120px;
+    text-align:center;
+    padding:10px 8px;
+    border-radius:8px;
+    border:1.5px solid var(--grey-200);
+    cursor:pointer;
+    font-size:14px;
+    font-weight:600;
+    color:var(--grey-600);
+    user-select:none;
+  }
+  .service-tab.active{
+    background:var(--red);
+    border-color:var(--red);
+    color:#fff;
+  }
+  .pallet-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+  }
+  .pallet-item{
+    border:1.5px solid var(--grey-200);
+    border-radius:8px;
+    padding:10px 12px;
+  }
+  .pallet-item.disabled{opacity:0.4;}
+  .pallet-item .p-label{font-size:13px;font-weight:600;}
+  .pallet-item .p-dims{font-size:11px;color:var(--grey-600);margin:2px 0 8px;font-family:'DM Mono',monospace;}
+  .pallet-item .p-price{font-size:12px;color:var(--red);font-family:'DM Mono',monospace;margin-bottom:6px;}
+  .qty-row{display:flex;align-items:center;gap:8px;}
+  .qty-row button{
+    width:32px;height:32px;
+    border-radius:6px;
+    border:1.5px solid var(--grey-200);
+    background:var(--white);
+    font-size:18px;
+    line-height:1;
+    cursor:pointer;
+    color:var(--grey-900);
+  }
+  .qty-row input{
+    text-align:center;
+    padding:6px 4px;
+    font-family:'DM Mono',monospace;
+    font-size:15px;
+  }
+  .surcharge-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:9px 0;
+    border-bottom:1px solid var(--grey-100);
+    font-size:14px;
+  }
+  .surcharge-row:last-child{border-bottom:none;}
+  .surcharge-row label{margin:0;font-weight:500;display:flex;align-items:center;gap:9px;font-size:14px;cursor:pointer;}
+  .surcharge-row input[type=checkbox]{width:18px;height:18px;accent-color:var(--red);}
+  .surcharge-row .amt{color:var(--grey-600);font-family:'DM Mono',monospace;font-size:13px;}
+  .tail-lift-qty{width:60px;padding:6px;font-size:14px;text-align:center;}
+  .fuel-row{display:flex;align-items:center;gap:10px;margin-top:4px;}
+  .fuel-row input{width:80px;}
+  .vat-toggle{display:flex;align-items:center;gap:9px;margin-top:12px;font-size:14px;font-weight:500;cursor:pointer;}
+  .vat-toggle input{width:18px;height:18px;accent-color:var(--red);}
+
+  .result-card{
+    background:var(--black);
+    color:#fff;
+    border:none;
+  }
+  .result-card h2{color:var(--grey-400);}
+  .result-line{
+    display:flex;
+    justify-content:space-between;
+    font-size:14px;
+    padding:6px 0;
+    color:#d8d8d8;
+    font-family:'DM Mono',monospace;
+  }
+  .result-line.sub{border-top:1px solid #333;margin-top:6px;padding-top:10px;color:#fff;font-weight:500;}
+  .result-total{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    margin-top:14px;
+    padding-top:14px;
+    border-top:1.5px solid var(--red);
+  }
+  .result-total .label{font-size:14px;color:var(--grey-400);font-weight:600;}
+  .result-total .value{font-size:30px;font-family:'DM Mono',monospace;font-weight:500;color:#fff;}
+  .empty-state{color:var(--grey-400);font-size:14px;text-align:center;padding:10px 0;}
+  .btn-row{display:flex;gap:10px;margin-top:14px;}
+  .btn{
+    flex:1;
+    padding:11px;
+    border-radius:8px;
+    border:1.5px solid #444;
+    background:transparent;
+    color:#fff;
+    font-family:'DM Sans',sans-serif;
+    font-weight:600;
+    font-size:14px;
+    cursor:pointer;
+  }
+  .btn:active{background:#222;}
+  .foot-note{
+    font-size:11.5px;
+    color:var(--grey-600);
+    margin-top:18px;
+    line-height:1.6;
+  }
+  @media print{
+    header.top, .card:not(.result-card), .btn-row{display:none !important;}
+    body{background:#fff;}
+    .result-card{background:#fff;color:#000;border:1px solid #ccc;}
+    .result-line{color:#333;}
+    .result-line.sub{color:#000;border-color:#ccc;}
+    .result-total .label, .result-total .value{color:#000;}
+    .result-total{border-color:var(--red);}
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="inner">
+    <h1>Transport Quote <span class="accent">Calculator</span></h1>
+    <div class="sub">Beacon Roadways Ltd — The Pallet Network — Rate Card RC26C, valid from 30/03/2026</div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="card">
+    <h2>Delivery Postcode</h2>
+    <label for="postcode">Enter destination postcode</label>
+    <input type="text" id="postcode" placeholder="e.g. WV14 8HZ" autocomplete="off">
+    <div id="zoneBanner" class="zone-banner"></div>
+
+    <div style="margin-top:14px;">
+      <label for="zoneSelect">Or choose zone manually</label>
+      <select id="zoneSelect"></select>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Service Level</h2>
+    <div id="serviceTabs" class="service-tabs"></div>
+
+    <h2 style="margin-top:16px;">Pallets</h2>
+    <div id="palletGrid" class="pallet-grid"></div>
+  </div>
+
+  <div class="card">
+    <h2>Surcharges</h2>
+    <div class="surcharge-row">
+      <label><input type="checkbox" id="chkAMPM"> AM/PM Delivery</label>
+      <span class="amt">+£13.00 / con</span>
+    </div>
+    <div class="surcharge-row">
+      <label><input type="checkbox" id="chkTimed"> Timed Delivery</label>
+      <span class="amt">+£26.00 / con</span>
+    </div>
+    <div class="surcharge-row">
+      <label><input type="checkbox" id="chkSatAM"> Saturday AM</label>
+      <span class="amt">+£51.00 / con</span>
+    </div>
+    <div class="surcharge-row">
+      <label><input type="checkbox" id="chkROI"> ROI Customs Entry</label>
+      <span class="amt">+£90.50 / con</span>
+    </div>
+    <div class="surcharge-row">
+      <label>Tail Lift <input type="number" min="0" id="tailLiftQty" class="tail-lift-qty" value="0"> pallet(s)</label>
+      <span class="amt">+£5.00 each</span>
+    </div>
+
+    <div class="fuel-row">
+      <label for="fuelPct" style="margin:0;">Fuel surcharge</label>
+      <input type="number" id="fuelPct" min="0" step="0.1" placeholder="0">
+      <span style="font-size:13px;color:var(--grey-600);">% — check current escalator rate with the office</span>
+    </div>
+
+    <label class="vat-toggle"><input type="checkbox" id="chkVAT" checked> Add VAT at 20%</label>
+  </div>
+
+  <div class="card result-card">
+    <h2>Quote</h2>
+    <div id="resultBody"><div class="empty-state">Select a zone and add pallets to see a quote</div></div>
+    <div class="btn-row">
+      <button class="btn" id="btnCopy">Copy summary</button>
+      <button class="btn" id="btnPrint">Print</button>
+    </div>
+  </div>
+
+  <div class="foot-note">
+    Rates from Beacon Roadways Ltd (Mears Coppice, Dudley Road, Lye, DY9 8EL — 01384 424180) RC26C rate card. All prices subject to fuel surcharge at the prevailing rate — confirm current rate with the office. All goods carried under RHA Conditions of Carriage 2020, insured up to £5,000 per tonne. Payment terms 30 days from invoice, or agreed credit limit. For any postcode not found automatically, or flagged Price On Application, contact Beacon Roadways directly. This tool is for quick internal quoting guidance only — always confirm unusual or high-value consignments with the office before quoting a customer.
+  </div>
+
+</div>
+
+<script>
+/* ============================================================
+   ZONE RATE DATA — Beacon Roadways / Pallet Network RC26C
+   Valid from 30/03/2026
+   ============================================================ */
+const ZONES = {
+  'Local': {group:'A', label:'Local', econQtr:23.75, econHalf:24.00, econLightFull:24.25, econFull:24.25, ndQtr:24.50, ndHalf:24.75, ndLightFull:25.00, ndFull:25.00, postcodes:'B62-64, DY1-9, WV2-5, WV11-14'},
+  '1': {group:'A', label:'Zone 1', econQtr:33.09, econHalf:33.09, econLightFull:36.96, econFull:36.96, ndQtr:33.74, ndHalf:36.49, ndLightFull:44.02, ndFull:44.02, postcodes:'B, CV1-13,21-23,47, CW1-3,6,8-12, DE, DY, LE3-12,17-21,65,67, M5-99, NG, NN, S5-14,17-18,20-21,25-26,36,41-45,49,60-66,70,81,97,98, ST5-21, TF5-13, WA9-16,55,88, WS, WV'},
+  '2': {group:'A', label:'Zone 2', econQtr:33.45, econHalf:33.45, econLightFull:36.96, econFull:36.96, ndQtr:34.59, ndHalf:37.33, ndLightFull:44.02, ndFull:44.02, postcodes:'BL2,4-5, CW4-5,7, DN1-5,10-11, L, M1-4, OL1,4-10, S1-4,32-33,35,40,71-75,80, SK2-4,9,15-17, ST1-4, WA1-8, WF, WN, WR1-9,15,78,99'},
+  '3': {group:'A', label:'Zone 3', econQtr:34.38, econHalf:34.38, econLightFull:37.85, econFull:37.85, ndQtr:34.94, ndHalf:38.34, ndLightFull:44.38, ndFull:44.38, postcodes:'BB, BD, BL0-1,3,6-9,78, CH, CV31-37, DN6-9,12,14-22,31-41, HD, HX, LE1-2, LS, MK1-19,77, OL2-3,11-16, PE1,3-10,27-28, PR, SK1,5,7-8,10-11,13-14, TF1-4, WR10-14'},
+  '4': {group:'A', label:'Zone 4', econQtr:34.55, econHalf:34.55, econLightFull:39.68, econFull:39.68, ndQtr:35.99, ndHalf:38.88, ndLightFull:47.55, ndFull:47.55, postcodes:'LE13-16, LN1-3, MK40-42, PE2,11, SK6,12,22-23'},
+  '5': {group:'A', label:'Zone 5', econQtr:35.59, econHalf:35.59, econLightFull:39.68, econFull:39.68, ndQtr:36.99, ndHalf:40.76, ndLightFull:47.69, ndFull:47.69, postcodes:'BS, CB6-11,21-25, FY, GL, HU, LN4-8, LU, MK43-46, NP1,10,18-20,26,44, PE12-16,19,26,29-38'},
+  '6': {group:'A', label:'Zone 6', econQtr:37.26, econHalf:37.26, econLightFull:41.01, econFull:41.01, ndQtr:38.94, ndHalf:42.97, ndLightFull:50.53, ndFull:50.53, postcodes:'AL, CB1-5, CF1-8,10,11,14,15,23,24,83, HG, HP, HR, LN9-13, NP2,4,7-8,11-16,22-25, OX7,15-17, PE20-25, SN, SR, TS'},
+  '7': {group:'A', label:'Zone 7', econQtr:40.01, econHalf:40.01, econLightFull:42.73, econFull:42.73, ndQtr:40.83, ndHalf:45.05, ndLightFull:51.04, ndFull:51.04, postcodes:'BA, CF31-48,61-64,71,72,81,82,87,99, DH, DL, LA1-10, NE1-18,20-47,49,82,88,98,99, OX1-6,8-14,18-29,33,39,44,49, SG, SL'},
+  '8': {group:'A', label:'Zone 8', econQtr:41.47, econHalf:41.47, econLightFull:44.79, econFull:44.79, ndQtr:43.66, ndHalf:46.42, ndLightFull:52.04, ndFull:52.04, postcodes:'IP, CM, CO, SO, SS'},
+  '9': {group:'A', label:'Zone 9', econQtr:41.82, econHalf:41.82, econLightFull:46.73, econFull:46.73, ndQtr:43.66, ndHalf:46.69, ndLightFull:57.04, ndFull:57.04, postcodes:'RG, YO'},
+  '10': {group:'A', label:'Zone 10', econQtr:42.88, econHalf:42.88, econLightFull:46.73, econFull:46.73, ndQtr:44.36, ndHalf:47.31, ndLightFull:57.04, ndFull:57.04, postcodes:'LL11-14, NR, PO1-22'},
+  '11': {group:'A', label:'Zone 11', econQtr:44.26, econHalf:44.26, econLightFull:47.49, econFull:47.49, ndQtr:45.64, ndHalf:50.70, ndLightFull:57.59, ndFull:57.59, postcodes:'TA'},
+  '12': {group:'A', label:'Zone 12', econQtr:45.26, econHalf:45.26, econLightFull:47.59, econFull:47.59, ndQtr:46.49, ndHalf:52.70, ndLightFull:57.59, ndFull:57.59, postcodes:'BH, GU, LL15-34, RH'},
+  '13': {group:'A', label:'Zone 13', econQtr:46.09, econHalf:46.09, econLightFull:48.91, econFull:48.91, ndQtr:47.69, ndHalf:54.10, ndLightFull:59.22, ndFull:59.22, postcodes:'LA11-23, NE19,48,61-71, SP, SY1-9,12-15'},
+  '14': {group:'A', label:'Zone 14', econQtr:46.44, econHalf:46.44, econLightFull:50.10, econFull:50.10, ndQtr:47.89, ndHalf:56.59, ndLightFull:60.50, ndFull:60.50, postcodes:'BN, ME'},
+  '15': {group:'A', label:'Zone 15', econQtr:47.56, econHalf:47.56, econLightFull:54.61, econFull:54.61, ndQtr:48.80, ndHalf:56.47, ndLightFull:63.85, ndFull:63.85, postcodes:'CA, CT, LD, LL35-78, SA1-18, SY10-11,16-25, TN'},
+  '16': {group:'A', label:'Zone 16', econQtr:52.43, econHalf:54.43, econLightFull:59.61, econFull:59.61, ndQtr:54.79, ndHalf:62.47, ndLightFull:67.85, ndFull:67.85, postcodes:'DT, EX, PL, TQ'},
+  '17': {group:'A', label:'Zone 17', econQtr:51.61, econHalf:52.43, econLightFull:60.26, econFull:60.26, ndQtr:61.38, ndHalf:61.38, ndLightFull:66.09, ndFull:66.09, postcodes:'SA19-48,56,61-73,99'},
+  '18': {group:'A', label:'Zone 18', econQtr:53.64, econHalf:53.64, econLightFull:62.09, econFull:62.09, ndQtr:61.38, ndHalf:62.81, ndLightFull:68.09, ndFull:68.09, postcodes:'DG2-7,12-16, EH, FK1-7, G1-62,64-82,90, KA1-18,20-25,29-30, KY1-5, ML, PA1-19'},
+  '19': {group:'A', label:'Zone 19', econQtr:53.64, econHalf:53.64, econLightFull:63.59, econFull:63.59, ndQtr:61.79, ndHalf:65.79, ndLightFull:68.49, ndFull:68.49, postcodes:'DG1,8-11, FK8-9, G63,83-84, KA19,26, KY6-16,99, TD'},
+  '20': {group:'A', label:'Zone 20', econQtr:53.64, econHalf:53.64, econLightFull:64.17, econFull:64.17, ndQtr:62.96, ndHalf:66.34, ndLightFull:68.85, ndFull:68.85, postcodes:'FK10-21'},
+  '21': {group:'A', label:'Zone 21', econQtr:60.64, econHalf:60.64, econLightFull:70.26, econFull:70.26, ndQtr:68.39, ndHalf:71.38, ndLightFull:74.06, ndFull:74.06, postcodes:'TR (TR21-25 is POA — contact office)'},
+  '22': {group:'A', label:'Zone 22', econQtr:66.59, econHalf:66.59, econLightFull:74.55, econFull:74.55, ndQtr:81.29, ndHalf:81.29, ndLightFull:94.04, ndFull:94.04, postcodes:'DD, PH1-14'},
+  '23': {group:'A', label:'Zone 23', econQtr:75.17, econHalf:75.17, econLightFull:85.47, econFull:85.47, ndQtr:93.24, ndHalf:93.24, ndLightFull:105.54, ndFull:105.54, postcodes:'AB10-30,39'},
+  'L1': {group:'A', label:'London L1', econQtr:42.79, econHalf:42.79, econLightFull:46.73, econFull:46.73, ndQtr:45.59, ndHalf:48.10, ndLightFull:54.04, ndFull:54.04, postcodes:'HA0-1, WD'},
+  'L2': {group:'A', label:'London L2', econQtr:42.26, econHalf:42.26, econLightFull:47.49, econFull:47.49, ndQtr:46.89, ndHalf:50.70, ndLightFull:54.81, ndFull:54.81, postcodes:'EN, HA2-9, UB'},
+  'L3': {group:'A', label:'London L3', econQtr:46.97, econHalf:46.97, econLightFull:51.59, econFull:51.59, ndQtr:50.84, ndHalf:53.70, ndLightFull:58.59, ndFull:58.59, postcodes:'BR, CR, DA, IG, KT, RM, SM, TW'},
+  'L4': {group:'A', label:'London L4', econQtr:53.51, econHalf:53.51, econLightFull:56.87, econFull:56.87, ndQtr:59.08, ndHalf:61.05, ndLightFull:64.59, ndFull:64.59, postcodes:'E, N, NW, SE2-10,12-28, SW2,4,6,8,9,11-20,99, W3-7,9,12-13'},
+  'L5': {group:'A', label:'London L5', econQtr:61.17, econHalf:61.17, econLightFull:61.17, econFull:61.17, ndQtr:61.17, ndHalf:63.90, ndLightFull:66.59, ndFull:66.59, postcodes:'EC, SE1,11, SW1,3,5,7,10, W1-2,8,10-11,14, WC'},
+  '24': {group:'B', label:'Zone 24', econHalf:null, econLightFull:null, econFull:null, eecHalf:75.17, eecLightFull:85.47, eecFull:85.47, postcodes:'PH15-26'},
+  '25': {group:'B', label:'Zone 25', econHalf:76.39, econLightFull:86.99, econFull:86.99, eecHalf:76.39, eecLightFull:86.99, eecFull:86.99, postcodes:'AB31-38,41-46,51-56'},
+  '26': {group:'B', label:'Zone 26', econHalf:null, econLightFull:null, econFull:null, eecHalf:77.28, eecLightFull:81.28, eecFull:81.28, postcodes:'PO30-41'},
+  '27': {group:'B', label:'Zone 27', econHalf:79.70, econLightFull:89.69, econFull:89.69, eecHalf:79.70, eecLightFull:89.69, eecFull:89.69, postcodes:'IV1-28,30-32,36,53-54'},
+  '28': {group:'B', label:'Zone 28', econHalf:null, econLightFull:null, econFull:null, eecHalf:83.44, eecLightFull:94.18, eecFull:94.18, postcodes:'PA21, PH30-41,49-50'},
+  '29': {group:'B', label:'Zone 29', econHalf:null, econLightFull:null, econFull:null, eecHalf:88.89, eecLightFull:101.39, eecFull:101.39, postcodes:'KW1-14'},
+  '30': {group:'B', label:'Zone 30', econHalf:null, econLightFull:null, econFull:null, eecHalf:100.74, eecLightFull:108.15, eecFull:108.15, postcodes:'PA22-38'},
+  '31': {group:'B', label:'Zone 31', econHalf:null, econLightFull:null, econFull:null, eecHalf:121.29, eecLightFull:127.16, eecFull:127.16, postcodes:'IM'},
+  '32': {group:'B', label:'Zone 32', econHalf:null, econLightFull:null, econFull:null, eecHalf:117.38, eecLightFull:123.03, eecFull:123.03, postcodes:'KA27,28, PH42-44'},
+  '33': {group:'B', label:'Zone 33', econHalf:null, econLightFull:null, econFull:null, eecHalf:128.69, eecLightFull:138.69, eecFull:138.69, postcodes:'PA20,41-49,60-78,80'},
+  '34': {group:'B', label:'Zone 34', econHalf:null, econLightFull:null, econFull:null, eecHalf:127.03, eecLightFull:162.46, eecFull:162.46, postcodes:'ZE'},
+  '35': {group:'B', label:'Zone 35', econHalf:null, econLightFull:null, econFull:null, eecHalf:146.16, eecLightFull:149.54, eecFull:149.54, postcodes:'IV40-49,51-52,55-56,63, KW15-17'},
+  '36': {group:'B', label:'Zone 36', econHalf:null, econLightFull:null, econFull:null, eecHalf:179.60, eecLightFull:179.60, eecFull:179.60, postcodes:'HS'},
+  '37': {group:'B', label:'Zone 37', econHalf:null, econLightFull:null, econFull:null, eecHalf:163.18, eecLightFull:175.81, eecFull:175.81, postcodes:'GY, JE (GY9-10 is POA — contact office)'},
+  '38': {group:'C', label:'Zone 38 (NI)', econHalf:62.34, econLightFull:71.52, econFull:71.52, ssQtr:null, ssHalf:66.88, ssLightFull:79.11, ssFull:79.11, postcodes:'BT1-17,36-39,41'},
+  '39': {group:'C', label:'Zone 39 (NI)', econHalf:68.00, econLightFull:78.03, econFull:78.03, ssQtr:null, ssHalf:72.56, ssLightFull:84.37, ssFull:84.37, postcodes:'BT18-35,40,42-49,51-58,60-71,74-82,92-94'},
+  '40': {group:'C', label:'Zone 40 — Dublin', econHalf:75.62, econLightFull:78.87, econFull:78.87, ssQtr:73.35, ssHalf:81.28, ssLightFull:89.72, ssFull:89.72, postcodes:'Dublin (Eircode — select manually)'},
+  '41': {group:'C', label:'Zone 41 — Rest of S. Ireland', econHalf:85.80, econLightFull:94.07, econFull:94.07, ssQtr:80.14, ssHalf:90.32, ssLightFull:98.41, ssFull:98.41, postcodes:'Rest of Southern Ireland (Eircode — select manually)'}
+};
+
+const GROUP_MAINLAND = ['Local','1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','23'];
+const GROUP_LONDON = ['L1','L2','L3','L4','L5'];
+const GROUP_HIGHLANDS = ['24','25','26','27','28','29','30','31','32','33','34','35','36','37'];
+const GROUP_IRELAND = ['38','39','40','41'];
+
+/* Postcode auto-detect rules. Checked in this order — Local before Zone 1
+   so the Local carve-out (B/DY/WV) beats Zone 1's whole-area match. */
+const postcodeRules = [
+  {area:'B', d:[[62,64]], zone:'Local'},
+  {area:'DY', d:[[1,9]], zone:'Local'},
+  {area:'WV', d:[[2,5],[11,14]], zone:'Local'},
+
+  {area:'B', whole:true, zone:'1'},
+  {area:'CV', d:[[1,13],[21,23],[47,47]], zone:'1'},
+  {area:'CW', d:[[1,3],[6,6],[8,12]], zone:'1'},
+  {area:'DE', whole:true, zone:'1'},
+  {area:'DY', whole:true, zone:'1'},
+  {area:'LE', d:[[3,12],[17,21],[65,65],[67,67]], zone:'1'},
+  {area:'M', d:[[5,99]], zone:'1'},
+  {area:'NG', whole:true, zone:'1'},
+  {area:'NN', whole:true, zone:'1'},
+  {area:'S', d:[[5,14],[17,18],[20,21],[25,26],[36,36],[41,45],[49,49],[60,66],[70,70],[81,81],[97,97],[98,98]], zone:'1'},
+  {area:'ST', d:[[5,21]], zone:'1'},
+  {area:'TF', d:[[5,13]], zone:'1'},
+  {area:'WA', d:[[9,16],[55,55],[88,88]], zone:'1'},
+  {area:'WS', whole:true, zone:'1'},
+  {area:'WV', whole:true, zone:'1'},
+
+  {area:'BL', d:[[2,2],[4,5]], zone:'2'},
+  {area:'CW', d:[[4,5],[7,7]], zone:'2'},
+  {area:'DN', d:[[1,5],[10,11]], zone:'2'},
+  {area:'L', whole:true, zone:'2'},
+  {area:'M', d:[[1,4]], zone:'2'},
+  {area:'OL', d:[[1,1],[4,10]], zone:'2'},
+  {area:'S', d:[[1,4],[32,33],[35,35],[40,40],[71,75],[80,80]], zone:'2'},
+  {area:'SK', d:[[2,4],[9,9],[15,17]], zone:'2'},
+  {area:'ST', d:[[1,4]], zone:'2'},
+  {area:'WA', d:[[1,8]], zone:'2'},
+  {area:'WF', whole:true, zone:'2'},
+  {area:'WN', whole:true, zone:'2'},
+  {area:'WR', d:[[1,9],[15,15],[78,78],[99,99]], zone:'2'},
+
+  {area:'BB', whole:true, zone:'3'},
+  {area:'BD', whole:true, zone:'3'},
+  {area:'BL', d:[[0,1],[3,3],[6,9],[78,78]], zone:'3'},
+  {area:'CH', whole:true, zone:'3'},
+  {area:'CV', d:[[31,37]], zone:'3'},
+  {area:'DN', d:[[6,9],[12,12],[14,22],[31,41]], zone:'3'},
+  {area:'HD', whole:true, zone:'3'},
+  {area:'HX', whole:true, zone:'3'},
+  {area:'LE', d:[[1,2]], zone:'3'},
+  {area:'LS', whole:true, zone:'3'},
+  {area:'MK', d:[[1,19],[77,77]], zone:'3'},
+  {area:'OL', d:[[2,3],[11,16]], zone:'3'},
+  {area:'PE', d:[[1,1],[3,10],[27,28]], zone:'3'},
+  {area:'PR', whole:true, zone:'3'},
+  {area:'SK', d:[[1,1],[5,5],[7,8],[10,11],[13,14]], zone:'3'},
+  {area:'TF', d:[[1,4]], zone:'3'},
+  {area:'WR', d:[[10,14]], zone:'3'},
+
+  {area:'LE', d:[[13,16]], zone:'4'},
+  {area:'LN', d:[[1,3]], zone:'4'},
+  {area:'MK', d:[[40,42]], zone:'4'},
+  {area:'PE', d:[[2,2],[11,11]], zone:'4'},
+  {area:'SK', d:[[6,6],[12,12],[22,23]], zone:'4'},
+
+  {area:'BS', whole:true, zone:'5'},
+  {area:'CB', d:[[6,11],[21,25]], zone:'5'},
+  {area:'FY', whole:true, zone:'5'},
+  {area:'GL', whole:true, zone:'5'},
+  {area:'HU', whole:true, zone:'5'},
+  {area:'LN', d:[[4,8]], zone:'5'},
+  {area:'LU', whole:true, zone:'5'},
+  {area:'MK', d:[[43,46]], zone:'5'},
+  {area:'NP', d:[[1,1],[10,10],[18,20],[26,26],[44,44]], zone:'5'},
+  {area:'PE', d:[[12,16],[19,19],[26,26],[29,38]], zone:'5'},
+
+  {area:'AL', whole:true, zone:'6'},
+  {area:'CB', d:[[1,5]], zone:'6'},
+  {area:'CF', d:[[1,8],[10,11],[14,15],[23,24],[83,83]], zone:'6'},
+  {area:'HG', whole:true, zone:'6'},
+  {area:'HP', whole:true, zone:'6'},
+  {area:'HR', whole:true, zone:'6'},
+  {area:'LN', d:[[9,13]], zone:'6'},
+  {area:'NP', d:[[2,2],[4,4],[7,8],[11,16],[22,25]], zone:'6'},
+  {area:'OX', d:[[7,7],[15,17]], zone:'6'},
+  {area:'PE', d:[[20,25]], zone:'6'},
+  {area:'SN', whole:true, zone:'6'},
+  {area:'SR', whole:true, zone:'6'},
+  {area:'TS', whole:true, zone:'6'},
+
+  {area:'BA', whole:true, zone:'7'},
+  {area:'CF', d:[[31,48],[61,64],[71,72],[81,82],[87,87],[99,99]], zone:'7'},
+  {area:'DH', whole:true, zone:'7'},
+  {area:'DL', whole:true, zone:'7'},
+  {area:'LA', d:[[1,10]], zone:'7'},
+  {area:'NE', d:[[1,18],[20,47],[49,49],[82,82],[88,88],[98,98],[99,99]], zone:'7'},
+  {area:'OX', d:[[1,6],[8,14],[18,29],[33,33],[39,39],[44,44],[49,49]], zone:'7'},
+  {area:'SG', whole:true, zone:'7'},
+  {area:'SL', whole:true, zone:'7'},
+
+  {area:'IP', whole:true, zone:'8'},
+  {area:'CM', whole:true, zone:'8'},
+  {area:'CO', whole:true, zone:'8'},
+  {area:'SO', whole:true, zone:'8'},
+  {area:'SS', whole:true, zone:'8'},
+
+  {area:'RG', whole:true, zone:'9'},
+  {area:'YO', whole:true, zone:'9'},
+
+  {area:'LL', d:[[11,14]], zone:'10'},
+  {area:'NR', whole:true, zone:'10'},
+  {area:'PO', d:[[1,22]], zone:'10'},
+
+  {area:'TA', whole:true, zone:'11'},
+
+  {area:'BH', whole:true, zone:'12'},
+  {area:'GU', whole:true, zone:'12'},
+  {area:'LL', d:[[15,34]], zone:'12'},
+  {area:'RH', whole:true, zone:'12'},
+
+  {area:'LA', d:[[11,23]], zone:'13'},
+  {area:'NE', d:[[19,19],[48,48],[61,71]], zone:'13'},
+  {area:'SP', whole:true, zone:'13'},
+  {area:'SY', d:[[1,9],[12,15]], zone:'13'},
+
+  {area:'BN', whole:true, zone:'14'},
+  {area:'ME', whole:true, zone:'14'},
+
+  {area:'CA', whole:true, zone:'15'},
+  {area:'CT', whole:true, zone:'15'},
+  {area:'LD', whole:true, zone:'15'},
+  {area:'LL', d:[[35,78]], zone:'15'},
+  {area:'SA', d:[[1,18]], zone:'15'},
+  {area:'SY', d:[[10,11],[16,25]], zone:'15'},
+  {area:'TN', whole:true, zone:'15'},
+
+  {area:'DT', whole:true, zone:'16'},
+  {area:'EX', whole:true, zone:'16'},
+  {area:'PL', whole:true, zone:'16'},
+  {area:'TQ', whole:true, zone:'16'},
+
+  {area:'SA', d:[[19,48],[56,56],[61,73],[99,99]], zone:'17'},
+
+  {area:'DG', d:[[2,7],[12,16]], zone:'18'},
+  {area:'EH', whole:true, zone:'18'},
+  {area:'FK', d:[[1,7]], zone:'18'},
+  {area:'G', d:[[1,62],[64,82],[90,90]], zone:'18'},
+  {area:'KA', d:[[1,18],[20,25],[29,30]], zone:'18'},
+  {area:'KY', d:[[1,5]], zone:'18'},
+  {area:'ML', whole:true, zone:'18'},
+  {area:'PA', d:[[1,19]], zone:'18'},
+
+  {area:'DG', d:[[1,1],[8,11]], zone:'19'},
+  {area:'FK', d:[[8,9]], zone:'19'},
+  {area:'G', d:[[63,63],[83,84]], zone:'19'},
+  {area:'KA', d:[[19,19],[26,26]], zone:'19'},
+  {area:'KY', d:[[6,16],[99,99]], zone:'19'},
+  {area:'TD', whole:true, zone:'19'},
+
+  {area:'FK', d:[[10,21]], zone:'20'},
+
+  {area:'TR', d:[[1,25]], zone:'21'},
+
+  {area:'DD', whole:true, zone:'22'},
+  {area:'PH', d:[[1,14]], zone:'22'},
+
+  {area:'AB', d:[[10,30],[39,39]], zone:'23'},
+
+  {area:'HA', d:[[0,1]], zone:'L1'},
+  {area:'WD', whole:true, zone:'L1'},
+  {area:'EN', whole:true, zone:'L2'},
+  {area:'HA', d:[[2,9]], zone:'L2'},
+  {area:'UB', whole:true, zone:'L2'},
+  {area:'BR', whole:true, zone:'L3'},
+  {area:'CR', whole:true, zone:'L3'},
+  {area:'DA', whole:true, zone:'L3'},
+  {area:'IG', whole:true, zone:'L3'},
+  {area:'KT', whole:true, zone:'L3'},
+  {area:'RM', whole:true, zone:'L3'},
+  {area:'SM', whole:true, zone:'L3'},
+  {area:'TW', whole:true, zone:'L3'},
+  {area:'E', whole:true, zone:'L4'},
+  {area:'N', whole:true, zone:'L4'},
+  {area:'NW', whole:true, zone:'L4'},
+  {area:'SE', d:[[2,10],[12,28]], zone:'L4'},
+  {area:'SW', d:[[2,2],[4,4],[6,6],[8,9],[11,20],[99,99]], zone:'L4'},
+  {area:'W', d:[[3,7],[9,9],[12,13]], zone:'L4'},
+  {area:'EC', whole:true, zone:'L5'},
+  {area:'SE', d:[[1,1],[11,11]], zone:'L5'},
+  {area:'SW', d:[[1,1],[3,3],[5,5],[7,7],[10,10]], zone:'L5'},
+  {area:'W', d:[[1,2],[8,8],[10,11],[14,14]], zone:'L5'},
+  {area:'WC', whole:true, zone:'L5'},
+
+  {area:'PH', d:[[15,26]], zone:'24'},
+  {area:'AB', d:[[31,38],[41,46],[51,56]], zone:'25'},
+  {area:'PO', d:[[30,41]], zone:'26'},
+  {area:'IV', d:[[1,28],[30,32],[36,36],[53,54]], zone:'27'},
+  {area:'PA', d:[[21,21]], zone:'28'},
+  {area:'PH', d:[[30,41],[49,50]], zone:'28'},
+  {area:'KW', d:[[1,14]], zone:'29'},
+  {area:'PA', d:[[22,38]], zone:'30'},
+  {area:'IM', whole:true, zone:'31'},
+  {area:'KA', d:[[27,28]], zone:'32'},
+  {area:'PH', d:[[42,44]], zone:'32'},
+  {area:'PA', d:[[20,20],[41,49],[60,78],[80,80]], zone:'33'},
+  {area:'ZE', whole:true, zone:'34'},
+  {area:'IV', d:[[40,49],[51,52],[55,56],[63,63]], zone:'35'},
+  {area:'KW', d:[[15,17]], zone:'35'},
+  {area:'HS', whole:true, zone:'36'},
+  {area:'GY', whole:true, zone:'37'},
+  {area:'JE', whole:true, zone:'37'},
+
+  {area:'BT', d:[[1,17],[36,39],[41,41]], zone:'38'},
+  {area:'BT', d:[[18,35],[40,40],[42,49],[51,58],[60,71],[74,82],[92,94]], zone:'39'}
+];
+
+const PALLET_META = {
+  qtr:{label:'Quarter Pallet', dims:'1.2×1.2×0.6m — 250kg'},
+  half:{label:'Half Pallet', dims:'1.2×1.2×1.0m — 500kg'},
+  lightFull:{label:'Light Full Pallet', dims:'1.2×1.2×2.2m — 750kg'},
+  full:{label:'Full Pallet', dims:'1.2×1.2×2.2m — 1250kg'}
+};
+const PALLET_ORDER = ['qtr','half','lightFull','full'];
+
+/* ============================================================
+   STATE
+   ============================================================ */
+let currentZoneCode = null;
+let currentServiceKey = null;
+let qtys = {qtr:0, half:0, lightFull:0, full:0};
+
+/* ============================================================
+   DOM refs
+   ============================================================ */
+const postcodeInput = document.getElementById('postcode');
+const zoneBanner = document.getElementById('zoneBanner');
+const zoneSelect = document.getElementById('zoneSelect');
+const serviceTabs = document.getElementById('serviceTabs');
+const palletGrid = document.getElementById('palletGrid');
+const resultBody = document.getElementById('resultBody');
+
+const chkAMPM = document.getElementById('chkAMPM');
+const chkTimed = document.getElementById('chkTimed');
+const chkSatAM = document.getElementById('chkSatAM');
+const chkROI = document.getElementById('chkROI');
+const tailLiftQty = document.getElementById('tailLiftQty');
+const fuelPct = document.getElementById('fuelPct');
+const chkVAT = document.getElementById('chkVAT');
+
+/* ============================================================
+   Build zone <select>
+   ============================================================ */
+function buildZoneSelect(){
+  const groups = [
+    {label:'Mainland UK', codes:GROUP_MAINLAND},
+    {label:'London', codes:GROUP_LONDON},
+    {label:'Highlands & Islands', codes:GROUP_HIGHLANDS},
+    {label:'Ireland', codes:GROUP_IRELAND}
+  ];
+  let html = '<option value="">— Select a zone —</option>';
+  groups.forEach(g=>{
+    html += '<optgroup label="'+g.label+'">';
+    g.codes.forEach(code=>{
+      const z = ZONES[code];
+      html += '<option value="'+code+'">'+z.label+' — '+z.postcodes+'</option>';
+    });
+    html += '</optgroup>';
+  });
+  zoneSelect.innerHTML = html;
+}
+buildZoneSelect();
+
+/* ============================================================
+   Postcode auto-detect
+   ============================================================ */
+function checkPOA(zone, area, dist){
+  if(zone==='21' && area==='TR' && dist>=21 && dist<=25) return true;
+  if(zone==='37' && area==='GY' && dist>=9 && dist<=10) return true;
+  return false;
+}
+
+function extractOutcode(raw){
+  const s = raw.trim().toUpperCase();
+  if(s.indexOf(' ') !== -1) return s.split(/\s+/)[0];
+  // No space typed. If it looks like a full postcode (ends in digit+letter+letter),
+  // strip the 3-character inward code so digits aren't misread as the district.
+  if(/\d[A-Z]{2}$/.test(s) && s.length >= 5) return s.slice(0, s.length - 3);
+  return s;
+}
+
+function detectZone(raw){
+  const pc = extractOutcode(raw);
+  const m = pc.match(/^([A-Z]{1,2})(\d{1,2})/);
+  if(!m) return null;
+  const area = m[1], dist = parseInt(m[2],10);
+  for(const rule of postcodeRules){
+    if(rule.area !== area) continue;
+    if(rule.whole){
+      return {zone:rule.zone, poa:checkPOA(rule.zone, area, dist)};
+    }
+    if(rule.d.some(([lo,hi]) => dist>=lo && dist<=hi)){
+      return {zone:rule.zone, poa:checkPOA(rule.zone, area, dist)};
+    }
+  }
+  return null;
+}
+
+postcodeInput.addEventListener('input', ()=>{
+  const val = postcodeInput.value.trim();
+  if(val.length < 2){
+    zoneBanner.className = 'zone-banner';
+    zoneBanner.innerHTML = '';
+    return;
+  }
+  const match = detectZone(val);
+  if(match){
+    const z = ZONES[match.zone];
+    if(match.poa){
+      zoneBanner.className = 'zone-banner poa';
+      zoneBanner.innerHTML = '<b>Price On Application</b> — this postcode isn\'t on the standard rate card. Call Beacon Roadways on 01384 424180 for a rate.';
+    } else {
+      zoneBanner.className = 'zone-banner found';
+      zoneBanner.innerHTML = 'Matched <b>'+z.label+'</b> ('+z.postcodes+')';
+      zoneSelect.value = match.zone;
+      selectZone(match.zone);
+    }
+  } else {
+    zoneBanner.className = 'zone-banner notfound';
+    zoneBanner.innerHTML = 'Zone not recognised automatically — please select it manually below, or call the office to confirm.';
+  }
+});
+
+zoneSelect.addEventListener('change', ()=>{
+  if(zoneSelect.value) selectZone(zoneSelect.value);
+});
+
+/* ============================================================
+   Zone selection -> build service tabs + pallet grid
+   ============================================================ */
+function serviceListFor(zoneCode){
+  const z = ZONES[zoneCode];
+  if(z.group === 'A'){
+    return [
+      {key:'econ', label:'Economy', prices:{qtr:z.econQtr, half:z.econHalf, lightFull:z.econLightFull, full:z.econFull}},
+      {key:'nd', label:'Next Day', prices:{qtr:z.ndQtr, half:z.ndHalf, lightFull:z.ndLightFull, full:z.ndFull}}
+    ];
+  }
+  if(z.group === 'B'){
+    return [
+      {key:'std', label:'Standard', prices:{qtr:null, half:z.eecHalf, lightFull:z.eecLightFull, full:z.eecFull}}
+    ];
+  }
+  return [
+    {key:'econ', label:'Economy', prices:{qtr:null, half:z.econHalf, lightFull:z.econLightFull, full:z.econFull}},
+    {key:'ss', label:'Saturday Service', prices:{qtr:z.ssQtr, half:z.ssHalf, lightFull:z.ssLightFull, full:z.ssFull}}
+  ];
+}
+
+function selectZone(code){
+  currentZoneCode = code;
+  const services = serviceListFor(code);
+  currentServiceKey = services[0].key;
+  qtys = {qtr:0, half:0, lightFull:0, full:0};
+  renderServiceTabs(services);
+  renderPalletGrid(services);
+  calculate();
+}
+
+function renderServiceTabs(services){
+  serviceTabs.innerHTML = '';
+  services.forEach(svc=>{
+    const div = document.createElement('div');
+    div.className = 'service-tab' + (svc.key === currentServiceKey ? ' active' : '');
+    div.textContent = svc.label;
+    div.addEventListener('click', ()=>{
+      currentServiceKey = svc.key;
+      renderServiceTabs(services);
+      renderPalletGrid(services);
+      calculate();
+    });
+    serviceTabs.appendChild(div);
+  });
+}
+
+function renderPalletGrid(services){
+  const svc = services.find(s=>s.key === currentServiceKey);
+  palletGrid.innerHTML = '';
+  PALLET_ORDER.forEach(size=>{
+    const meta = PALLET_META[size];
+    const price = svc.prices[size];
+    const available = price !== null && price !== undefined;
+
+    const item = document.createElement('div');
+    item.className = 'pallet-item' + (available ? '' : ' disabled');
+
+    const priceText = available ? '£'+price.toFixed(2)+' each' : 'Not available';
+    item.innerHTML =
+      '<div class="p-label">'+meta.label+'</div>' +
+      '<div class="p-dims">'+meta.dims+'</div>' +
+      '<div class="p-price">'+priceText+'</div>' +
+      '<div class="qty-row">' +
+        '<button type="button" class="qty-minus" data-size="'+size+'">&minus;</button>' +
+        '<input type="number" min="0" value="'+qtys[size]+'" class="qty-input" data-size="'+size+'" style="width:100%;" '+(available?'':'disabled')+'>' +
+        '<button type="button" class="qty-plus" data-size="'+size+'">&plus;</button>' +
+      '</div>';
+    palletGrid.appendChild(item);
+  });
+
+  palletGrid.querySelectorAll('.qty-minus').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const size = btn.dataset.size;
+      qtys[size] = Math.max(0, (qtys[size]||0) - 1);
+      syncQtyInputs();
+      calculate();
+    });
+  });
+  palletGrid.querySelectorAll('.qty-plus').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const size = btn.dataset.size;
+      qtys[size] = (qtys[size]||0) + 1;
+      syncQtyInputs();
+      calculate();
+    });
+  });
+  palletGrid.querySelectorAll('.qty-input').forEach(inp=>{
+    inp.addEventListener('input', ()=>{
+      const size = inp.dataset.size;
+      qtys[size] = Math.max(0, parseInt(inp.value,10) || 0);
+      calculate();
+    });
+  });
+}
+
+function syncQtyInputs(){
+  palletGrid.querySelectorAll('.qty-input').forEach(inp=>{
+    inp.value = qtys[inp.dataset.size];
+  });
+}
+
+function sizeLabel(size){ return PALLET_META[size].label; }
+
+/* ============================================================
+   Calculate + render quote
+   ============================================================ */
+function calculate(){
+  if(!currentZoneCode){
+    resultBody.innerHTML = '<div class="empty-state">Select a zone and add pallets to see a quote</div>';
+    return;
+  }
+  const services = serviceListFor(currentZoneCode);
+  const svc = services.find(s=>s.key === currentServiceKey);
+
+  let lines = [];
+  let subtotal = 0;
+  PALLET_ORDER.forEach(size=>{
+    const price = svc.prices[size];
+    const qty = qtys[size] || 0;
+    if(price !== null && price !== undefined && qty > 0){
+      const lineTotal = price * qty;
+      subtotal += lineTotal;
+      lines.push({label:sizeLabel(size)+' × '+qty, amount:lineTotal});
+    }
+  });
+
+  if(subtotal === 0){
+    resultBody.innerHTML = '<div class="empty-state">Add pallet quantities to see a quote</div>';
+    return;
+  }
+
+  const fuelRate = parseFloat(fuelPct.value) || 0;
+  const fuelAmt = fuelRate > 0 ? subtotal * (fuelRate/100) : 0;
+
+  let surchargeLines = [];
+  let surchargeTotal = 0;
+  if(chkAMPM.checked){ surchargeLines.push({label:'AM/PM Delivery', amount:13.00}); surchargeTotal += 13.00; }
+  if(chkTimed.checked){ surchargeLines.push({label:'Timed Delivery', amount:26.00}); surchargeTotal += 26.00; }
+  if(chkSatAM.checked){ surchargeLines.push({label:'Saturday AM', amount:51.00}); surchargeTotal += 51.00; }
+  if(chkROI.checked){ surchargeLines.push({label:'ROI Customs Entry', amount:90.50}); surchargeTotal += 90.50; }
+  const tlQty = Math.max(0, parseInt(tailLiftQty.value,10) || 0);
+  if(tlQty > 0){
+    const amt = tlQty * 5.00;
+    surchargeLines.push({label:'Tail Lift × '+tlQty, amount:amt});
+    surchargeTotal += amt;
+  }
+
+  const net = subtotal + fuelAmt + surchargeTotal;
+  const vat = chkVAT.checked ? net * 0.20 : 0;
+  const total = net + vat;
+
+  renderResult({lines, subtotal, fuelRate, fuelAmt, surchargeLines, surchargeTotal, net, vat, total});
+}
+
+function renderResult(r){
+  const z = ZONES[currentZoneCode];
+  let html = '';
+  r.lines.forEach(l=>{
+    html += '<div class="result-line"><span>'+l.label+'</span><span>£'+l.amount.toFixed(2)+'</span></div>';
+  });
+  html += '<div class="result-line sub"><span>Transport subtotal</span><span>£'+r.subtotal.toFixed(2)+'</span></div>';
+  if(r.fuelAmt > 0){
+    html += '<div class="result-line"><span>Fuel surcharge ('+r.fuelRate+'%)</span><span>£'+r.fuelAmt.toFixed(2)+'</span></div>';
+  }
+  r.surchargeLines.forEach(l=>{
+    html += '<div class="result-line"><span>'+l.label+'</span><span>£'+l.amount.toFixed(2)+'</span></div>';
+  });
+  html += '<div class="result-line sub"><span>Net</span><span>£'+r.net.toFixed(2)+'</span></div>';
+  if(r.vat > 0){
+    html += '<div class="result-line"><span>VAT (20%)</span><span>£'+r.vat.toFixed(2)+'</span></div>';
+  }
+  html += '<div class="result-total"><span class="label">'+z.label+'</span><span class="value">£'+r.total.toFixed(2)+'</span></div>';
+  resultBody.innerHTML = html;
+}
+
+/* Re-calculate whenever surcharge/fuel/VAT controls change */
+[chkAMPM, chkTimed, chkSatAM, chkROI, tailLiftQty, fuelPct, chkVAT].forEach(el=>{
+  el.addEventListener('input', calculate);
+  el.addEventListener('change', calculate);
+});
+
+/* ============================================================
+   Copy / Print
+   ============================================================ */
+document.getElementById('btnCopy').addEventListener('click', ()=>{
+  if(!currentZoneCode) return;
+  const text = resultBody.innerText.replace(/\n{2,}/g,'\n');
+  navigator.clipboard.writeText(text).then(()=>{
+    const btn = document.getElementById('btnCopy');
+    const original = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(()=>{ btn.textContent = original; }, 1500);
+  });
+});
+document.getElementById('btnPrint').addEventListener('click', ()=> window.print());
+
+</script>
+</body>
+</html>
