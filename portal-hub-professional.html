@@ -308,12 +308,10 @@
 
         .home-hero-lines {
             position: absolute;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            width: 100%;
-            height: auto;
-            display: block;
+            inset: 0;
+            background-image: url('lines.svg');
+            background-repeat: repeat;
+            background-size: 140px auto;
             opacity: 0.35;
             pointer-events: none;
             z-index: 0;
@@ -1126,7 +1124,7 @@
                 <div class="home-hero">
                     <div class="home-greeting" id="homeGreeting"></div>
                     <div class="home-date" id="homeDate"></div>
-                    <img src="lines.svg" alt="" class="home-hero-lines">
+                    <div class="home-hero-lines"></div>
                 </div>
                 <div class="stats-row" id="homeStatsRow"></div>
                 <div class="dash-search-panel">
