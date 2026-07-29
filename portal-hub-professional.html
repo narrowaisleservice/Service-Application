@@ -306,8 +306,22 @@
             background: linear-gradient(90deg, #df0a1e 0%, transparent 100%);
         }
 
+        .home-hero-lines {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            height: auto;
+            display: block;
+            opacity: 0.35;
+            pointer-events: none;
+            z-index: 0;
+        }
+
         .home-greeting {
             position: relative;
+            z-index: 1;
             font-family: 'IBM Plex Sans', sans-serif;
             font-size: 34px;
             font-weight: 700;
@@ -317,6 +331,7 @@
 
         .home-date {
             position: relative;
+            z-index: 1;
             font-family: 'DM Sans', sans-serif;
             font-size: 14px;
             color: #a0a0a0;
@@ -941,7 +956,7 @@
         const portalName = localStorage.getItem('portalName');
         const portalLoginTime = localStorage.getItem('portalLoginTime');
 
-        document.getElementById('profileName').textContent = portalName || 'Engineer';
+        document.getElementById('profileName').textContent = formatDisplayName(portalName) || 'Engineer';
         document.getElementById('profileRole').textContent = portalRole || 'Field Engineer';
         document.getElementById('profileTime').textContent = portalLoginTime || '—';
 
@@ -1111,6 +1126,7 @@
                 <div class="home-hero">
                     <div class="home-greeting" id="homeGreeting"></div>
                     <div class="home-date" id="homeDate"></div>
+                    <img src="lines.svg" alt="" class="home-hero-lines">
                 </div>
                 <div class="stats-row" id="homeStatsRow"></div>
                 <div class="dash-search-panel">
@@ -1187,15 +1203,20 @@
             }
         }
 
+        function formatDisplayName(str) {
+            if (!str) return str;
+            return str.split('.').map(part => part.charAt(0).toUpperCase() + part.slice(1)).join('.');
+        }
+
         function updateClock() {
             const now = new Date();
             const hour = now.getHours();
             const greetingWord = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
-            const name = (portalName || 'there').split(' ')[0];
+            const name = formatDisplayName((portalName || 'there').split(' ')[0]);
             const greetingEl = document.getElementById('homeGreeting');
             const dateEl = document.getElementById('homeDate');
             if (!greetingEl || !dateEl) { clearInterval(clockInterval); return; }
-            greetingEl.textContent = `${greetingWord}, ${name} 👋`;
+            greetingEl.textContent = `${greetingWord}, ${name}`;
             dateEl.textContent = now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }) + ' · ' + now.toLocaleTimeString('en-GB');
         }
 
