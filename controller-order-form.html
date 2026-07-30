@@ -36,6 +36,28 @@
     align-items:center;
     justify-content:space-between;
   }
+  header .header-left{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    min-width:0;
+  }
+  .back-btn{
+    background:none;
+    border:none;
+    color:var(--white);
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:4px;
+    border-radius:6px;
+    flex-shrink:0;
+  }
+  .back-btn:hover, .back-btn:active{
+    color:var(--red);
+    background:rgba(255,255,255,0.08);
+  }
   header .title{
     font-family:var(--font-display);
     font-weight:700;
@@ -182,7 +204,12 @@
 <body>
 
 <header>
-  <div class="title">Controller Order Form<small>NARROW AISLE SERVICE PORTAL</small></div>
+  <div class="header-left">
+    <button type="button" class="back-btn" id="backBtn" aria-label="Go back">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <div class="title">Controller Order Form<small>NARROW AISLE SERVICE PORTAL</small></div>
+  </div>
   <div class="mark"></div>
 </header>
 <div class="user-bar">
@@ -242,6 +269,14 @@
 const SUPABASE_URL = 'https://dontubctlexlvifwhmbj.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_99HLzSv4wMwFZHlR81yIsQ_z0A0Jpth';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+document.getElementById('backBtn').addEventListener('click', () => {
+  if (document.referrer && new URL(document.referrer).host === location.host) {
+    history.back();
+  } else {
+    window.location.href = 'portal-hub-professional.html';
+  }
+});
 
 (async () => {
   const { data: { session } } = await sb.auth.getSession();
