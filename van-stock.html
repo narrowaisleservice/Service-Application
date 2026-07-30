@@ -10,7 +10,6 @@
             padding: 0;
             box-sizing: border-box;
         }
-
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: #1a1a1a;
@@ -19,7 +18,6 @@
             display: flex;
             flex-direction: column;
         }
-
         .header {
             background: linear-gradient(180deg, rgba(30, 30, 30, 0.8) 0%, rgba(20, 20, 20, 0.6) 100%);
             backdrop-filter: blur(20px);
@@ -30,39 +28,31 @@
             gap: 16px;
             z-index: 100;
         }
-
         .back-btn {
-            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            background: none;
             border: none;
-            color: white;
-            padding: 10px 16px;
-            border-radius: 8px;
-            font-weight: 700;
+            color: #ffffff;
             cursor: pointer;
-            font-size: 13px;
-            transition: all 0.3s ease;
-            text-decoration: none;
             display: flex;
             align-items: center;
-            gap: 6px;
+            justify-content: center;
+            padding: 4px;
+            border-radius: 6px;
+            flex-shrink: 0;
         }
-
-        .back-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 16px rgba(220, 38, 38, 0.3);
+        .back-btn:hover, .back-btn:active {
+            color: #dc2626;
+            background: rgba(255,255,255,0.08);
         }
-
         .header h1 {
             font-size: 20px;
             font-weight: 800;
             flex: 1;
         }
-
         .content {
             flex: 1;
             overflow: hidden;
         }
-
         iframe {
             width: 100%;
             height: 100%;
@@ -73,11 +63,22 @@
 </head>
 <body>
     <div class="header">
-        <button class="back-btn" onclick="window.location.href='portal-hub-professional.html'">← Back to Portal</button>
+        <button type="button" class="back-btn" id="backBtn" aria-label="Go back">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
         <h1>Van Stock</h1>
     </div>
     <div class="content">
         <iframe src="https://narrowaisleservice.github.io/Flexi-Parts-System/#van-stock" title="Van Stock"></iframe>
     </div>
+    <script>
+        document.getElementById('backBtn').addEventListener('click', () => {
+            if (document.referrer && new URL(document.referrer).host === location.host) {
+                history.back();
+            } else {
+                window.location.href = 'portal-hub-professional.html';
+            }
+        });
+    </script>
 </body>
 </html>
