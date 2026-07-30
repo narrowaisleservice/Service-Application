@@ -32,6 +32,26 @@
             margin-bottom: 24px;
             border-left: 5px solid #df0a1e;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            color: #101010;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+            border-radius: 6px;
+            flex-shrink: 0;
+        }
+        .back-btn:hover, .back-btn:active {
+            color: #df0a1e;
+            background: #f5f5f5;
         }
 
         .header h1 {
@@ -363,8 +383,13 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🔧 Fault Tracker</h1>
-            <p>View and manage all reported truck issues</p>
+            <button type="button" class="back-btn" id="backBtn" aria-label="Go back">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>
+            <div>
+                <h1>🔧 Fault Tracker</h1>
+                <p>View and manage all reported truck issues</p>
+            </div>
         </div>
 
         <div class="stats" id="stats"></div>
@@ -389,6 +414,14 @@
     </div>
 
     <script>
+        document.getElementById('backBtn').addEventListener('click', () => {
+            if (document.referrer && new URL(document.referrer).host === location.host) {
+                history.back();
+            } else {
+                window.location.href = 'portal-hub-professional.html';
+            }
+        });
+
         // UPDATE THIS with your GAS deployment URL
         const GAS_URL = "https://script.google.com/macros/s/AKfycbwIs_sxohYd6gMSTZ2GyDmAUQ1qh75Mkx3p4JxAaty_kdWAPtlcy6aLM1WgowwwPnLmOQ/exec";
 
