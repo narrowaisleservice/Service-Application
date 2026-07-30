@@ -42,17 +42,20 @@
     z-index: 200;
   }
   .back-btn {
-    background: var(--red);
+    background: none;
     border: none;
-    color: #fff;
-    padding: 10px 14px;
-    border-radius: 8px;
-    font-weight: 700;
-    font-family: 'DM Sans', sans-serif;
+    color: #ffffff;
     cursor: pointer;
-    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border-radius: 6px;
     flex-shrink: 0;
-    min-height: 40px;
+  }
+  .back-btn:hover, .back-btn:active {
+    color: var(--red);
+    background: rgba(255,255,255,0.08);
   }
   .header h1 { color: #fff; font-size: 18px; font-weight: 800; flex: 1; }
   .header .sub { color: #bbb; font-size: 12px; font-family: 'DM Mono', monospace; margin-top: 2px; }
@@ -181,7 +184,9 @@
 <body>
 
   <div class="header">
-    <button class="back-btn" onclick="window.location.href='portal-hub-professional.html'">← Back</button>
+    <button type="button" class="back-btn" id="backBtn" aria-label="Go back">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
     <div>
       <h1>🗺️ Routing</h1>
       <div class="sub" id="headerSub">Multi-stop route planner</div>
@@ -255,6 +260,14 @@
   const DIRECTIONS_URL = 'https://api.openrouteservice.org/v2/directions/driving-car/geojson';
 
   const el = id => document.getElementById(id);
+
+  document.getElementById('backBtn').addEventListener('click', () => {
+    if (document.referrer && new URL(document.referrer).host === location.host) {
+      history.back();
+    } else {
+      window.location.href = 'portal-hub-professional.html';
+    }
+  });
 
   // ---- STATE ----
   let stopIdCounter = 0;

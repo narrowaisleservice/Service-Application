@@ -22,10 +22,27 @@
         position: sticky;
         top: 0;
         z-index: 50;
+        display: flex;
+        align-items: center;
+        gap: 14px;
     }
-    .back-link { font-size: 12px; color: #707070; text-decoration: none; font-weight: 600; }
-    .back-link:hover { color: #df0a1e; }
-    .header-title { font-family: 'IBM Plex Sans', sans-serif; font-size: 28px; font-weight: 700; margin-top: 4px; }
+    .back-btn {
+        background: none;
+        border: none;
+        color: #101010;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 4px;
+        border-radius: 6px;
+        flex-shrink: 0;
+    }
+    .back-btn:hover, .back-btn:active {
+        color: #df0a1e;
+        background: #f5f5f5;
+    }
+    .header-title { font-family: 'IBM Plex Sans', sans-serif; font-size: 28px; font-weight: 700; }
     .header-subtitle { font-size: 13px; color: #707070; margin-top: 2px; }
     .user-bar {
         background: #fafafa;
@@ -151,9 +168,13 @@
 <body>
 
 <div class="header">
-    <a href="asset-tracking.html" class="back-link">&larr; Back to Asset Tracking</a>
-    <div class="header-title">Manage Assets</div>
-    <div class="header-subtitle">Add equipment, reassign holders, or remove entries</div>
+    <button type="button" class="back-btn" id="backBtn" aria-label="Go back">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <div>
+        <div class="header-title">Manage Assets</div>
+        <div class="header-subtitle">Add equipment, reassign holders, or remove entries</div>
+    </div>
 </div>
 <div class="user-bar">
     <span id="userEmail"></span>
@@ -183,6 +204,14 @@ const SUPABASE_KEY = 'sb_publishable_99HLzSv4wMwFZHlR81yIsQ_z0A0Jpth';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let allAssets = [];
+
+document.getElementById('backBtn').addEventListener('click', () => {
+  if (document.referrer && new URL(document.referrer).host === location.host) {
+    history.back();
+  } else {
+    window.location.href = 'asset-tracking.html';
+  }
+});
 
 (async () => {
   const { data: { session } } = await sb.auth.getSession();
