@@ -96,6 +96,22 @@
         margin-bottom: 28px;
     }
 
+    .contract-banner {
+        display: none;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 18px;
+        border-radius: 10px;
+        margin-bottom: 16px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+    .contract-banner.show { display: flex; }
+    .contract-banner.ok { background: rgba(76,175,80,0.08); border: 1px solid rgba(76,175,80,0.25); color: #2e7d32; }
+    .contract-banner.warn { background: rgba(223,10,30,0.08); border: 1px solid rgba(223,10,30,0.25); color: #df0a1e; }
+    .contract-banner.none { background: #fafafa; border: 1px solid #eee; color: #909090; font-weight: 500; }
+    .contract-banner a { color: inherit; text-decoration: underline; margin-left: auto; font-size: 12px; white-space: nowrap; }
+
     .truck-banner {
         background: #0a0a0a;
         border-radius: 16px;
@@ -515,6 +531,7 @@
 
         return `
         <div class="insights">
+            <div class="contract-banner" id="contractBanner"></div>
             <div class="truck-banner">
                 <div class="truck-banner-text">
                     <div class="truck-serial">Serial ${serial}</div>
@@ -684,6 +701,49 @@
         filterByIssue(activeIssueKey); // toggles it off since it's already active
     }
 
+    async function loadContractBanner(serial) {
+        const el = document.getElementById('contractBanner');
+        if (!el) return;
+        try {
+            const { data, error } = await db
+                .from('maintenance_contracts')
+                .select('*')
+                .or(`equip_code.ilike.%${serial}%,serial_no.ilike.%${serial}%`)
+                .order('end_date', { ascending: false, nullsFirst: true })
+                .limit(1);
+            if (error) throw error;
+            const contract = data && data[0];
+            if (!el) return; // may have navigated away
+
+            if (!contract) {
+                el.className = 'contract-banner show none';
+                el.innerHTML = `No active maintenance contract on file for this truck.`;
+                return;
+            }
+
+            const today = new Date();
+            let expiring = false, expired = false;
+            if (contract.end_date) {
+                const end = new Date(contract.end_date);
+                const diffDays = (end - today) / (1000 * 60 * 60 * 24);
+                if (diffDays < 0) expired = true;
+                else if (diffDays <= 90) expiring = true;
+            }
+
+            const statusCls = (expiring || expired) ? 'warn' : 'ok';
+            const endText = contract.end_date
+                ? (expired ? `expired ${formatDate(contract.end_date)}` : `expires ${formatDate(contract.end_date)}`)
+                : 'ongoing, no end date';
+
+            el.className = 'contract-banner show ' + statusCls;
+            el.innerHTML = `\u{1F4C4} Under <strong>${contract.contract_type || 'Maintenance'}</strong> contract — ${contract.cust_name || 'Unknown customer'} — ${endText}` +
+                `<a href="maintenance-contracts.html">View contracts →</a>`;
+        } catch (err) {
+            // fail quietly - this is a nice-to-have banner, not core functionality
+            if (el) el.className = '';
+        }
+    }
+
     function renderJobs(jobs) {
         const wrap = document.getElementById('resultsWrap');
 
@@ -700,6 +760,7 @@
             wrap.innerHTML = renderInsights(jobs, distinctSerials[0]) + `<div id="jobListWrap"></div>`;
             drawCharts(jobs);
             renderJobList(jobs);
+            loadContractBanner(distinctSerials[0]);
         } else {
             currentJobs = [];
             wrap.innerHTML =

@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#df0a1e">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&family=DM+Sans:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>Problem Trucks - Narrow Aisle Service Portal</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { background: white !important; color-scheme: light only; }
+    body {
+        font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        color: #101010;
+        min-height: 100vh;
+    }
+
+    .header {
+        background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+        border-bottom: 3px solid #df0a1e;
+        padding: 24px 32px;
+        position: sticky;
+        top: 0;
+        z-index: 50;
+    }
+    .back-link { font-size: 12px; color: #707070; text-decoration: none; font-weight: 600; }
+    .back-link:hover { color: #df0a1e; }
+    .header-title { font-family: 'IBM Plex Sans', sans-serif; font-size: 28px; font-weight: 700; margin-top: 4px; }
+    .header-subtitle { font-size: 13px; color: #707070; margin-top: 2px; }
+
+    .content { max-width: 1000px; margin: 0 auto; padding: 32px; }
+
+    .controls-panel {
+        background: white;
+        border: 1px solid #e8e8e8;
+        border-radius: 12px;
+        padding: 20px 24px;
+        margin-bottom: 20px;
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+    .sort-group, .limit-group { display: flex; align-items: center; gap: 8px; }
+    .sort-group label, .limit-group label {
+        font-family: 'DM Mono', monospace;
+        font-size: 11px;
+        color: #707070;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .controls-panel select {
+        font-family: 'DM Sans', sans-serif;
+        font-size: 13px;
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        color: #101010;
+        background: white;
+        cursor: pointer;
+    }
+    .controls-panel select:focus { outline: none; border-color: #df0a1e; }
+
+    .loading-state { text-align: center; padding: 60px 20px; color: #909090; font-size: 14px; }
+
+    .truck-row {
+        background: white;
+        border: 1px solid #e8e8e8;
+        border-left: 4px solid #df0a1e;
+        border-radius: 10px;
+        padding: 18px 22px;
+        margin-bottom: 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 18px;
+    }
+    .truck-row:hover { box-shadow: 0 8px 24px rgba(223,10,30,0.1); transform: translateY(-2px); }
+
+    .rank-badge {
+        font-family: 'IBM Plex Sans', sans-serif;
+        font-size: 20px;
+        font-weight: 700;
+        color: #df0a1e;
+        width: 34px;
+        text-align: center;
+        flex-shrink: 0;
+    }
+    .truck-info { flex: 1; min-width: 0; }
+    .truck-serial-name { font-family: 'IBM Plex Sans', sans-serif; font-size: 15px; font-weight: 700; }
+    .truck-model-name { font-size: 12.5px; color: #707070; margin-top: 2px; }
+
+    .truck-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+    .mini-tag {
+        font-family: 'DM Mono', monospace;
+        font-size: 10.5px;
+        padding: 3px 9px;
+        border-radius: 12px;
+        background: #f2f2f2;
+        color: #606060;
+        white-space: nowrap;
+    }
+
+    .truck-stat {
+        text-align: center;
+        flex-shrink: 0;
+        min-width: 66px;
+    }
+    .truck-stat-value {
+        font-family: 'IBM Plex Sans', sans-serif;
+        font-size: 22px;
+        font-weight: 700;
+        color: #df0a1e;
+        line-height: 1;
+    }
+    .truck-stat-label {
+        font-size: 10px;
+        color: #909090;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        margin-top: 4px;
+    }
+
+    .arrow-icon { color: #c0c0c0; flex-shrink: 0; }
+
+    @media (max-width: 640px) {
+        .header { padding: 16px 20px; }
+        .header-title { font-size: 22px; }
+        .content { padding: 16px; }
+        .truck-tags { display: none; }
+        .truck-stat { min-width: 50px; }
+    }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <a class="back-link" href="portal-hub-professional.html">&larr; Back to Portal</a>
+    <div class="header-title">Problem Trucks</div>
+    <div class="header-subtitle">Fleet-wide breakdown leaderboard, built from the full service history</div>
+</div>
+
+<div class="content">
+    <div class="controls-panel">
+        <div class="sort-group">
+            <label>Rank by</label>
+            <select id="sortSelect">
+                <option value="breakdown_visits">Most Breakdowns</option>
+                <option value="total_visits">Most Total Visits</option>
+                <option value="breakdown_ratio">Highest Breakdown Ratio</option>
+            </select>
+        </div>
+        <div class="limit-group">
+            <label>Show</label>
+            <select id="limitSelect">
+                <option value="20">Top 20</option>
+                <option value="50" selected>Top 50</option>
+                <option value="100">Top 100</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="resultsWrap"><div class="loading-state">Loading fleet data…</div></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    if (!localStorage.getItem('portalUser')) {
+        window.location.href = 'login.html';
+    }
+
+    // ===== Supabase project config =====
+    const SUPABASE_URL = 'https://dontubctlexlvifwhmbj.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_99HLzSv4wMwFZHlR81yIsQ_z0A0Jpth';
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    // =====================================
+
+    const CATEGORY_LABELS = {
+        brakes_count: { label: 'Brakes', icon: '\u{1F6D1}' },
+        hydraulics_count: { label: 'Hydraulics', icon: '\u{1F4A7}' },
+        electrical_count: { label: 'Electrical', icon: '\u26A1' },
+        mast_count: { label: 'Mast/Chains', icon: '\u{1F4D0}' },
+        steering_count: { label: 'Steering', icon: '\u{1F3AF}' },
+        wheels_count: { label: 'Wheels/Tyres', icon: '\u{1F6DE}' },
+        seat_count: { label: 'Seat', icon: '\u{1FA91}' },
+        drive_count: { label: 'Drive', icon: '\u2699\uFE0F' },
+    };
+
+    let ALL_ROWS = [];
+
+    function formatDate(val) {
+        if (!val) return '\u2014';
+        const d = new Date(val);
+        if (isNaN(d)) return val;
+        return d.toLocaleDateString('en-GB');
+    }
+
+    function topCategories(row, n) {
+        return Object.keys(CATEGORY_LABELS)
+            .map(key => ({ key, count: row[key] || 0, ...CATEGORY_LABELS[key] }))
+            .filter(c => c.count > 0)
+            .sort((a, b) => b.count - a.count)
+            .slice(0, n);
+    }
+
+    function render() {
+        const sortBy = document.getElementById('sortSelect').value;
+        const limit = Number(document.getElementById('limitSelect').value);
+
+        let rows = ALL_ROWS.slice();
+        rows.forEach(r => r.breakdown_ratio = r.total_visits ? r.breakdown_visits / r.total_visits : 0);
+
+        rows.sort((a, b) => b[sortBy] - a[sortBy]);
+        rows = rows.slice(0, limit);
+
+        const wrap = document.getElementById('resultsWrap');
+        if (!rows.length) {
+            wrap.innerHTML = '<div class="loading-state">No data available.</div>';
+            return;
+        }
+
+        wrap.innerHTML = rows.map((r, i) => {
+            const tags = topCategories(r, 3).map(c => `<span class="mini-tag">${c.icon} ${c.label} \u00d7${c.count}</span>`).join('');
+            const ratioPct = Math.round(r.breakdown_ratio * 100);
+            return `
+            <div class="truck-row" onclick="window.location.href='service-history.html?serial=${encodeURIComponent(r.serial_no)}'">
+                <div class="rank-badge">#${i + 1}</div>
+                <div class="truck-info">
+                    <div class="truck-serial-name">${r.serial_no}${r.make_model ? ' — ' + r.make_model : ''}</div>
+                    <div class="truck-model-name">First seen ${formatDate(r.first_visit)} &middot; Last visit ${formatDate(r.last_visit)}</div>
+                    ${tags ? `<div class="truck-tags">${tags}</div>` : ''}
+                </div>
+                <div class="truck-stat">
+                    <div class="truck-stat-value">${r.breakdown_visits}</div>
+                    <div class="truck-stat-label">Breakdowns</div>
+                </div>
+                <div class="truck-stat">
+                    <div class="truck-stat-value">${r.total_visits}</div>
+                    <div class="truck-stat-label">Total Visits</div>
+                </div>
+                <div class="truck-stat">
+                    <div class="truck-stat-value">${ratioPct}%</div>
+                    <div class="truck-stat-label">Breakdown Rate</div>
+                </div>
+                <svg class="arrow-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+            </div>`;
+        }).join('');
+    }
+
+    async function loadData() {
+        try {
+            const { data, error } = await db
+                .from('truck_issue_summary')
+                .select('*')
+                .gte('total_visits', 2)
+                .order('breakdown_visits', { ascending: false })
+                .limit(300);
+            if (error) throw error;
+            ALL_ROWS = data || [];
+            render();
+        } catch (err) {
+            document.getElementById('resultsWrap').innerHTML =
+                '<div class="loading-state">Could not load fleet data.<br>' + (err.message || err) + '</div>';
+        }
+    }
+
+    document.getElementById('sortSelect').addEventListener('change', render);
+    document.getElementById('limitSelect').addEventListener('change', render);
+
+    loadData();
+
+    window.addEventListener('pageshow', (event) => {
+        if (event.persisted) loadData();
+    });
+</script>
+</body>
+</html>
