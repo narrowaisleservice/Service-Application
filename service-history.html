@@ -222,8 +222,40 @@
         align-items: center;
         gap: 12px;
         margin-bottom: 12px;
+        padding: 6px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background 0.15s;
+        border: 1px solid transparent;
     }
     .issue-row:last-child { margin-bottom: 0; }
+    .issue-row:hover { background: #fafafa; }
+    .issue-row.active { background: rgba(223,10,30,0.06); border-color: rgba(223,10,30,0.2); }
+    .issue-row.active .issue-name { color: #df0a1e; }
+
+    .active-filter-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(223,10,30,0.08);
+        border: 1px solid rgba(223,10,30,0.2);
+        border-radius: 20px;
+        padding: 6px 14px;
+        font-size: 12.5px;
+        color: #df0a1e;
+        font-weight: 600;
+        margin-bottom: 14px;
+    }
+    .active-filter-badge button {
+        background: none;
+        border: none;
+        color: #df0a1e;
+        font-family: 'DM Mono', monospace;
+        font-size: 12px;
+        cursor: pointer;
+        font-weight: 700;
+        padding: 0;
+    }
     .issue-icon {
         width: 34px; height: 34px;
         border-radius: 9px;
@@ -382,6 +414,8 @@
     ];
 
     let charts = { timeline: null, type: null };
+    let currentJobs = [];
+    let activeIssueKey = null;
 
     function formatDate(val) {
         if (!val) return '';
@@ -442,6 +476,13 @@
         return '15VN.png';
     }
 
+    function jobMatchesCategory(job, key) {
+        const cat = ISSUE_CATEGORIES.find(c => c.key === key);
+        if (!cat) return false;
+        const blob = [job.short_desc, job.to_do, job.work_report].filter(Boolean).join(' \n ').toLowerCase();
+        return cat.keywords.some(kw => blob.includes(kw));
+    }
+
     function renderIssues(jobs) {
         const issues = buildIssueCounts(jobs);
         if (!issues.length) {
@@ -449,7 +490,7 @@
         }
         const max = issues[0].count;
         return issues.map(c => `
-            <div class="issue-row">
+            <div class="issue-row${activeIssueKey === c.key ? ' active' : ''}" data-key="${c.key}" onclick="filterByIssue('${c.key}')" role="button" tabindex="0" title="Click to show only ${c.label} jobs">
                 <div class="issue-icon">${c.icon}</div>
                 <div class="issue-main">
                     <div class="issue-top-line">
@@ -578,17 +619,8 @@
         }
     }
 
-    function renderJobs(jobs) {
-        const wrap = document.getElementById('resultsWrap');
-
-        if (!jobs.length) {
-            wrap.innerHTML = '<div class="empty-state">No jobs found for that serial number.</div>';
-            return;
-        }
-
-        const distinctSerials = [...new Set(jobs.map(j => j.serial_no).filter(Boolean))];
-        const listHtml = `<div class="list-header">Job History</div>` +
-            jobs.map((job, i) => `
+    function buildJobCardsHtml(jobs) {
+        return jobs.map((job, i) => `
                 <div class="job-card" data-idx="${i}">
                     <div class="job-top">
                         <div class="job-desc">${job.short_desc || 'Job ' + (job.job_id || '')}</div>
@@ -615,22 +647,69 @@
                     </div>
                 </div>
             `).join('');
+    }
 
-        if (distinctSerials.length === 1) {
-            wrap.innerHTML = renderInsights(jobs, distinctSerials[0]) +
-                `<div class="result-count">${jobs.length} record${jobs.length === 1 ? '' : 's'} found</div>` +
-                listHtml;
-            drawCharts(jobs);
-        } else {
-            wrap.innerHTML =
-                `<div class="multi-truck-note">Matched ${distinctSerials.length} different serial numbers — showing the list only. Search a full/exact serial to see visual insights for a single truck.</div>` +
-                `<div class="result-count">${jobs.length} record${jobs.length === 1 ? '' : 's'} found</div>` +
-                listHtml;
-        }
+    function renderJobList(list) {
+        const wrap = document.getElementById('jobListWrap');
+        if (!wrap) return;
+
+        const cat = activeIssueKey ? ISSUE_CATEGORIES.find(c => c.key === activeIssueKey) : null;
+        const badge = cat ? `
+            <div class="active-filter-badge">
+                ${cat.icon} Showing only: ${cat.label}
+                <button onclick="clearIssueFilter()">✕ Clear</button>
+            </div>` : '';
+
+        wrap.innerHTML = `<div class="list-header">Job History</div>` + badge +
+            `<div class="result-count">${list.length} record${list.length === 1 ? '' : 's'} ${cat ? 'matching this category' : 'found'}</div>` +
+            buildJobCardsHtml(list);
 
         wrap.querySelectorAll('.job-card').forEach(card => {
             card.addEventListener('click', () => card.classList.toggle('expanded'));
         });
+    }
+
+    function filterByIssue(key) {
+        activeIssueKey = (activeIssueKey === key) ? null : key;
+        const list = activeIssueKey ? currentJobs.filter(j => jobMatchesCategory(j, activeIssueKey)) : currentJobs;
+        renderJobList(list);
+        document.querySelectorAll('.issue-row').forEach(row => {
+            row.classList.toggle('active', row.dataset.key === activeIssueKey);
+        });
+        const wrap = document.getElementById('jobListWrap');
+        if (wrap) wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function clearIssueFilter() {
+        filterByIssue(activeIssueKey); // toggles it off since it's already active
+    }
+
+    function renderJobs(jobs) {
+        const wrap = document.getElementById('resultsWrap');
+
+        if (!jobs.length) {
+            wrap.innerHTML = '<div class="empty-state">No jobs found for that serial number.</div>';
+            return;
+        }
+
+        const distinctSerials = [...new Set(jobs.map(j => j.serial_no).filter(Boolean))];
+
+        if (distinctSerials.length === 1) {
+            currentJobs = jobs;
+            activeIssueKey = null;
+            wrap.innerHTML = renderInsights(jobs, distinctSerials[0]) + `<div id="jobListWrap"></div>`;
+            drawCharts(jobs);
+            renderJobList(jobs);
+        } else {
+            currentJobs = [];
+            wrap.innerHTML =
+                `<div class="multi-truck-note">Matched ${distinctSerials.length} different serial numbers — showing the list only. Search a full/exact serial to see visual insights for a single truck.</div>` +
+                `<div class="result-count">${jobs.length} record${jobs.length === 1 ? '' : 's'} found</div>` +
+                buildJobCardsHtml(jobs);
+            wrap.querySelectorAll('.job-card').forEach(card => {
+                card.addEventListener('click', () => card.classList.toggle('expanded'));
+            });
+        }
     }
 
     async function runSearch() {
