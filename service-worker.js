@@ -1,13 +1,7 @@
 // Smart Service Worker - Auto-updates HTML, manages cache
-// Version: 2.0 - Auto-cleaning & update detection
+// Version: 3.0 - Single stable cache, guaranteed cleanup of stale caches
 
-const CACHE_VERSION = 'narrow-aisle-v3';
-const CACHE_NAME = `${CACHE_VERSION}-${Date.now()}`;
-const OLD_CACHES = [
-  'narrow-aisle-v1',
-  'narrow-aisle-v2',
-  'narrow-aisle-v3'
-];
+const CACHE_NAME = 'narrow-aisle-v4';
 
 const urlsToCache = [
   '/Service-Application/',
@@ -25,6 +19,7 @@ const urlsToCache = [
   '/Service-Application/fault-reporter.html',
   '/Service-Application/fault-tracker.html',
   '/Service-Application/contacts.html',
+  '/Service-Application/customer-contacts.html',
   '/Service-Application/Equipment.html',
   '/Service-Application/flexi-logo-white.svg',
   '/Service-Application/flexi-homepage-isolated.png',
@@ -41,42 +36,26 @@ self.addEventListener('install', (event) => {
       return cache.addAll(urlsToCache).catch(() => {
         console.log('[Service Worker] Some files failed to cache during install (OK)');
       });
-    }).then(() => {
-      // Clean up old caches immediately
-      return caches.keys().then((cacheNames) => {
-        return Promise.all(
-          cacheNames
-            .filter((cacheName) => {
-              return OLD_CACHES.includes(cacheName) && cacheName !== CACHE_NAME;
-            })
-            .map((cacheName) => {
-              console.log('[Service Worker] Deleting old cache:', cacheName);
-              return caches.delete(cacheName);
-            })
-        );
-      });
     })
   );
   self.skipWaiting();
 });
 
-// Activate event - clean up old caches
+// Activate event - delete every cache except the current one, no exceptions
 self.addEventListener('activate', (event) => {
   console.log('[Service Worker] Activating...');
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
-          // Delete any cache that's not current
-          if (!cacheName.startsWith(CACHE_VERSION)) {
-            console.log('[Service Worker] Deleting outdated cache:', cacheName);
+          if (cacheName !== CACHE_NAME) {
+            console.log('[Service Worker] Deleting stale cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
       );
-    })
+    }).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
 // Fetch event - smart caching strategy
@@ -89,12 +68,12 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Skip external domains (API calls, CDN, etc)
+  // Skip external domains (API calls, CDN, Supabase, etc)
   if (!url.origin.includes(location.origin)) {
     return;
   }
 
-  // Strategy 1: Network-first for HTML (always get latest)
+  // Strategy 1: Network-first for HTML (always get latest, never trust cache)
   if (request.destination === 'document' || url.pathname.endsWith('.html')) {
     event.respondWith(
       fetch(request, { cache: 'no-store' })
@@ -102,66 +81,39 @@ self.addEventListener('fetch', (event) => {
           if (!response || response.status !== 200 || response.type === 'error') {
             return response;
           }
-
-          // Cache the new version
           const responseToCache = response.clone();
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(request, responseToCache);
           });
-
           return response;
         })
         .catch(() => {
-          // Offline: serve from cache
-          return caches.match(request).then((cachedResponse) => {
-            if (cachedResponse) {
-              return cachedResponse;
-            }
-            // Fallback page
-            return caches.match('/Service-Application/login.html');
-          });
+          // Offline: serve from the current cache only - never an old one
+          return caches.open(CACHE_NAME).then((cache) =>
+            cache.match(request).then((cachedResponse) => {
+              return cachedResponse || cache.match('/Service-Application/login.html');
+            })
+          );
         })
     );
   }
-  // Strategy 2: Cache-first for assets (images, SVG, CSS, JS)
+  // Strategy 2: Cache-first for assets (images, SVG, CSS, JS), revalidated in background
   else {
     event.respondWith(
-      caches.match(request).then((cachedResponse) => {
-        if (cachedResponse) {
-          // Check for updates in background
-          fetch(request)
+      caches.open(CACHE_NAME).then((cache) =>
+        cache.match(request).then((cachedResponse) => {
+          const fetchPromise = fetch(request)
             .then((response) => {
               if (response && response.status === 200 && response.type !== 'error') {
-                caches.open(CACHE_NAME).then((cache) => {
-                  cache.put(request, response);
-                });
+                cache.put(request, response.clone());
               }
-            })
-            .catch(() => {
-              // Offline - cached version is fine
-            });
-
-          return cachedResponse;
-        }
-
-        return fetch(request)
-          .then((response) => {
-            if (!response || response.status !== 200 || response.type === 'error') {
               return response;
-            }
+            })
+            .catch(() => cachedResponse);
 
-            const responseToCache = response.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(request, responseToCache);
-            });
-
-            return response;
-          })
-          .catch(() => {
-            // Return cached version if available
-            return caches.match(request);
-          });
-      })
+          return cachedResponse || fetchPromise;
+        })
+      )
     );
   }
 });
@@ -181,4 +133,4 @@ self.addEventListener('message', (event) => {
   }
 });
 
-console.log('[Service Worker] Loaded - Auto-update enabled');
+console.log('[Service Worker] Loaded v4 - single cache, network-first HTML');
