@@ -740,5 +740,12 @@
    }
  });
 
+ const qParam = new URLSearchParams(window.location.search).get('q');
+ if (qParam) {
+   searchTerm = qParam;
+   document.getElementById('searchInput').value = qParam;
+   document.getElementById('clearBtn').style.display = '';
+ }
+
  loadData();
 </script>

@@ -432,6 +432,20 @@
   .map-card.show { display: block; }
   .table-card.hide { display: none; }
   #mapContainer { width: 100%; height: 620px; background: var(--surface2); }
+  .map-legend {
+   display: flex;
+   flex-wrap: wrap;
+   gap: 16px;
+   padding: 10px 18px;
+   border-bottom: 1px solid var(--border);
+   background: var(--surface2);
+   font-family: var(--mono);
+   font-size: 10.5px;
+   color: var(--muted);
+   letter-spacing: 0.3px;
+  }
+  .map-legend span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .map-legend i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
   .map-note {
    padding: 10px 18px;
    border-top: 1px solid var(--border);
@@ -510,6 +524,10 @@
    <button class="filter-btn" data-filter="has-website">Has Website</button>
    <button class="filter-btn" data-filter="has-phone">Has Phone</button>
    <button class="filter-btn" data-filter="no-postcode">No Postcode</button>
+   <button class="filter-btn" data-filter="has-equipment">Has Equipment</button>
+   <button class="filter-btn" data-filter="active-contract">Active Contract</button>
+   <button class="filter-btn" data-filter="contract-expiring">Contract Expiring</button>
+   <button class="filter-btn" data-filter="frequent-breakdowns">Frequent Breakdowns</button>
    <span style="flex:1"></span>
    <div class="view-toggle">
     <button class="view-toggle-btn active" id="tableViewBtn">Table</button>
@@ -523,6 +541,12 @@
   </div>
 
   <div class="map-card" id="mapCard">
+   <div class="map-legend">
+    <span><i style="background:#df0a1e"></i> Frequent breakdowns</span>
+    <span><i style="background:#f5a623"></i> Contract expiring</span>
+    <span><i style="background:#4caf50"></i> Active contract</span>
+    <span><i style="background:#9ca3af"></i> No linked data</span>
+   </div>
    <div id="mapContainer"></div>
    <div class="map-note" id="mapNote">Loading map…</div>
   </div>
@@ -695,6 +719,49 @@
     }
   }
 
+  // ===== Cross-table linking (Service History / Maintenance Contracts / Customer Equipment) =====
+  // These tables don't share a stable ID, only free-text company/customer names,
+  // so this mirrors the same normalization used in the customer_link_summary
+  // database view (see: create function normalize_name in Supabase) exactly.
+  function normalizeName(name) {
+    if (!name) return '';
+    let s = name.toUpperCase();
+    s = s.replace(/[.,()&/]/g, ' ');
+    s = s.replace(/\b(LTD|LIMITED|PLC|LLP|LLC|INC|CO|THE|COMPANY|GROUP)\b/g, '');
+    s = s.replace(/\s+/g, ' ').trim();
+    return s;
+  }
+
+  function isExpiringSoon(dateStr) {
+    if (!dateStr) return false;
+    const end = new Date(dateStr + 'T00:00:00');
+    const diffDays = (end - new Date()) / (1000 * 60 * 60 * 24);
+    return diffDays >= 0 && diffDays <= 90;
+  }
+
+  function fmtShortDate(d) {
+    if (!d) return '';
+    return new Date(d + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+
+  function getStatusColor(row) {
+    const link = row._link;
+    if (!link) return '#9ca3af';
+    if (link.breakdown_visits >= 5) return '#df0a1e';
+    if (link.soonest_end && isExpiringSoon(link.soonest_end)) return '#f5a623';
+    if (link.has_active_contract) return '#4caf50';
+    return '#9ca3af';
+  }
+
+  function coloredIcon(color) {
+    return L.divIcon({
+      className: 'status-marker',
+      html: `<div style="width:14px;height:14px;border-radius:50%;background:${color};border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,0.4);"></div>`,
+      iconSize: [14, 14],
+      iconAnchor: [7, 7]
+    });
+  }
+
   function ensureMap() {
     if (mapInstance) return;
     mapInstance = L.map('mapContainer').setView([54.0, -2.5], 6);
@@ -724,13 +791,26 @@
       if (!pos || isNaN(pos.lat) || isNaN(pos.lon)) return;
       plotted++;
       bounds.push([pos.lat, pos.lon]);
-      const marker = L.marker([pos.lat, pos.lon]);
+      const marker = L.marker([pos.lat, pos.lon], { icon: coloredIcon(getStatusColor(r)) });
+      const link = r._link;
+      let linkedHtml = '';
+      if (link) {
+        const contractLine = link.has_active_contract
+          ? `✅ ${esc(link.sample_contract_type || 'Active contract')}${link.soonest_end ? ' · exp ' + fmtShortDate(link.soonest_end) : ''}`
+          : (link.contract_count ? `⚠️ Contract on file, not active` : '');
+        linkedHtml = `
+          ${contractLine ? `<div class="map-popup-line">${contractLine}</div>` : ''}
+          <div class="map-popup-line">${link.equipment_count ? link.equipment_count + ' machine(s) on file' : 'No equipment on file'}${link.total_visits ? ' · ' + link.total_visits + ' visits (' + link.breakdown_visits + ' breakdowns)' : ''}</div>
+        `;
+      }
       const popupHtml = `
         <div class="map-popup-company">${esc(r.company_name || 'Unknown')}</div>
         ${r.address ? `<div class="map-popup-line">${esc(r.address)}</div>` : ''}
         ${r.postcode ? `<div class="map-popup-line">${esc(r.postcode)}</div>` : ''}
         ${r.phone ? `<div class="map-popup-line">${esc(r.phone)}</div>` : ''}
+        ${linkedHtml}
         ${r.map_url ? `<a class="map-popup-link" href="${esc(r.map_url)}" target="_blank" rel="noopener">Open in Google Maps →</a>` : ''}
+        ${link && link.contract_count ? `<br><a class="map-popup-link" href="maintenance-contracts.html?q=${encodeURIComponent(r.company_name||'')}">View contracts →</a>` : ''}
       `;
       marker.bindPopup(popupHtml);
       markerCluster.addLayer(marker);
@@ -788,6 +868,25 @@
 
   // Supabase's PostgREST API caps a single response at 1000 rows by default,
   // so we page through with .range() until a short page tells us we're done.
+  async function loadLinkSummary() {
+    let all = [];
+    let from = 0;
+    const step = 1000;
+    while (true) {
+      const { data, error } = await db
+        .from('customer_link_summary')
+        .select('*')
+        .range(from, from + step - 1);
+      if (error) throw error;
+      all = all.concat(data || []);
+      if (!data || data.length < step) break;
+      from += step;
+    }
+    const map = new Map();
+    all.forEach(row => map.set(row.norm_name, row));
+    return map;
+  }
+
   async function loadData() {
     const tbody = document.getElementById('tableBody');
     try {
@@ -806,6 +905,14 @@
         from += step;
       }
       DATA = all;
+
+      try {
+        const linkMap = await loadLinkSummary();
+        DATA.forEach(r => { r._link = linkMap.get(normalizeName(r.company_name)) || null; });
+      } catch (linkErr) {
+        // linked filters/colours are a bonus layer - contacts still work fine without them
+        DATA.forEach(r => { r._link = null; });
+      }
     } catch (err) {
       tbody.innerHTML = `<div class="grid-empty-msg" style="color:var(--red);">Couldn't load contacts from Supabase.<br>${esc(String(err.message||err))}</div>`;
       return;
@@ -819,6 +926,10 @@
     if (activeFilter === 'has-website') d = d.filter(r => r.website);
     else if (activeFilter === 'has-phone') d = d.filter(r => r.phone);
     else if (activeFilter === 'no-postcode') d = d.filter(r => !r.postcode);
+    else if (activeFilter === 'has-equipment') d = d.filter(r => r._link && r._link.equipment_count > 0);
+    else if (activeFilter === 'active-contract') d = d.filter(r => r._link && r._link.has_active_contract);
+    else if (activeFilter === 'contract-expiring') d = d.filter(r => r._link && isExpiringSoon(r._link.soonest_end));
+    else if (activeFilter === 'frequent-breakdowns') d = d.filter(r => r._link && r._link.breakdown_visits >= 5);
     if (searchTerm) {
       const q = searchTerm.toLowerCase();
       d = d.filter(r =>
