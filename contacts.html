@@ -380,6 +380,61 @@
     .sort-select-wrap { justify-content: flex-start; }
     .app { padding: 0 16px 60px; }
   }
+
+  .view-toggle {
+   display: inline-flex;
+   gap: 4px;
+   background: var(--surface2);
+   border: 1px solid var(--border);
+   border-radius: 10px;
+   padding: 4px;
+  }
+  .view-toggle-btn {
+   padding: 7px 16px;
+   background: none;
+   border: none;
+   border-radius: 7px;
+   font-family: var(--mono);
+   font-size: 11px;
+   letter-spacing: 1px;
+   text-transform: uppercase;
+   color: var(--muted);
+   cursor: pointer;
+   transition: all 0.2s;
+   font-weight: 500;
+  }
+  .view-toggle-btn.active { background: #FFFFFF; color: var(--red); box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+
+  .map-card {
+   background: var(--surface);
+   border: 1px solid var(--border);
+   border-radius: 16px;
+   box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+   overflow: hidden;
+   display: none;
+  }
+  .map-card.show { display: block; }
+  .table-card.hide { display: none; }
+  #mapContainer { width: 100%; height: 620px; background: var(--surface2); }
+  .map-note {
+   padding: 10px 18px;
+   border-top: 1px solid var(--border);
+   background: var(--surface2);
+   font-family: var(--mono);
+   font-size: 11px;
+   color: var(--muted);
+   letter-spacing: 0.3px;
+  }
+  .map-note strong { color: var(--red); font-weight: 500; }
+
+  .leaflet-popup-content-wrapper { border-radius: 10px; }
+  .map-popup-company { font-family: var(--body); font-weight: 700; font-size: 14px; color: var(--text); margin-bottom: 4px; }
+  .map-popup-line { font-size: 12.5px; color: var(--muted); margin-bottom: 2px; }
+  .map-popup-link { display: inline-block; margin-top: 6px; font-family: var(--mono); font-size: 11px; color: var(--red); text-decoration: none; }
+  .map-popup-link:hover { text-decoration: underline; }
+
+  .marker-cluster-flexi { background: rgba(223,10,30,0.15); }
+  .marker-cluster-flexi div { background: var(--red); color: #fff; font-family: var(--mono); font-weight: 500; }
  </style>
  <div class="app">
 
@@ -439,6 +494,11 @@
    <button class="filter-btn" data-filter="has-website">Has Website</button>
    <button class="filter-btn" data-filter="has-phone">Has Phone</button>
    <button class="filter-btn" data-filter="no-postcode">No Postcode</button>
+   <span style="flex:1"></span>
+   <div class="view-toggle">
+    <button class="view-toggle-btn active" id="tableViewBtn">Table</button>
+    <button class="view-toggle-btn" id="mapViewBtn">Map</button>
+   </div>
   </div>
 
   <div class="stats-bar">
@@ -446,7 +506,12 @@
    <div class="stats-text" id="pageInfo"></div>
   </div>
 
-  <div class="table-card">
+  <div class="map-card" id="mapCard">
+   <div id="mapContainer"></div>
+   <div class="map-note" id="mapNote">Loading map…</div>
+  </div>
+
+  <div class="table-card" id="tableCard">
    <div class="table-scroll">
     <table>
      <thead>
@@ -474,6 +539,11 @@
 
  </div>
 
+ <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
+ <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+ <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+ <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+ <script src="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
  <script>
   function goBack() {
@@ -497,6 +567,195 @@
   const PAGE_SIZE = 50;
   let DATA = [];
   let filtered = [], currentPage = 1, sortCol = 'company', sortDir = 1, searchTerm = '', activeFilter = 'all';
+  let currentView = 'table', mapInstance = null, markerCluster = null;
+
+  // ===== OS National Grid reference -> WGS84 lat/lon (pure maths, no API calls) =====
+  // Standard Ordnance Survey algorithm (Airy 1830 ellipsoid + Helmert transform to WGS84).
+  function gridRefToEastingNorthing(gridRefStr) {
+    if (!gridRefStr) return null;
+    const s = gridRefStr.trim().toUpperCase().replace(/\s+/g, ' ');
+    const parts = s.split(' ');
+    let letters, eDigits, nDigits;
+    if (parts.length === 3) {
+      [letters, eDigits, nDigits] = parts;
+    } else {
+      const m = s.match(/^([A-Z]{2})(\d+)$/);
+      if (!m) return null;
+      letters = m[1];
+      const digits = m[2];
+      const half = digits.length / 2;
+      eDigits = digits.slice(0, half);
+      nDigits = digits.slice(half);
+    }
+    if (letters.length !== 2 || !/^\d+$/.test(eDigits) || !/^\d+$/.test(nDigits)) return null;
+
+    let l1 = letters.charCodeAt(0) - 65;
+    let l2 = letters.charCodeAt(1) - 65;
+    if (l1 > 7) l1--; // grid letters skip 'I'
+    if (l2 > 7) l2--;
+
+    const e100k = ((l1 - 2) % 5) * 5 + (l2 % 5);
+    const n100k = (19 - Math.floor(l1 / 5) * 5) - Math.floor(l2 / 5);
+    if (e100k < 0 || e100k > 6 || n100k < 0 || n100k > 12) return null;
+
+    const e = Number(eDigits) * Math.pow(10, 5 - eDigits.length);
+    const n = Number(nDigits) * Math.pow(10, 5 - nDigits.length);
+
+    return { easting: e100k * 100000 + e, northing: n100k * 100000 + n };
+  }
+
+  function osGridToLatLon(easting, northing) {
+    const a = 6377563.396, b = 6356256.909, F0 = 0.9996012717;
+    const lat0 = 49 * Math.PI / 180, lon0 = -2 * Math.PI / 180;
+    const N0 = -100000, E0 = 400000;
+    const e2 = 1 - (b * b) / (a * a);
+    const n = (a - b) / (a + b), n2 = n * n, n3 = n * n * n;
+
+    let lat = lat0, M = 0, iter = 0;
+    do {
+      lat = (northing - N0 - M) / (a * F0) + lat;
+      const Ma = (1 + n + (5 / 4) * n2 + (5 / 4) * n3) * (lat - lat0);
+      const Mb = (3 * n + 3 * n * n + (21 / 8) * n3) * Math.sin(lat - lat0) * Math.cos(lat + lat0);
+      const Mc = ((15 / 8) * n2 + (15 / 8) * n3) * Math.sin(2 * (lat - lat0)) * Math.cos(2 * (lat + lat0));
+      const Md = (35 / 24) * n3 * Math.sin(3 * (lat - lat0)) * Math.cos(3 * (lat + lat0));
+      M = b * F0 * (Ma - Mb + Mc - Md);
+      iter++;
+    } while (northing - N0 - M >= 0.00001 && iter < 20);
+
+    const cosLat = Math.cos(lat), sinLat = Math.sin(lat);
+    const nu = a * F0 / Math.sqrt(1 - e2 * sinLat * sinLat);
+    const rho = a * F0 * (1 - e2) / Math.pow(1 - e2 * sinLat * sinLat, 1.5);
+    const eta2 = nu / rho - 1;
+    const tanLat = Math.tan(lat), tan2lat = tanLat * tanLat, tan4lat = tan2lat * tan2lat, tan6lat = tan4lat * tan2lat;
+    const secLat = 1 / cosLat;
+    const nu3 = nu * nu * nu, nu5 = nu3 * nu * nu, nu7 = nu5 * nu * nu;
+    const VII = tanLat / (2 * rho * nu);
+    const VIII = tanLat / (24 * rho * nu3) * (5 + 3 * tan2lat + eta2 - 9 * tan2lat * eta2);
+    const IX = tanLat / (720 * rho * nu5) * (61 + 90 * tan2lat + 45 * tan4lat);
+    const X = secLat / nu;
+    const XI = secLat / (6 * nu3) * (nu / rho + 2 * tan2lat);
+    const XII = secLat / (120 * nu5) * (5 + 28 * tan2lat + 24 * tan4lat);
+    const XIIA = secLat / (5040 * nu7) * (61 + 662 * tan2lat + 1320 * tan4lat + 720 * tan6lat);
+
+    const dE = easting - E0, dE2 = dE * dE, dE3 = dE2 * dE, dE4 = dE2 * dE2, dE5 = dE3 * dE2, dE6 = dE4 * dE2, dE7 = dE5 * dE2;
+    const finalLat = lat - VII * dE2 + VIII * dE4 - IX * dE6;
+    const finalLon = lon0 + X * dE - XI * dE3 + XII * dE5 - XIIA * dE7;
+
+    return osgb36ToWgs84(finalLat * 180 / Math.PI, finalLon * 180 / Math.PI);
+  }
+
+  function osgb36ToWgs84(latDeg, lonDeg) {
+    const a = 6377563.396, b = 6356256.909;
+    const e2 = 1 - (b * b) / (a * a);
+    const phi = latDeg * Math.PI / 180, lambda = lonDeg * Math.PI / 180;
+    const nu = a / Math.sqrt(1 - e2 * Math.sin(phi) * Math.sin(phi));
+    const x1 = nu * Math.cos(phi) * Math.cos(lambda);
+    const y1 = nu * Math.cos(phi) * Math.sin(lambda);
+    const z1 = (1 - e2) * nu * Math.sin(phi);
+
+    const tx = 446.448, ty = -125.157, tz = 542.060;
+    const s = -20.4894e-6;
+    const rx = 0.1502 * Math.PI / (180 * 3600), ry = 0.2470 * Math.PI / (180 * 3600), rz = 0.8421 * Math.PI / (180 * 3600);
+
+    const x2 = tx + x1 * (1 + s) - rz * y1 + ry * z1;
+    const y2 = ty + rz * x1 + y1 * (1 + s) - rx * z1;
+    const z2 = tz - ry * x1 + rx * y1 + z1 * (1 + s);
+
+    const a2 = 6378137.000, b2 = 6356752.3141;
+    const e2b = 1 - (b2 * b2) / (a2 * a2);
+    const p = Math.sqrt(x2 * x2 + y2 * y2);
+    let phi2 = Math.atan2(z2, p * (1 - e2b));
+    for (let i = 0; i < 10; i++) {
+      const nu2 = a2 / Math.sqrt(1 - e2b * Math.sin(phi2) * Math.sin(phi2));
+      phi2 = Math.atan2(z2 + e2b * nu2 * Math.sin(phi2), p);
+    }
+    const lambda2 = Math.atan2(y2, x2);
+
+    return { lat: phi2 * 180 / Math.PI, lon: lambda2 * 180 / Math.PI };
+  }
+
+  function rowToLatLon(row) {
+    const en = gridRefToEastingNorthing(row.grid_ref);
+    if (!en) return null;
+    try {
+      return osGridToLatLon(en.easting, en.northing);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function ensureMap() {
+    if (mapInstance) return;
+    mapInstance = L.map('mapContainer').setView([54.0, -2.5], 6);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors',
+      maxZoom: 18
+    }).addTo(mapInstance);
+    markerCluster = L.markerClusterGroup({
+      iconCreateFunction: function(cluster) {
+        return L.divIcon({
+          html: '<div>' + cluster.getChildCount() + '</div>',
+          className: 'marker-cluster marker-cluster-flexi',
+          iconSize: L.point(38, 38)
+        });
+      }
+    });
+    mapInstance.addLayer(markerCluster);
+  }
+
+  function updateMapMarkers(rows) {
+    if (!markerCluster) return;
+    markerCluster.clearLayers();
+    let plotted = 0;
+    const bounds = [];
+    rows.forEach(r => {
+      const pos = rowToLatLon(r);
+      if (!pos || isNaN(pos.lat) || isNaN(pos.lon)) return;
+      plotted++;
+      bounds.push([pos.lat, pos.lon]);
+      const marker = L.marker([pos.lat, pos.lon]);
+      const popupHtml = `
+        <div class="map-popup-company">${esc(r.company_name || 'Unknown')}</div>
+        ${r.address ? `<div class="map-popup-line">${esc(r.address)}</div>` : ''}
+        ${r.postcode ? `<div class="map-popup-line">${esc(r.postcode)}</div>` : ''}
+        ${r.phone ? `<div class="map-popup-line">${esc(r.phone)}</div>` : ''}
+        ${r.map_url ? `<a class="map-popup-link" href="${esc(r.map_url)}" target="_blank" rel="noopener">Open in Google Maps →</a>` : ''}
+      `;
+      marker.bindPopup(popupHtml);
+      markerCluster.addLayer(marker);
+    });
+
+    const note = document.getElementById('mapNote');
+    const skipped = rows.length - plotted;
+    note.innerHTML = `Plotting <strong>${plotted.toLocaleString()}</strong> of ${rows.length.toLocaleString()} shown` +
+      (skipped > 0 ? ` — ${skipped.toLocaleString()} have no grid reference on file and can't be placed` : '');
+
+    if (bounds.length && currentView === 'map') {
+      mapInstance.fitBounds(bounds, { padding: [30, 30], maxZoom: 12 });
+    }
+  }
+
+  function switchView(view) {
+    currentView = view;
+    const tableCard = document.getElementById('tableCard');
+    const mapCard = document.getElementById('mapCard');
+    const tableBtn = document.getElementById('tableViewBtn');
+    const mapBtn = document.getElementById('mapViewBtn');
+    if (view === 'map') {
+      tableCard.classList.add('hide');
+      mapCard.classList.add('show');
+      tableBtn.classList.remove('active');
+      mapBtn.classList.add('active');
+      ensureMap();
+      updateMapMarkers(filtered);
+      setTimeout(() => mapInstance.invalidateSize(), 50);
+    } else {
+      tableCard.classList.remove('hide');
+      mapCard.classList.remove('show');
+      tableBtn.classList.add('active');
+      mapBtn.classList.remove('active');
+    }
+  }
 
   function esc(s) {
     return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -573,6 +832,7 @@
     filtered = d;
     currentPage = 1;
     render();
+    if (currentView === 'map' && markerCluster) updateMapMarkers(filtered);
   }
 
   function render() {
@@ -660,6 +920,9 @@
   cb.addEventListener('click', () => {
     si.value=''; searchTerm=''; cb.style.display='none'; run(); si.focus();
   });
+
+  document.getElementById('tableViewBtn').addEventListener('click', () => switchView('table'));
+  document.getElementById('mapViewBtn').addEventListener('click', () => switchView('map'));
 
   document.querySelectorAll('.filter-btn').forEach(btn => {
     btn.addEventListener('click', () => {
