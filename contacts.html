@@ -690,4 +690,13 @@
 
   document.querySelector('th[data-col="company"]').classList.add('sorted-asc');
   loadData();
+
+  // Chrome can restore this page from the back-forward cache (bfcache) when
+  // navigating back/forward, which freezes the JS and skips loadData() entirely.
+  // Detect that and re-fetch so the data is never left stale.
+  window.addEventListener('pageshow', (event) => {
+    if (event.persisted) {
+      loadData();
+    }
+  });
  </script>
