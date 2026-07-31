@@ -103,6 +103,11 @@
         margin-bottom: 16px;
         position: relative;
         overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        min-height: 100px;
     }
     .truck-banner::before {
         content: '';
@@ -129,6 +134,17 @@
         font-size: 22px;
         font-weight: 700;
         color: #ffffff;
+    }
+    .truck-banner-text { position: relative; z-index: 1; min-width: 0; }
+    .truck-banner-img {
+        position: relative;
+        z-index: 1;
+        height: 110px;
+        width: auto;
+        max-width: 220px;
+        object-fit: contain;
+        filter: drop-shadow(0 8px 16px rgba(0,0,0,0.5));
+        flex-shrink: 0;
     }
 
     .stats-row {
@@ -402,6 +418,30 @@
             .slice(0, 6);
     }
 
+    // Matches a truck's make/model text to one of the uploaded reference
+    // images. Checked in order — most specific patterns first, since e.g.
+    // "VNA AC 1000" should use the VNA image, not the plain AC1000 one.
+    const MODEL_IMAGES = [
+        { match: ['15vn'], file: '15VN.png' },
+        { match: ['vna'], file: 'VNA.png' },
+        { match: ['giii'], file: 'G3.png' },
+        { match: ['giv'], file: 'G4.png' },
+        { match: ['17n'], file: '17n.png' },
+        { match: ['20s'], file: '20s.png' },
+        { match: ['1350'], file: '1350.png' },
+        { match: ['1250'], file: '1250.png' },
+        { match: ['ac 1000', 'ac1000', ' ac 1000', '1000'], file: 'ac1000.png' },
+    ];
+
+    function getModelImage(makeModel) {
+        if (!makeModel) return '15VN.png';
+        const m = makeModel.toLowerCase();
+        for (const entry of MODEL_IMAGES) {
+            if (entry.match.some(k => m.includes(k))) return entry.file;
+        }
+        return '15VN.png';
+    }
+
     function renderIssues(jobs) {
         const issues = buildIssueCounts(jobs);
         if (!issues.length) {
@@ -430,12 +470,16 @@
         const serviceCount = jobs.filter(j => classifyJobType(j.job_type_name) === 'Service / PM').length;
         const withModel = jobs.find(j => j.make_model);
         const model = withModel ? withModel.make_model : '';
+        const imgFile = getModelImage(model);
 
         return `
         <div class="insights">
             <div class="truck-banner">
-                <div class="truck-serial">Serial ${serial}</div>
-                <div class="truck-model">${model || 'Truck history'}</div>
+                <div class="truck-banner-text">
+                    <div class="truck-serial">Serial ${serial}</div>
+                    <div class="truck-model">${model || 'Truck history'}</div>
+                </div>
+                ${imgFile ? `<img class="truck-banner-img" src="${imgFile}" alt="${model}" onerror="this.style.display='none'">` : ''}
             </div>
             <div class="stats-row">
                 <div class="stat-card"><div class="stat-value neutral">${jobs.length}</div><div class="stat-label">Total Visits</div></div>
