@@ -225,26 +225,21 @@
     border-radius: 16px;
     box-shadow: 0 2px 12px rgba(0,0,0,0.04);
     position: relative;
+    overflow: hidden;
   }
-  .table-card::after {
-    content: '';
-    position: absolute;
-    top: 0; right: 0; bottom: 0;
-    width: 24px;
-    background: linear-gradient(to right, transparent, rgba(0,0,0,0.06));
-    pointer-events: none;
-    border-radius: 0 16px 16px 0;
-  }
-  .table-scroll {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    border-radius: 16px 16px 0 0;
-  }
-  table { width: 100%; min-width: 760px; border-collapse: collapse; font-size: 14px; }
-  thead { background: var(--surface2); border-bottom: 1px solid var(--border); }
-  th {
+
+  .grid-header, .grid-row {
+    display: grid;
+    grid-template-columns: minmax(0,1.3fr) minmax(0,1.3fr) minmax(0,0.75fr) minmax(0,0.95fr) minmax(0,1fr) minmax(0,1fr);
+    gap: 10px;
+    align-items: center;
     padding: 12px 16px;
-    text-align: left;
+  }
+  .grid-header {
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+  .grid-header-cell {
     font-family: var(--mono);
     font-size: 10px;
     font-weight: 500;
@@ -254,21 +249,40 @@
     cursor: pointer;
     user-select: none;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     transition: color 0.2s;
   }
-  th:hover { color: var(--text); }
-  th.sorted-asc, th.sorted-desc { color: var(--red); }
-  th .arrow { margin-left: 5px; opacity: 0.4; font-size: 9px; }
-  th.sorted-asc .arrow::after { content: '▲'; opacity: 1; }
-  th.sorted-desc .arrow::after { content: '▼'; opacity: 1; }
-  th:not(.sorted-asc):not(.sorted-desc) .arrow::after { content: '⇅'; }
+  .grid-header-cell:hover { color: var(--text); }
+  .grid-header-cell.sorted-asc, .grid-header-cell.sorted-desc { color: var(--red); }
+  .grid-header-cell .arrow { margin-left: 5px; opacity: 0.4; font-size: 9px; }
+  .grid-header-cell.sorted-asc .arrow::after { content: '▲'; opacity: 1; }
+  .grid-header-cell.sorted-desc .arrow::after { content: '▼'; opacity: 1; }
+  .grid-header-cell:not(.sorted-asc):not(.sorted-desc) .arrow::after { content: '⇅'; }
 
-  tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
-  tbody tr:last-child { border-bottom: none; }
-  tbody tr:hover { background: rgba(0,0,0,0.02); }
-  td { padding: 12px 16px; vertical-align: middle; }
+  .grid-row { border-bottom: 1px solid var(--border); transition: background 0.15s; font-size: 14px; }
+  .grid-row:last-child { border-bottom: none; }
+  .grid-row:hover { background: rgba(0,0,0,0.02); }
+  .grid-cell { min-width: 0; overflow: hidden; }
+  .grid-empty-msg { padding: 40px 16px; text-align: center; color: var(--muted); font-family: var(--mono); font-size: 12px; }
 
-  .company-cell { display: flex; align-items: center; gap: 12px; }
+  @media (max-width: 820px) {
+    .grid-header { display: none; }
+    .grid-row { grid-template-columns: 1fr; gap: 6px; padding: 16px; }
+    .grid-cell { overflow: visible; }
+    .grid-cell[data-label]::before {
+      content: attr(data-label);
+      display: block;
+      font-family: var(--mono);
+      font-size: 9px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 3px;
+    }
+  }
+
+  .company-cell { display: flex; align-items: center; gap: 12px; min-width: 0; }
   .avatar {
     width: 34px; height: 34px;
     border-radius: 8px;
@@ -289,18 +303,20 @@
     font-weight: 600;
     font-size: 14px;
     color: var(--text);
-    max-width: 260px;
+    max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    display: block;
   }
   .address-text {
     font-size: 13px;
     color: var(--text);
-    max-width: 260px;
+    max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    display: block;
   }
   .postcode-tag {
     display: inline-block;
@@ -329,7 +345,7 @@
     color: var(--red);
     text-decoration: none;
     letter-spacing: 0.3px;
-    max-width: 200px;
+    max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -512,28 +528,23 @@
   </div>
 
   <div class="table-card" id="tableCard">
-   <div class="table-scroll">
-    <table>
-     <thead>
-      <tr>
-       <th data-col="company">Company <span class="arrow"></span></th>
-       <th data-col="address">Address <span class="arrow"></span></th>
-       <th data-col="postcode">Post Code <span class="arrow"></span></th>
-       <th data-col="phone">Phone <span class="arrow"></span></th>
-       <th data-col="website">Website <span class="arrow"></span></th>
-       <th data-col="location">Location <span class="arrow"></span></th>
-      </tr>
-     </thead>
-     <tbody id="tableBody">
-      <tr><td colspan="6" style="padding:40px 16px;text-align:center;color:var(--muted);font-family:var(--mono);font-size:12px;">Loading contacts…</td></tr>
-     </tbody>
-    </table>
+   <div class="grid-header">
+    <div class="grid-header-cell sorted-asc" data-col="company">Company <span class="arrow"></span></div>
+    <div class="grid-header-cell" data-col="address">Address <span class="arrow"></span></div>
+    <div class="grid-header-cell" data-col="postcode">Post Code <span class="arrow"></span></div>
+    <div class="grid-header-cell" data-col="phone">Phone <span class="arrow"></span></div>
+    <div class="grid-header-cell" data-col="website">Website <span class="arrow"></span></div>
+    <div class="grid-header-cell" data-col="location">Location <span class="arrow"></span></div>
+   </div>
+   <div id="tableBody">
+    <div class="grid-empty-msg">Loading contacts…</div>
    </div>
    <div id="emptyState" class="empty-state" style="display:none;">
     <div class="icon">◎</div>
     <h3>No contacts found</h3>
     <p>Try adjusting your search or filter</p>
    </div>
+
    <div class="pagination" id="pagination"></div>
   </div>
 
@@ -796,7 +807,7 @@
       }
       DATA = all;
     } catch (err) {
-      tbody.innerHTML = `<tr><td colspan="6" style="padding:40px 16px;text-align:center;color:var(--red);font-family:var(--mono);font-size:12px;">Couldn't load contacts from Supabase.<br>${esc(String(err.message||err))}</td></tr>`;
+      tbody.innerHTML = `<div class="grid-empty-msg" style="color:var(--red);">Couldn't load contacts from Supabase.<br>${esc(String(err.message||err))}</div>`;
       return;
     }
     document.getElementById('totalCount').textContent = DATA.length.toLocaleString();
@@ -862,20 +873,16 @@
 
       const label = r.nearest_town || r.county || r.region || '';
       const tip = [r.region, r.county, r.nearest_town, r.grid_ref ? ('Grid Ref: '+r.grid_ref) : ''].filter(Boolean).join(' · ');
-      let location = '<span class="no-data">—</span>';
-      if (label || r.map_url) {
-        location = (label ? `<span class="address-text" title="${esc(tip)}">${esc(label)}</span>` : '')
-          + (r.map_url ? ` <a class="website-link" href="${esc(r.map_url)}" target="_blank" rel="noopener">📍 Map</a>` : '');
-      }
+      const location = label ? `<span class="address-text" title="${esc(tip)}">${esc(label)}</span>` : '<span class="no-data">—</span>';
 
-      return `<tr>
-        <td><div class="company-cell"><div class="avatar">${esc(init)}</div><span class="company-text">${highlight(company,q)}</span></div></td>
-        <td>${address}</td>
-        <td>${postcode}</td>
-        <td>${phone}</td>
-        <td>${website}</td>
-        <td>${location}</td>
-      </tr>`;
+      return `<div class="grid-row">
+        <div class="grid-cell" data-label="Company"><div class="company-cell"><div class="avatar">${esc(init)}</div><span class="company-text">${highlight(company,q)}</span></div></div>
+        <div class="grid-cell" data-label="Address">${address}</div>
+        <div class="grid-cell" data-label="Post Code">${postcode}</div>
+        <div class="grid-cell" data-label="Phone">${phone}</div>
+        <div class="grid-cell" data-label="Website">${website}</div>
+        <div class="grid-cell" data-label="Location">${location}</div>
+      </div>`;
     }).join('');
 
     renderPagination(total);
@@ -941,17 +948,16 @@
     run();
   });
 
-  document.querySelectorAll('th[data-col]').forEach(th => {
+  document.querySelectorAll('.grid-header-cell[data-col]').forEach(th => {
     th.addEventListener('click', () => {
       const col = th.dataset.col;
       if (sortCol===col) sortDir*=-1; else { sortCol=col; sortDir=1; }
-      document.querySelectorAll('th').forEach(t=>t.classList.remove('sorted-asc','sorted-desc'));
+      document.querySelectorAll('.grid-header-cell').forEach(t=>t.classList.remove('sorted-asc','sorted-desc'));
       th.classList.add(sortDir===1?'sorted-asc':'sorted-desc');
       run();
     });
   });
 
-  document.querySelector('th[data-col="company"]').classList.add('sorted-asc');
   loadData();
 
   // Chrome can restore this page from the back-forward cache (bfcache) when
