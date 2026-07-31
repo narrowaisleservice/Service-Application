@@ -694,8 +694,11 @@
   // Chrome can restore this page from the back-forward cache (bfcache) when
   // navigating back/forward, which freezes the JS and skips loadData() entirely.
   // Detect that and re-fetch so the data is never left stale.
+  console.log('[contacts.html] script running, persisted-page handler attached');
   window.addEventListener('pageshow', (event) => {
+    console.log('[contacts.html] pageshow fired, persisted =', event.persisted);
     if (event.persisted) {
+      console.log('[contacts.html] restored from bfcache - reloading data');
       loadData();
     }
   });
