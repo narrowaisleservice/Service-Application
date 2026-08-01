@@ -483,6 +483,11 @@
     // images. Checked in order — most specific patterns first, since e.g.
     // "VNA AC 1000" should use the VNA image, not the plain AC1000 one.
     const MODEL_IMAGES = [
+        { match: [['hoppecke','batter']], file: 'hoppecke_battery.png' },
+        { match: [['hoppecke','charg']], file: 'hoppecke_charger.png' },
+        { match: [['triathlon','batter']], file: 'triathlon_battery.png' },
+        { match: [['triathlon','charg']], file: 'tirathlon_charger.png' },
+        { match: ['mast'], file: 'mast.png' },
         { match: ['15vn'], file: '15VN.png' },
         { match: ['vna'], file: 'VNA.png' },
         { match: ['giii'], file: 'G3.png' },
@@ -493,13 +498,16 @@
         { match: ['1250'], file: '1250.png' },
         { match: ['r5'], file: 'R5.png' },
         { match: ['ac 1000', 'ac1000', ' ac 1000', '1000'], file: 'ac1000.png' },
+        { match: ['batter'], file: 'hoppecke_battery.png' },
+        { match: ['charg'], file: 'hoppecke_charger.png' },
     ];
 
     function getModelImage(makeModel) {
         if (!makeModel) return '15VN.png';
         const m = makeModel.toLowerCase();
+        const isMatch = (alt) => Array.isArray(alt) ? alt.every(k => m.includes(k)) : m.includes(alt);
         for (const entry of MODEL_IMAGES) {
-            if (entry.match.some(k => m.includes(k))) return entry.file;
+            if (entry.match.some(isMatch)) return entry.file;
         }
         return '15VN.png';
     }
