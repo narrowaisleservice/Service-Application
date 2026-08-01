@@ -466,6 +466,8 @@
 
   .marker-cluster-flexi { background: rgba(223,10,30,0.15); }
   .marker-cluster-flexi div { background: var(--red); color: #fff; font-family: var(--mono); font-weight: 500; }
+  .marker-cluster-weld { background: rgba(245,166,35,0.2); }
+  .marker-cluster-weld div { background: #101010; border: 2px solid #f5a623; color: #fff; font-family: var(--mono); font-weight: 500; }
  </style>
  <div class="app">
 
@@ -547,6 +549,7 @@
     <span><i style="background:#f5a623"></i> Contract expiring</span>
     <span><i style="background:#4caf50"></i> Active contract</span>
     <span><i style="background:#9ca3af"></i> No linked data</span>
+    <span style="margin-left:auto;"><label style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;"><input type="checkbox" id="weldToggle"> 🔥 Show weld flags</label></span>
    </div>
    <div id="mapContainer"></div>
    <div class="map-note" id="mapNote">Loading map…</div>
@@ -603,7 +606,8 @@
   const PAGE_SIZE = 50;
   let DATA = [];
   let filtered = [], currentPage = 1, sortCol = 'company', sortDir = 1, searchTerm = '', activeFilter = 'all';
-  let currentView = 'table', mapInstance = null, markerCluster = null;
+  let currentView = 'table', mapInstance = null, markerCluster = null, weldCluster = null;
+  let weldReportsByName = new Map();
 
   // ===== OS National Grid reference -> WGS84 lat/lon (pure maths, no API calls) =====
   // Standard Ordnance Survey algorithm (Airy 1830 ellipsoid + Helmert transform to WGS84).
@@ -780,7 +784,68 @@
       }
     });
     mapInstance.addLayer(markerCluster);
+
+    weldCluster = L.markerClusterGroup({
+      iconCreateFunction: function(cluster) {
+        return L.divIcon({
+          html: '<div>' + cluster.getChildCount() + '</div>',
+          className: 'marker-cluster marker-cluster-weld',
+          iconSize: L.point(34, 34)
+        });
+      }
+    });
   }
+
+  const weldIcon = L.divIcon({
+    className: 'weld-marker',
+    html: `<div style="width:16px;height:16px;border-radius:50%;background:#101010;border:2px solid #f5a623;display:flex;align-items:center;justify-content:center;font-size:10px;">🔥</div>`,
+    iconSize: [16, 16],
+    iconAnchor: [8, 8]
+  });
+
+  async function loadWeldReports() {
+    try {
+      const { data, error } = await db.from('weld_reports').select('*');
+      if (error) throw error;
+      return data || [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function updateWeldMarkers(rows) {
+    if (!weldCluster) return;
+    weldCluster.clearLayers();
+    if (!weldReportsByName.size) return;
+    let plotted = 0;
+    rows.forEach(r => {
+      const key = normalizeName(r.company_name);
+      const reports = weldReportsByName.get(key);
+      if (!reports || !reports.length) return;
+      const pos = rowToLatLon(r);
+      if (!pos || isNaN(pos.lat) || isNaN(pos.lon)) return;
+      plotted++;
+      const marker = L.marker([pos.lat, pos.lon], { icon: weldIcon });
+      const pending = reports.filter(w => (w.status||'').toLowerCase() === 'pending').length;
+      marker.bindPopup(`
+        <div class="map-popup-company">${esc(r.company_name)}</div>
+        <div class="map-popup-line">🔥 ${reports.length} weld flag${reports.length===1?'':'s'}${pending ? ` · ${pending} pending review` : ''}</div>
+        <a class="map-popup-link" href="weld-review.html">Open weld review →</a>
+      `);
+      weldCluster.addLayer(marker);
+    });
+    document.getElementById('mapNote').dataset.weldCount = plotted;
+  }
+
+  document.getElementById('weldToggle').addEventListener('change', (e) => {
+    if (!mapInstance) return;
+    if (e.target.checked) {
+      mapInstance.addLayer(weldCluster);
+      updateWeldMarkers(filtered);
+    } else {
+      mapInstance.removeLayer(weldCluster);
+    }
+  });
 
   function updateMapMarkers(rows) {
     if (!markerCluster) return;
@@ -917,6 +982,19 @@
         // linked filters/colours are a bonus layer - contacts still work fine without them
         DATA.forEach(r => { r._link = null; });
       }
+
+      try {
+        const weldRows = await loadWeldReports();
+        weldReportsByName = new Map();
+        weldRows.forEach(w => {
+          const key = normalizeName(w.customer_name);
+          if (!key) return;
+          if (!weldReportsByName.has(key)) weldReportsByName.set(key, []);
+          weldReportsByName.get(key).push(w);
+        });
+      } catch (weldErr) {
+        weldReportsByName = new Map();
+      }
     } catch (err) {
       tbody.innerHTML = `<div class="grid-empty-msg" style="color:var(--red);">Couldn't load contacts from Supabase.<br>${esc(String(err.message||err))}</div>`;
       return;
@@ -959,6 +1037,7 @@
     currentPage = 1;
     render();
     if (currentView === 'map' && markerCluster) updateMapMarkers(filtered);
+    if (currentView === 'map' && weldCluster && document.getElementById('weldToggle').checked) updateWeldMarkers(filtered);
   }
 
   function render() {

@@ -88,6 +88,15 @@
         flex-shrink: 0;
     }
     .truck-info { flex: 1; min-width: 0; }
+    .truck-thumb {
+        width: 44px; height: 44px;
+        object-fit: contain;
+        background: #fafafa;
+        border-radius: 8px;
+        border: 1px solid #eee;
+        flex-shrink: 0;
+        padding: 3px;
+    }
     .truck-serial-name { font-family: 'IBM Plex Sans', sans-serif; font-size: 15px; font-weight: 700; }
     .truck-model-name { font-size: 12.5px; color: #707070; margin-top: 2px; }
 
@@ -189,6 +198,28 @@
 
     let ALL_ROWS = [];
 
+    // Same matcher used on Service History / Customer Overview - keep in sync.
+    const MODEL_IMAGES = [
+        { match: ['15vn'], file: '15VN.png' },
+        { match: ['vna'], file: 'VNA.png' },
+        { match: ['giii'], file: 'G3.png' },
+        { match: ['giv'], file: 'G4.png' },
+        { match: ['17n'], file: '17n.png' },
+        { match: ['20s'], file: '20s.png' },
+        { match: ['1350'], file: '1350.png' },
+        { match: ['1250'], file: '1250.png' },
+        { match: ['r5'], file: 'R5.png' },
+        { match: ['ac 1000', 'ac1000', ' ac 1000', '1000'], file: 'ac1000.png' },
+    ];
+    function getModelImage(makeModel) {
+        if (!makeModel) return '15VN.png';
+        const m = makeModel.toLowerCase();
+        for (const entry of MODEL_IMAGES) {
+            if (entry.match.some(k => m.includes(k))) return entry.file;
+        }
+        return '15VN.png';
+    }
+
     function formatDate(val) {
         if (!val) return '\u2014';
         const d = new Date(val);
@@ -226,6 +257,7 @@
             return `
             <div class="truck-row" onclick="window.location.href='service-history.html?serial=${encodeURIComponent(r.serial_no)}'">
                 <div class="rank-badge">#${i + 1}</div>
+                <img class="truck-thumb" src="${getModelImage(r.make_model)}" alt="" onerror="this.style.display='none'">
                 <div class="truck-info">
                     <div class="truck-serial-name">${r.serial_no}${r.make_model ? ' — ' + r.make_model : ''}</div>
                     <div class="truck-model-name">First seen ${formatDate(r.first_visit)} &middot; Last visit ${formatDate(r.last_visit)}</div>

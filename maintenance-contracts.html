@@ -210,6 +210,34 @@
  #sortSelect option { background: #FFFFFF; color: #101010; }
 
  .stats-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+
+ .view-toggle {
+  display: inline-flex; gap: 4px; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 4px;
+ }
+ .view-toggle-btn {
+  padding: 7px 16px; background: none; border: none; border-radius: 7px; font-family: var(--mono);
+  font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); cursor: pointer;
+  transition: all 0.2s; font-weight: 500;
+ }
+ .view-toggle-btn.active { background: #FFFFFF; color: var(--red); box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+
+ .revenue-card { display: none; }
+ .revenue-card.show { display: block; }
+ .revenue-stats {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 16px;
+ }
+ .rev-stat { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
+ .rev-stat-value { font-family: var(--head); font-size: 26px; font-weight: 800; color: var(--red); line-height: 1; }
+ .rev-stat-value.neutral { color: var(--text); }
+ .rev-stat-label { font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; margin-top: 6px; }
+ .revenue-charts { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 12px; }
+ .rev-chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
+ .rev-chart-card h3 { font-family: var(--mono); font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
+ .rev-chart-card canvas { max-height: 260px; }
+ .revenue-note { font-family: var(--mono); font-size: 11px; color: var(--muted); margin-bottom: 24px; }
+ @media (max-width: 800px) { .revenue-charts { grid-template-columns: 1fr; } }
+
  .stats-text {
    font-family: var(--mono);
    font-size: 11px;
@@ -458,6 +486,11 @@
   <button class="filter-btn" data-filter="Preventative Maintenance">Preventative Maintenance</button>
   <button class="filter-btn" data-filter="Hire Maintenance">Hire Maintenance</button>
   <button class="filter-btn" data-filter="expiring">Expiring Within 90 Days</button>
+  <span style="flex:1"></span>
+  <div class="view-toggle">
+   <button class="view-toggle-btn active" id="tableViewBtn">Table</button>
+   <button class="view-toggle-btn" id="revenueViewBtn">Revenue</button>
+  </div>
  </div>
 
  <div class="stats-bar">
@@ -465,7 +498,27 @@
   <div class="stats-text" id="pageInfo"></div>
  </div>
 
- <div class="table-card">
+ <div class="revenue-card" id="revenueCard">
+  <div class="revenue-stats">
+   <div class="rev-stat"><div class="rev-stat-value" id="revTotalValue">£0</div><div class="rev-stat-label">Active Annual Value</div></div>
+   <div class="rev-stat"><div class="rev-stat-value neutral" id="revActiveCount">0</div><div class="rev-stat-label">Active Contracts</div></div>
+   <div class="rev-stat"><div class="rev-stat-value neutral" id="revAvgValue">£0</div><div class="rev-stat-label">Avg Contract Value</div></div>
+   <div class="rev-stat"><div class="rev-stat-value" id="revAtRisk">£0</div><div class="rev-stat-label">Value Expiring in 90 Days</div></div>
+  </div>
+  <div class="revenue-charts">
+   <div class="rev-chart-card">
+    <h3>Top 10 Customers by Contract Value</h3>
+    <canvas id="topCustChart"></canvas>
+   </div>
+   <div class="rev-chart-card">
+    <h3>Renewal Value by Month (Next 12 Months)</h3>
+    <canvas id="renewalChart"></canvas>
+   </div>
+  </div>
+  <div class="revenue-note" id="revenueNote"></div>
+ </div>
+
+ <div class="table-card" id="tableCard">
   <div class="table-scroll">
    <table>
     <thead>
@@ -494,6 +547,7 @@
 
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
  function goBack() {
@@ -517,6 +571,100 @@
  const PAGE_SIZE = 50;
  let DATA = [];
  let filtered = [], currentPage = 1, sortCol = 'company', sortDir = 1, searchTerm = '', activeFilter = 'all';
+ let currentView = 'table';
+ let revCharts = { topCust: null, renewal: null };
+
+ function switchView(view) {
+   currentView = view;
+   const tableCard = document.getElementById('tableCard');
+   const revenueCard = document.getElementById('revenueCard');
+   const tableBtn = document.getElementById('tableViewBtn');
+   const revBtn = document.getElementById('revenueViewBtn');
+   if (view === 'revenue') {
+     tableCard.style.display = 'none';
+     revenueCard.classList.add('show');
+     tableBtn.classList.remove('active');
+     revBtn.classList.add('active');
+     updateRevenueView(filtered);
+   } else {
+     tableCard.style.display = '';
+     revenueCard.classList.remove('show');
+     tableBtn.classList.add('active');
+     revBtn.classList.remove('active');
+   }
+ }
+
+ function updateRevenueView(rows) {
+   const isActive = r => !r.end_date || new Date(r.end_date) >= new Date();
+   const active = rows.filter(r => isActive(r) && Number(r.annual_charge) > 0);
+   const totalValue = active.reduce((sum, r) => sum + Number(r.annual_charge), 0);
+   const avgValue = active.length ? totalValue / active.length : 0;
+   const atRisk = active.filter(r => isExpiringSoon(r.end_date)).reduce((sum, r) => sum + Number(r.annual_charge), 0);
+
+   document.getElementById('revTotalValue').textContent = fmtCharge(totalValue) || '£0';
+   document.getElementById('revActiveCount').textContent = active.length.toLocaleString();
+   document.getElementById('revAvgValue').textContent = fmtCharge(avgValue) || '£0';
+   document.getElementById('revAtRisk').textContent = fmtCharge(atRisk) || '£0';
+
+   const zeroCount = rows.filter(r => isActive(r) && !(Number(r.annual_charge) > 0)).length;
+   document.getElementById('revenueNote').textContent = zeroCount
+     ? `Note: ${zeroCount.toLocaleString()} active contract(s) in the current view have no annual charge on file (mostly Preventative/Hire Maintenance, which are billed per-visit rather than a fixed annual fee) and aren't counted in these figures.`
+     : '';
+
+   // Top 10 customers by contract value
+   const byCust = {};
+   active.forEach(r => {
+     const key = r.cust_name || 'Unknown';
+     byCust[key] = (byCust[key] || 0) + Number(r.annual_charge);
+   });
+   const topCust = Object.entries(byCust).sort((a,b) => b[1]-a[1]).slice(0, 10);
+
+   if (revCharts.topCust) { revCharts.topCust.destroy(); revCharts.topCust = null; }
+   const topCustEl = document.getElementById('topCustChart');
+   if (topCustEl && topCust.length) {
+     revCharts.topCust = new Chart(topCustEl, {
+       type: 'bar',
+       data: {
+         labels: topCust.map(([name]) => name.length > 22 ? name.slice(0,20)+'…' : name),
+         datasets: [{ data: topCust.map(([,v]) => v), backgroundColor: '#df0a1e', borderRadius: 4 }]
+       },
+       options: {
+         indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+         plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => '£' + ctx.parsed.x.toLocaleString('en-GB') } } },
+         scales: { x: { beginAtZero: true, ticks: { callback: v => '£' + v.toLocaleString('en-GB'), font: { size: 10 } }, grid: { color: '#f2f2f2' } }, y: { ticks: { font: { size: 10.5 } }, grid: { display: false } } }
+       }
+     });
+   }
+
+   // Renewal value by month, next 12 months
+   const now = new Date();
+   const months = [];
+   for (let i = 0; i < 12; i++) {
+     const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+     months.push({ key: d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0'), label: d.toLocaleDateString('en-GB', { month: 'short', year: '2-digit' }), value: 0 });
+   }
+   active.forEach(r => {
+     if (!r.end_date) return;
+     const d = new Date(r.end_date);
+     const key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+     const bucket = months.find(m => m.key === key);
+     if (bucket) bucket.value += Number(r.annual_charge);
+   });
+
+   if (revCharts.renewal) { revCharts.renewal.destroy(); revCharts.renewal = null; }
+   const renewalEl = document.getElementById('renewalChart');
+   if (renewalEl) {
+     revCharts.renewal = new Chart(renewalEl, {
+       type: 'bar',
+       data: { labels: months.map(m => m.label), datasets: [{ data: months.map(m => m.value), backgroundColor: '#101010', borderRadius: 4, maxBarThickness: 28 }] },
+       options: {
+         responsive: true, maintainAspectRatio: false,
+         plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => '£' + ctx.parsed.y.toLocaleString('en-GB') } } },
+         scales: { y: { beginAtZero: true, ticks: { callback: v => '£' + v.toLocaleString('en-GB'), font: { size: 10 } }, grid: { color: '#f2f2f2' } }, x: { ticks: { font: { size: 9.5 }, maxRotation: 0 }, grid: { display: false } } }
+       }
+     });
+   }
+ }
 
  function esc(s) {
    return (s||'').toString().replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -614,6 +762,7 @@
    filtered = d;
    currentPage = 1;
    render();
+   if (currentView === 'revenue') updateRevenueView(filtered);
  }
 
  function render() {
@@ -701,6 +850,9 @@
  cb.addEventListener('click', () => {
    si.value=''; searchTerm=''; cb.style.display='none'; run(); si.focus();
  });
+
+ document.getElementById('tableViewBtn').addEventListener('click', () => switchView('table'));
+ document.getElementById('revenueViewBtn').addEventListener('click', () => switchView('revenue'));
 
  document.querySelectorAll('.filter-btn').forEach(btn => {
    btn.addEventListener('click', () => {

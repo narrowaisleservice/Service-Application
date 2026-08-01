@@ -430,6 +430,17 @@
     ];
 
     let charts = { timeline: null, type: null };
+
+    // Shared across Service History / Customer Overview - shown on the dashboard home screen.
+    function trackRecentlyViewed(type, label, sub, url) {
+        try {
+            const key = 'na_recently_viewed';
+            let list = JSON.parse(localStorage.getItem(key) || '[]');
+            list = list.filter(item => item.url !== url);
+            list.unshift({ type, label, sub, url, ts: Date.now() });
+            localStorage.setItem(key, JSON.stringify(list.slice(0, 8)));
+        } catch (e) {}
+    }
     let currentJobs = [];
     let activeIssueKey = null;
 
@@ -762,6 +773,8 @@
             drawCharts(jobs);
             renderJobList(jobs);
             loadContractBanner(distinctSerials[0]);
+            const withModelForTrack = jobs.find(j => j.make_model);
+            trackRecentlyViewed('truck', distinctSerials[0], (withModelForTrack && withModelForTrack.make_model) || '', 'service-history.html?serial=' + encodeURIComponent(distinctSerials[0]));
         } else {
             currentJobs = [];
             wrap.innerHTML =

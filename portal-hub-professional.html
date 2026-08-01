@@ -1157,12 +1157,49 @@
                         `).join('')}
                     </div>
                 </div>
+                ${renderRecentlyViewed()}
             `;
             document.getElementById('dashSearchInput').focus();
             updateClock();
             if (clockInterval) clearInterval(clockInterval);
             clockInterval = setInterval(updateClock, 1000);
             loadHomeStats();
+        }
+
+        function escHtml(s) {
+            return (s||'').toString().replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        }
+
+        function fmtRelativeTime(ts) {
+            const diffMs = Date.now() - ts;
+            const mins = Math.round(diffMs / 60000);
+            if (mins < 1) return 'just now';
+            if (mins < 60) return mins + 'm ago';
+            const hours = Math.round(mins / 60);
+            if (hours < 24) return hours + 'h ago';
+            const days = Math.round(hours / 24);
+            if (days < 7) return days + 'd ago';
+            return new Date(ts).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+        }
+
+        function renderRecentlyViewed() {
+            let list = [];
+            try { list = JSON.parse(localStorage.getItem('na_recently_viewed') || '[]'); } catch (e) {}
+            if (!list.length) return '';
+            return `
+                <div class="quick-access">
+                    <div class="dash-search-eyebrow">Recently viewed</div>
+                    <div class="qa-grid">
+                        ${list.map(item => `
+                            <div class="qa-tile" onclick="window.location.href='${item.url}'">
+                                <div class="qa-icon">${item.type === 'truck' ? ICONS.forklift : ICONS.people}</div>
+                                <div class="qa-label">${escHtml(item.label)}</div>
+                                <div style="font-family:'DM Mono',monospace;font-size:10px;color:#a0a0a0;margin-top:4px;">${fmtRelativeTime(item.ts)}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
         }
 
         async function loadHomeStats() {

@@ -208,10 +208,43 @@
    if (!n) return null;
    return '£' + n.toLocaleString('en-GB', { maximumFractionDigits: 2 });
  }
+ // Shared across Service History / Customer Overview - shown on the dashboard home screen.
+ function trackRecentlyViewed(type, label, sub, url) {
+   try {
+     const key = 'na_recently_viewed';
+     let list = JSON.parse(localStorage.getItem(key) || '[]');
+     list = list.filter(item => item.url !== url);
+     list.unshift({ type, label, sub, url, ts: Date.now() });
+     localStorage.setItem(key, JSON.stringify(list.slice(0, 8)));
+   } catch (e) {}
+ }
+
  function isExpiringSoon(endDate) {
    if (!endDate) return false;
    const diff = (new Date(endDate + 'T00:00:00') - new Date()) / (1000*60*60*24);
    return diff >= 0 && diff <= 90;
+ }
+
+ // Same matcher used on Service History / Problem Trucks - keep in sync.
+ const MODEL_IMAGES = [
+   { match: ['15vn'], file: '15VN.png' },
+   { match: ['vna'], file: 'VNA.png' },
+   { match: ['giii'], file: 'G3.png' },
+   { match: ['giv'], file: 'G4.png' },
+   { match: ['17n'], file: '17n.png' },
+   { match: ['20s'], file: '20s.png' },
+   { match: ['1350'], file: '1350.png' },
+   { match: ['1250'], file: '1250.png' },
+   { match: ['r5'], file: 'R5.png' },
+   { match: ['ac 1000', 'ac1000', ' ac 1000', '1000'], file: 'ac1000.png' },
+ ];
+ function getModelImage(makeModel) {
+   if (!makeModel) return '15VN.png';
+   const m = makeModel.toLowerCase();
+   for (const entry of MODEL_IMAGES) {
+     if (entry.match.some(k => m.includes(k))) return entry.file;
+   }
+   return '15VN.png';
  }
 
  const ISSUE_CATEGORIES = [
@@ -358,6 +391,8 @@
    }
    if (!customer) contactBits.push('<em>Not found in Contacts — showing linked records only, matched by name.</em>');
 
+   trackRecentlyViewed('customer', displayName, '', 'customer-overview.html?company=' + encodeURIComponent(displayName));
+
    const activeContracts = contracts.filter(c => !c.end_date || new Date(c.end_date) >= new Date());
    const expiringContracts = contracts.filter(c => isExpiringSoon(c.end_date));
    const breakdownVisits = history.filter(h => classifyJobType(h.job_type_name) === 'Breakdown').length;
@@ -440,10 +475,11 @@
          <div class="section-head"><div class="section-title">Equipment (${equipment.length})</div><div class="section-note">Click a machine to see its full service history</div></div>
          <div class="card" style="padding:0; overflow-x:auto;">
            <table class="data-table">
-             <thead><tr><th>Equipment</th><th>Make / Model</th><th>Serial No</th><th>Site</th></tr></thead>
+             <thead><tr><th></th><th>Equipment</th><th>Make / Model</th><th>Serial No</th><th>Site</th></tr></thead>
              <tbody>
                ${equipment.map(e => `
                  <tr class="clickable" onclick="window.location.href='service-history.html?serial=${encodeURIComponent(e.serial_no||e.equip_code||'')}'">
+                   <td><img src="${getModelImage(e.model)}" alt="" style="width:34px;height:34px;object-fit:contain;background:var(--surface2);border-radius:6px;border:1px solid var(--border);padding:2px;" onerror="this.style.display='none'"></td>
                    <td><span class="equip-tag">${esc(e.equip_code||'—')}</span></td>
                    <td>${esc(e.make||'')} ${esc(e.model||'')}</td>
                    <td class="muted-cell">${esc(e.serial_no||'—')}</td>
