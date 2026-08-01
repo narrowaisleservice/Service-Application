@@ -44,9 +44,9 @@
   .add-form{background:var(--grey-bg);border-radius:8px;padding:14px;margin-top:14px;}
   .suggest-box{position:relative;}
   .suggest-list{position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--border);border-radius:6px;max-height:200px;overflow-y:auto;z-index:10;box-shadow:0 4px 10px rgba(0,0,0,.08);display:none;}
-  .suggest-list div{padding:8px 10px;font-size:13px;cursor:pointer;border-bottom:1px solid var(--border);}
-  .suggest-list div:hover{background:var(--grey-bg);}
-  .suggest-list div small{color:var(--text-dim);display:block;}
+  .suggest-list .suggest-item{padding:8px 10px;font-size:13px;cursor:pointer;border-bottom:1px solid var(--border);}
+  .suggest-list .suggest-item:hover{background:var(--grey-bg);}
+  .suggest-list .suggest-item small{color:var(--text-dim);display:block;}
   .msg{font-size:13px;padding:10px 12px;border-radius:6px;margin-bottom:14px;}
   .msg.ok{background:#e6f4ea;color:var(--green);}
   .msg.err{background:#fdeeee;color:var(--red-dark);}
@@ -62,6 +62,7 @@
   <h1>Van Stock — Setup</h1>
   <nav>
     <a href="van-stock.html">Dashboard</a>
+    <a href="van-stock-my-van.html">My Van</a>
     <a href="van-stock-audit.html">Audit</a>
     <a href="van-stock-setup.html" class="active">Setup</a>
   </nav>
@@ -129,10 +130,17 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let searchTimer = null;
+let currentSuggestions = []; // holds the last search results so click handlers never need to embed raw text in HTML attributes
+
+const ADMIN_EMAIL = 'j.williams@narrowaisle.co.uk';
 
 async function checkAuth(){
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { window.location.href = 'login.html'; return null; }
+  if (session.user.email !== ADMIN_EMAIL) {
+    document.body.innerHTML = '<main style="max-width:480px;margin:80px auto;text-align:center;font-family:sans-serif;color:#6b6b70;"><h2 style="color:#1a1a1c;">Not available</h2><p>Van Stock setup is restricted. Try the <a href="van-stock.html">dashboard</a> or <a href="van-stock-my-van.html">your van</a> instead.</p></main>';
+    return null;
+  }
   return session;
 }
 
@@ -153,10 +161,16 @@ async function loadVans(){
       <td>${escapeHtml(v.engineer_name || '—')}</td>
       <td><span class="badge ${v.is_standard ? 'standard' : 'custom'}">${v.is_standard ? 'Standard' : 'Custom'}</span></td>
       <td style="color:var(--text-dim);">${escapeHtml(v.notes || '')}</td>
-      <td><button class="icon-btn" onclick="deleteVan(${v.id}, '${escapeAttr(v.van_name)}')">✕</button></td>
+      <td><button class="icon-btn" data-action="delete-van" data-id="${v.id}" data-name="${escapeHtml(v.van_name)}">✕</button></td>
     </tr>
   `).join('');
 }
+
+document.querySelector('#vansTable tbody').addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-action="delete-van"]');
+  if (!btn) return;
+  deleteVan(btn.dataset.id, btn.dataset.name);
+});
 
 async function addVan(){
   const van_name = document.getElementById('newVanName').value.trim();
@@ -191,10 +205,16 @@ async function loadStandardItems(){
       <td>${escapeHtml(i.part_number || '—')}</td>
       <td>${escapeHtml(i.description)}</td>
       <td>${i.target_qty}</td>
-      <td><button class="icon-btn" onclick="deleteStandardItem(${i.id})">✕</button></td>
+      <td><button class="icon-btn" data-action="delete-std" data-id="${i.id}">✕</button></td>
     </tr>
   `).join('');
 }
+
+document.querySelector('#standardTable tbody').addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-action="delete-std"]');
+  if (!btn) return;
+  deleteStandardItem(btn.dataset.id);
+});
 
 async function addStandardItem(){
   const part_number = document.getElementById('stdPartNumber').value.trim();
@@ -223,13 +243,15 @@ function searchParts(term){
   const list = document.getElementById('suggestList');
   if (term.trim().length < 2) { list.style.display = 'none'; return; }
   searchTimer = setTimeout(async () => {
+    const safeTerm = term.replace(/[%,()]/g, ' ').trim();
     const { data, error } = await sb.from('parts')
       .select('part_number, description')
-      .or(`part_number.ilike.%${term}%,description.ilike.%${term}%`)
+      .or(`part_number.ilike.%${safeTerm}%,description.ilike.%${safeTerm}%`)
       .limit(15);
-    if (error || !data.length) { list.style.display = 'none'; return; }
-    list.innerHTML = data.map(p => `
-      <div onclick='pickPart(${JSON.stringify(p.part_number || "")}, ${JSON.stringify(p.description || "")})'>
+    if (error || !data || !data.length) { list.innerHTML = ''; list.style.display = 'none'; return; }
+    currentSuggestions = data;
+    list.innerHTML = data.map((p, idx) => `
+      <div class="suggest-item" data-idx="${idx}">
         ${escapeHtml(p.description || '')}<small>${escapeHtml(p.part_number || '')}</small>
       </div>
     `).join('');
@@ -237,12 +259,16 @@ function searchParts(term){
   }, 250);
 }
 
-function pickPart(part_number, description){
-  document.getElementById('stdPartNumber').value = part_number;
-  document.getElementById('stdDescription').value = description;
+document.getElementById('suggestList').addEventListener('click', (e) => {
+  const item = e.target.closest('.suggest-item');
+  if (!item) return;
+  const p = currentSuggestions[parseInt(item.dataset.idx)];
+  if (!p) return;
+  document.getElementById('stdPartNumber').value = p.part_number || '';
+  document.getElementById('stdDescription').value = p.description || '';
   document.getElementById('suggestList').style.display = 'none';
-  document.getElementById('partSearch').value = description;
-}
+  document.getElementById('partSearch').value = p.description || '';
+});
 
 document.addEventListener('click', (e) => {
   if (!e.target.closest('.suggest-box')) document.getElementById('suggestList').style.display = 'none';
@@ -276,7 +302,6 @@ async function syncStandardToVans(){
 }
 
 function escapeHtml(str){ return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-function escapeAttr(str){ return String(str).replace(/'/g, "\\'"); }
 
 (async function init(){
   const session = await checkAuth();

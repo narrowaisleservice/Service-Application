@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Van Stock</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --red:#df0a1e; --red-dark:#b8081a; --black:#111214; --grey-bg:#f5f5f6;
+    --border:#e2e2e4; --text:#1a1a1c; --text-dim:#6b6b70; --green:#1a8a3f; --green-bg:#e6f4ea;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'IBM Plex Sans',sans-serif;background:var(--grey-bg);color:var(--text);}
+  header{background:var(--black);color:#fff;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+  header h1{font-family:'DM Sans',sans-serif;font-size:18px;margin:0;font-weight:700;}
+  header nav a{color:#ccc;text-decoration:none;margin-left:18px;font-size:14px;font-weight:500;}
+  header nav a.active{color:var(--red);}
+  main{max-width:640px;margin:0 auto;padding:24px 16px 80px;}
+  .card{background:#fff;border:1px solid var(--border);border-radius:10px;padding:20px;}
+  .van-title{font-family:'DM Sans',sans-serif;font-size:20px;font-weight:700;margin:0 0 4px;}
+  .van-sub{font-size:13px;color:var(--text-dim);margin-bottom:18px;}
+  table{width:100%;border-collapse:collapse;font-size:14px;}
+  th{text-align:left;color:var(--text-dim);font-weight:600;font-size:11px;text-transform:uppercase;padding:6px;border-bottom:1px solid var(--border);}
+  td{padding:9px 6px;border-bottom:1px solid var(--border);}
+  .status{font-size:11px;font-weight:700;padding:3px 8px;border-radius:12px;}
+  .status.ok{background:var(--green-bg);color:var(--green);}
+  .status.short{background:#fdeeee;color:var(--red-dark);}
+  .status.none{background:var(--grey-bg);color:var(--text-dim);}
+  .empty{text-align:center;color:var(--text-dim);font-size:14px;padding:40px 20px;}
+  .loading{text-align:center;color:var(--text-dim);font-size:13px;padding:30px;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>My Van Stock</h1>
+  <nav>
+    <a href="van-stock.html">Dashboard</a>
+    <a href="van-stock-my-van.html" class="active">My Van</a>
+  </nav>
+</header>
+
+<main>
+  <div class="card" id="content">
+    <div class="loading">Loading…</div>
+  </div>
+</main>
+
+<script>
+const SUPABASE_URL = 'https://dontubctlexlvifwhmbj.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRvbnR1YmN0bGV4bHZpZndobWJqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ3OTU3NjMsImV4cCI6MjEwMDM3MTc2M30.v5ZblgN7aw832OdBLNWUHW3A2sK0v3skhNDgUoTIOnk';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+async function checkAuth(){
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = 'login.html'; return null; }
+  return session;
+}
+
+function escapeHtml(str){ return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+async function load(){
+  const session = await checkAuth();
+  if (!session) return;
+  const content = document.getElementById('content');
+  const email = session.user.email;
+
+  const { data: van, error: vanErr } = await sb.from('van_stock_vans').select('*').eq('engineer_email', email).maybeSingle();
+
+  if (vanErr || !van) {
+    content.innerHTML = `<div class="empty">No van is linked to your account yet.<br>Ask the office to link ${escapeHtml(email)} to a van.</div>`;
+    return;
+  }
+
+  const { data: items } = await sb.from('van_stock_items').select('*').eq('van_id', van.id).order('description');
+
+  const rows = (items || []).map(i => {
+    let cls = 'none', text = '—';
+    if (i.counted_qty !== null && i.counted_qty !== undefined) {
+      if (i.target_qty === null) { cls = 'ok'; text = 'noted'; }
+      else if (i.counted_qty < i.target_qty) { cls = 'short'; text = `Short ${i.target_qty - i.counted_qty}`; }
+      else { cls = 'ok'; text = 'OK'; }
+    }
+    return `
+      <tr>
+        <td>${escapeHtml(i.description)}<br><span style="color:var(--text-dim);font-size:11px;font-family:'DM Mono',monospace;">${escapeHtml(i.part_number || '')}</span></td>
+        <td>${i.target_qty ?? '—'}</td>
+        <td>${i.counted_qty ?? '—'}</td>
+        <td><span class="status ${cls}">${text}</span></td>
+      </tr>
+    `;
+  }).join('');
+
+  content.innerHTML = `
+    <div class="van-title">${escapeHtml(van.van_name)}</div>
+    <div class="van-sub">Read-only — contact the office if anything needs correcting</div>
+    <table>
+      <thead><tr><th>Item</th><th>Target</th><th>Counted</th><th>Status</th></tr></thead>
+      <tbody>${rows || '<tr><td colspan="4" style="color:var(--text-dim);text-align:center;">Nothing on your van yet.</td></tr>'}</tbody>
+    </table>
+  `;
+}
+
+load();
+</script>
+</body>
+</html>

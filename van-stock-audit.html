@@ -59,6 +59,7 @@
   <h1>Van Stock — Audit</h1>
   <nav>
     <a href="van-stock.html">Dashboard</a>
+    <a href="van-stock-my-van.html">My Van</a>
     <a href="van-stock-audit.html" class="active">Audit</a>
     <a href="van-stock-setup.html">Setup</a>
   </nav>
@@ -86,9 +87,15 @@ let currentUserEmail = '';
 let currentVanId = null;
 let currentItems = [];
 
+const ADMIN_EMAIL = 'j.williams@narrowaisle.co.uk';
+
 async function checkAuth(){
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { window.location.href = 'login.html'; return null; }
+  if (session.user.email !== ADMIN_EMAIL) {
+    document.body.innerHTML = '<main style="max-width:480px;margin:80px auto;text-align:center;font-family:sans-serif;color:#6b6b70;"><h2 style="color:#1a1a1c;">Not available</h2><p>Van Stock audit is restricted. Try the <a href="van-stock.html">dashboard</a> or <a href="van-stock-my-van.html">your van</a> instead.</p></main>';
+    return null;
+  }
   currentUserEmail = session.user.email;
   return session;
 }
