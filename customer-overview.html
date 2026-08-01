@@ -258,6 +258,43 @@
    return matchFn ? all.filter(matchFn) : all;
  }
 
+ function showSearchLanding() {
+   const content = document.getElementById('content');
+   content.innerHTML = `
+     <div class="page-title">
+       <div class="eyebrow">Portal Directory</div>
+       <h1>Find a Customer</h1>
+     </div>
+     <div class="card" style="margin-top:20px;">
+       <input type="text" id="landingSearch" placeholder="Start typing a company name…" autocomplete="off" spellcheck="false"
+         style="width:100%; padding:14px 16px; border:1px solid var(--border); border-radius:10px; font-family:var(--body); font-size:16px; color:var(--text); outline:none;">
+       <div id="landingResults" style="margin-top:12px;"></div>
+     </div>
+   `;
+   const input = document.getElementById('landingSearch');
+   const results = document.getElementById('landingResults');
+   input.focus();
+   let deb;
+   input.addEventListener('input', () => {
+     clearTimeout(deb);
+     const term = input.value.trim();
+     if (term.length < 2) { results.innerHTML = ''; return; }
+     deb = setTimeout(async () => {
+       results.innerHTML = '<div class="muted-cell">Searching…</div>';
+       const { data, error } = await db.from('customers').select('id, company_name, postcode').ilike('company_name', `%${term}%`).order('company_name').limit(20);
+       if (error) { results.innerHTML = '<div class="muted-cell">Search failed.</div>'; return; }
+       if (!data || !data.length) { results.innerHTML = '<div class="muted-cell">No matches.</div>'; return; }
+       results.innerHTML = data.map(c => `
+         <div class="issue-row" style="cursor:pointer;" onclick="window.location.href='customer-overview.html?id=${c.id}'">
+           <div class="issue-main">
+             <div class="issue-top-line"><span class="issue-name">${esc(c.company_name)}</span><span class="muted-cell">${esc(c.postcode||'')}</span></div>
+           </div>
+         </div>
+       `).join('');
+     }, 200);
+   });
+ }
+
  async function loadCustomer() {
    const params = new URLSearchParams(window.location.search);
    const companyParam = params.get('company');
@@ -265,7 +302,7 @@
    const content = document.getElementById('content');
 
    if (!companyParam && !idParam) {
-     content.innerHTML = '<div class="empty-state">No customer specified. Go back and pick one from Contacts.</div>';
+     showSearchLanding();
      return;
    }
 
