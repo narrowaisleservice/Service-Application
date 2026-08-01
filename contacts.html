@@ -283,6 +283,7 @@
   }
 
   .company-cell { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .company-cell:hover .company-text { color: var(--red); }
   .avatar {
     width: 34px; height: 34px;
     border-radius: 8px;
@@ -796,11 +797,14 @@
       let linkedHtml = '';
       if (link) {
         const contractLine = link.has_active_contract
-          ? `✅ ${esc(link.sample_contract_type || 'Active contract')}${link.soonest_end ? ' · exp ' + fmtShortDate(link.soonest_end) : ''}`
+          ? `✅ ${esc(link.sample_contract_type || 'Active contract')}${link.soonest_end ? ' · exp ' + fmtShortDate(link.soonest_end) : ''}${link.contract_is_site_level ? '' : ' <em>(billing customer)</em>'}`
           : (link.contract_count ? `⚠️ Contract on file, not active` : '');
+        const equipLine = link.equipment_count
+          ? `${link.equipment_count} machine(s) on file${link.equipment_is_site_level ? '' : ' <em>(billing customer)</em>'}`
+          : 'No equipment on file';
         linkedHtml = `
           ${contractLine ? `<div class="map-popup-line">${contractLine}</div>` : ''}
-          <div class="map-popup-line">${link.equipment_count ? link.equipment_count + ' machine(s) on file' : 'No equipment on file'}${link.total_visits ? ' · ' + link.total_visits + ' visits (' + link.breakdown_visits + ' breakdowns)' : ''}</div>
+          <div class="map-popup-line">${equipLine}${link.total_visits ? ' · ' + link.total_visits + ' visits (' + link.breakdown_visits + ' breakdowns)' : ''}</div>
         `;
       }
       const popupHtml = `
@@ -809,8 +813,8 @@
         ${r.postcode ? `<div class="map-popup-line">${esc(r.postcode)}</div>` : ''}
         ${r.phone ? `<div class="map-popup-line">${esc(r.phone)}</div>` : ''}
         ${linkedHtml}
-        ${r.map_url ? `<a class="map-popup-link" href="${esc(r.map_url)}" target="_blank" rel="noopener">Open in Google Maps →</a>` : ''}
-        ${link && link.contract_count ? `<br><a class="map-popup-link" href="maintenance-contracts.html?q=${encodeURIComponent(r.company_name||'')}">View contracts →</a>` : ''}
+        <a class="map-popup-link" href="customer-overview.html?company=${encodeURIComponent(r.company_name||'')}">View overview →</a>
+        ${r.map_url ? `<br><a class="map-popup-link" href="${esc(r.map_url)}" target="_blank" rel="noopener">Open in Google Maps →</a>` : ''}
       `;
       marker.bindPopup(popupHtml);
       markerCluster.addLayer(marker);
@@ -987,7 +991,7 @@
       const location = label ? `<span class="address-text" title="${esc(tip)}">${esc(label)}</span>` : '<span class="no-data">—</span>';
 
       return `<div class="grid-row">
-        <div class="grid-cell" data-label="Company"><div class="company-cell"><div class="avatar">${esc(init)}</div><span class="company-text">${highlight(company,q)}</span></div></div>
+        <div class="grid-cell" data-label="Company"><a class="company-cell" href="customer-overview.html?company=${encodeURIComponent(company)}" style="text-decoration:none;color:inherit;"><div class="avatar">${esc(init)}</div><span class="company-text">${highlight(company,q)}</span></a></div>
         <div class="grid-cell" data-label="Address">${address}</div>
         <div class="grid-cell" data-label="Post Code">${postcode}</div>
         <div class="grid-cell" data-label="Phone">${phone}</div>

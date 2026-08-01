@@ -1,0 +1,469 @@
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>
+ Customer Overview — Narrow Aisle
+</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&family=Barlow+Condensed:wght@800&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+ *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+ :root {
+   --red: #df0a1e;
+   --red-dim: rgba(223,10,30,0.08);
+   --red-mid: rgba(223,10,30,0.3);
+   --bg: #FFFFFF;
+   --surface: #FFFFFF;
+   --surface2: #F5F5F5;
+   --border: rgba(0,0,0,0.1);
+   --text: #101010;
+   --muted: #707070;
+   --mono: 'DM Mono', monospace;
+   --head: 'Syne', sans-serif;
+   --body: 'DM Sans', sans-serif;
+   --plex: 'IBM Plex Sans', sans-serif;
+ }
+ html { scroll-behavior: smooth; }
+ body {
+   font-family: var(--body);
+   background: var(--bg);
+   color: var(--text);
+   min-height: 100vh;
+ }
+ body::before {
+   content:'';
+   position:fixed;
+   inset:0;
+   background-image:
+     radial-gradient(ellipse 80% 50% at 50% -10%, rgba(223,10,30,0.06) 0%, transparent 60%),
+     repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(0,0,0,0.025) 39px, rgba(0,0,0,0.025) 40px),
+     repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(0,0,0,0.025) 39px, rgba(0,0,0,0.025) 40px);
+   pointer-events:none;
+   z-index:0;
+ }
+ .app { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 0 24px 80px; }
+
+ .topbar {
+   display: flex; align-items: center; justify-content: space-between;
+   padding: 28px 0 40px; border-bottom: 1px solid var(--border); margin-bottom: 32px;
+ }
+ .topbar-left { display: flex; align-items: center; gap: 16px; }
+ .back-btn {
+   display: inline-flex; align-items: center; justify-content: center;
+   width: 36px; height: 36px; border-radius: 8px; background: none; border: none;
+   color: var(--text); cursor: pointer; transition: color 0.15s, background 0.15s; flex-shrink: 0;
+ }
+ .back-btn:hover { color: var(--red); background: var(--red-dim); }
+ .brand { display: flex; align-items: center; gap: 16px; }
+ .brand svg { height: 28px; width: auto; display: block; }
+ .brand-divider { width: 1px; height: 28px; background: var(--border); }
+ .brand-module { font-family: var(--mono); font-size: 11px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; }
+
+ .page-title { margin-bottom: 8px; }
+ .page-title .eyebrow {
+   font-family: var(--mono); font-size: 11px; letter-spacing: 3px; color: var(--red);
+   text-transform: uppercase; margin-bottom: 10px;
+ }
+ .page-title h1 {
+   font-family: 'Barlow Condensed', var(--head); font-size: clamp(36px, 5vw, 56px); font-weight: 800;
+   line-height: 1.05; letter-spacing: -1px; text-transform: uppercase; color: #101010;
+ }
+ .contact-line {
+   display: flex; flex-wrap: wrap; gap: 16px; margin: 16px 0 32px;
+   font-size: 13px; color: var(--muted);
+ }
+ .contact-line strong { color: var(--text); font-weight: 600; }
+ .contact-line a { color: var(--red); text-decoration: none; }
+ .contact-line a:hover { text-decoration: underline; }
+
+ .loading-state, .empty-state { text-align: center; padding: 80px 20px; color: var(--muted); font-size: 14px; }
+
+ .stats-row {
+   display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+   gap: 12px; margin-bottom: 24px;
+ }
+ .stat-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
+ .stat-value { font-family: var(--plex); font-size: 28px; font-weight: 700; color: var(--red); line-height: 1; }
+ .stat-value.neutral { color: var(--text); }
+ .stat-label { font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; margin-top: 6px; }
+
+ .section { margin-bottom: 28px; }
+ .section-head {
+   display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;
+ }
+ .section-title { font-family: var(--plex); font-size: 15px; font-weight: 700; }
+ .section-note { font-size: 11.5px; color: var(--muted); font-family: var(--mono); }
+
+ .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
+
+ .charts-row { display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; margin-bottom: 16px; }
+ .chart-card canvas { max-height: 220px; }
+ .donut-wrap { position: relative; height: 220px; display: flex; align-items: center; justify-content: center; }
+ @media (max-width: 800px) { .charts-row { grid-template-columns: 1fr; } }
+
+ .issue-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+ .issue-row:last-child { margin-bottom: 0; }
+ .issue-icon {
+   width: 34px; height: 34px; border-radius: 9px; background: var(--red-dim); border: 1px solid var(--red-mid);
+   display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0;
+ }
+ .issue-main { flex: 1; min-width: 0; }
+ .issue-top-line { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 5px; }
+ .issue-name { font-weight: 600; }
+ .issue-count { font-family: var(--mono); color: var(--red); font-weight: 500; }
+ .issue-bar-track { background: #f0f0f0; border-radius: 4px; height: 6px; overflow: hidden; }
+ .issue-bar-fill { background: linear-gradient(90deg, var(--red), #ff5a6a); height: 100%; border-radius: 4px; }
+ .no-issues { font-size: 13px; color: var(--muted); padding: 4px 0; }
+
+ .data-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+ .data-table th {
+   text-align: left; padding: 10px 12px; font-family: var(--mono); font-size: 10px; font-weight: 500;
+   color: var(--muted); text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--border);
+   white-space: nowrap;
+ }
+ .data-table td { padding: 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+ .data-table tr:last-child td { border-bottom: none; }
+ .data-table tr.clickable { cursor: pointer; transition: background 0.15s; }
+ .data-table tr.clickable:hover { background: rgba(0,0,0,0.02); }
+ .equip-tag {
+   font-family: var(--mono); font-size: 12px; background: var(--surface2); border: 1px solid var(--border);
+   border-radius: 6px; padding: 3px 9px; white-space: nowrap;
+ }
+ .badge {
+   display: inline-block; padding: 3px 10px; border-radius: 6px; font-size: 10.5px; font-weight: 700;
+   text-transform: uppercase; letter-spacing: 0.4px; white-space: nowrap;
+ }
+ .badge.active { background: rgba(76,175,80,0.1); color: #4caf50; }
+ .badge.expiring { background: rgba(223,10,30,0.1); color: var(--red); }
+ .badge.inactive { background: #f2f2f2; color: #909090; }
+ .muted-cell { color: var(--muted); font-size: 12px; }
+
+ .match-note {
+   background: #fafafa; border: 1px solid var(--border); border-radius: 10px;
+   padding: 10px 16px; font-size: 12px; color: var(--muted); margin-bottom: 16px;
+ }
+</style>
+<div class="app">
+
+ <div class="topbar">
+  <div class="topbar-left">
+   <button class="back-btn" onclick="goBack()" title="Back" aria-label="Back">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+     <polyline points="15 18 9 12 15 6"/>
+    </svg>
+   </button>
+   <div class="brand">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 841.9 497.3" style="height:28px;width:auto;display:block;">
+     <style>.st0{fill:#101010;}</style>
+     <g><path class="st0" d="M724.9,251.8l9.8-4.4c0.7-0.3,1.5-0.2,2.1,0.2l21.4,13.9c1.4,0.9,1.4,3.1-0.1,3.9l-8.5,4.9c-0.7,0.4-1.6,0.4-2.3-0.1l-22.7-14.4C723.1,254.8,723.2,252.5,724.9,251.8"/><path class="st0" d="M465.5,354.3c-3.9-1.9-6.2-15.3,4.1-34.8c8-15.1,17.6-20.8,22.6-22.6c5.2-1.9,8.9-0.1,10,1c5.6,5.8,0.6,20-6.5,31.4C487.1,343.2,471.1,357,465.5,354.3 M806,352.8c-8.6,14.7-20.3,14-29.1,8.3c-7.7-5-13.3-26-16.2-34.6c-3.1-9-11.7-19.9-21.8-19.9c-13.1,0-30.8,36.5-35.8,42.1c-11.6,12.8-38.3,28-60.3,14.1c-12.1-7.6-28.3-29-28.3-29s49.6-49.4,51.6-52.3l-18.8-19.1c-2.3,3.8-48.6,51.6-50.4,51.6c-1.8,0-22.7-34.8-25.3-38c0,0-31.1-3-32.5-1.6c0,0,40.1,55.2,38.8,57.5c-2,3.3-45.5,34.9-56,40.5c-21.1,11.1-38.5,6.4-38.5,6.4s30.2-25.5,40.3-45.5c5-9.8,23.1-42.2-16.6-60.4c-23.6-10.8-44.4-1.6-63.6,26.8c-21.1,31-4.3,75.7-4.3,75.7s-23.6,16.7-44.6,1.3c-15.4-11.2-26.2-49.6-28.8-85.2c-3.9-52.6,6.8-158.4,6.8-158.4l-47.3-13.9c0,0,6,51.3-5.2,93.9c-26.9,102.3-97,128.4-104.6,129.3c-7.6,0.9-7.6-52.3-59.1-145C122.7,136.8,60,68.7,60.9,65.5c0.9-3.2,81.3-26.5,150.3-28.4c96.8-2.7,185.3,3,191.5,9.3c6.3,6.4-25.5,16.6,6.7,31.4c15.1,6.9,27.3-5.9,32.9-13.5c2.3-3.2,2.1-7.6-0.4-10.5C430.3,40.4,387.4,7.2,249,11.9C76.6,17.8,15.7,44.2,12.1,50.1s107.1,130.9,138,206.3c24.7,60.2,32.3,97.3,31.4,101.4c-0.9,4.1-44.4,1.4-44.4,1.4l13,21.4l35.4-1c0,0,3.9,24.3-1.8,42.7c-7.9,25.4-22.8,37.7-22.8,42.3l30.9,17.7c0,0,19.5-14.3,25.5-54.6c3-20.2,0-47.7,0-47.7s30.1-8.8,60.5-31.4c30.2-22.5,52.4-60,52.4-60s16.5,73.6,37.7,94.9c25.9,25.9,59,26.5,94,11.5c8.1,3.9,15.5,6.6,22.1,8.5c19.5,5.7,40.4,2.5,57.6-8.5c16.4-10.4,41-30.3,55.5-43.4c2.7-2.4,37.2,42.7,83.1,37.6c30.9-3.4,42.8-19,55.6-39c6.6-10.2,13.7,20.7,45.9,32.5c18.4,6.7,37.5,0.2,44.3-11C837,354,814.7,337.9,806,352.8"/></g>
+    </svg>
+    <div class="brand-divider"></div>
+    <div class="brand-module">Customer Overview</div>
+   </div>
+  </div>
+ </div>
+
+ <div id="content"><div class="loading-state">Loading customer…</div></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script>
+ function goBack() {
+   try {
+     if (document.referrer && new URL(document.referrer).host === window.location.host) {
+       window.history.back();
+     } else {
+       window.location.href = 'contacts.html';
+     }
+   } catch (e) {
+     window.location.href = 'contacts.html';
+   }
+ }
+
+ // ===== Supabase project config =====
+ const SUPABASE_URL = 'https://dontubctlexlvifwhmbj.supabase.co';
+ const SUPABASE_KEY = 'sb_publishable_99HLzSv4wMwFZHlR81yIsQ_z0A0Jpth';
+ const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+ // =====================================
+
+ // Same normalization used by the customer_link_summary DB view - keep in sync.
+ function normalizeName(name) {
+   if (!name) return '';
+   let s = name.toUpperCase();
+   s = s.replace(/[.,()&/]/g, ' ');
+   s = s.replace(/\b(LTD|LIMITED|PLC|LLP|LLC|INC|CO|THE|COMPANY|GROUP)\b/g, '');
+   s = s.replace(/\s+/g, ' ').trim();
+   return s;
+ }
+
+ function esc(s) {
+   return (s||'').toString().replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ }
+ function fmtDate(d) {
+   if (!d) return null;
+   return new Date(d + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+ }
+ function fmtCharge(c) {
+   const n = Number(c);
+   if (!n) return null;
+   return '£' + n.toLocaleString('en-GB', { maximumFractionDigits: 2 });
+ }
+ function isExpiringSoon(endDate) {
+   if (!endDate) return false;
+   const diff = (new Date(endDate + 'T00:00:00') - new Date()) / (1000*60*60*24);
+   return diff >= 0 && diff <= 90;
+ }
+
+ const ISSUE_CATEGORIES = [
+   { key: 'brakes',      label: 'Brakes',           icon: '\u{1F6D1}', keywords: ['brake','handbrake','hand brake'] },
+   { key: 'hydraulics',  label: 'Hydraulics & Leaks', icon: '\u{1F4A7}', keywords: ['hydraulic','hose','oil leak','cylinder','ram seal','spool valve','spool micro','leaking'] },
+   { key: 'electrical',  label: 'Electrical',       icon: '\u26A1', keywords: ['electrical','wiring','contactor','fuse','battery','charger','connector','relay','microswitch','keyswitch'] },
+   { key: 'mast',        label: 'Mast & Chains',    icon: '\u{1F4D0}', keywords: ['mast','chain','carriage','bearing','tilt','freelift','roller'] },
+   { key: 'steering',    label: 'Steering',         icon: '\u{1F3AF}', keywords: ['steering','steer motor','orbital','w61','eps'] },
+   { key: 'wheels',      label: 'Wheels & Tyres',   icon: '\u{1F6DE}', keywords: ['wheel','tyre','tire','puncture'] },
+   { key: 'seat',        label: 'Seat',             icon: '\u{1FA91}', keywords: ['seat','cushion'] },
+   { key: 'drive',       label: 'Motor & Drive',    icon: '\u2699\uFE0F', keywords: ['drive motor','gearbox','transmission','drive fault',' motor '] },
+ ];
+
+ function buildIssueCounts(jobs) {
+   const counts = {};
+   ISSUE_CATEGORIES.forEach(c => counts[c.key] = 0);
+   jobs.forEach(job => {
+     const blob = [job.short_desc, job.to_do, job.work_report].filter(Boolean).join(' \n ').toLowerCase();
+     ISSUE_CATEGORIES.forEach(cat => { if (cat.keywords.some(kw => blob.includes(kw))) counts[cat.key]++; });
+   });
+   return ISSUE_CATEGORIES.map(c => ({ ...c, count: counts[c.key] })).filter(c => c.count > 0).sort((a,b) => b.count - a.count).slice(0, 6);
+ }
+
+ function classifyJobType(typeName) {
+   const t = (typeName || '').toLowerCase();
+   if (t.includes('breakdown')) return 'Breakdown';
+   if (t.includes('service') || t.includes('preventative') || t.includes('inclusive')) return 'Service / PM';
+   return 'Other';
+ }
+
+ async function fetchAll(table, matchFn, orFilter) {
+   let all = [];
+   let from = 0;
+   const step = 1000;
+   while (true) {
+     let query = db.from(table).select('*').range(from, from + step - 1);
+     if (orFilter) query = query.or(orFilter);
+     const { data, error } = await query;
+     if (error) throw error;
+     all = all.concat(data || []);
+     if (!data || data.length < step) break;
+     from += step;
+   }
+   return matchFn ? all.filter(matchFn) : all;
+ }
+
+ async function loadCustomer() {
+   const params = new URLSearchParams(window.location.search);
+   const companyParam = params.get('company');
+   const idParam = params.get('id');
+   const content = document.getElementById('content');
+
+   if (!companyParam && !idParam) {
+     content.innerHTML = '<div class="empty-state">No customer specified. Go back and pick one from Contacts.</div>';
+     return;
+   }
+
+   try {
+     let customer = null;
+     if (idParam) {
+       const { data, error } = await db.from('customers').select('*').eq('id', idParam).limit(1);
+       if (error) throw error;
+       customer = (data && data[0]) || null;
+     } else {
+       const { data, error } = await db.from('customers').select('*').ilike('company_name', companyParam).limit(1);
+       if (error) throw error;
+       customer = (data && data[0]) || null;
+       if (!customer) {
+         const { data: d2 } = await db.from('customers').select('*').ilike('company_name', `%${companyParam}%`).limit(1);
+         customer = (d2 && d2[0]) || null;
+       }
+     }
+
+     const displayName = (customer && customer.company_name) || companyParam || 'Unknown Customer';
+     const norm = normalizeName(displayName);
+
+     document.title = displayName + ' — Narrow Aisle';
+
+     // Fetch related records - narrow with a server-side ilike first (cheap), then
+     // confirm with an exact normalized-name match client-side to avoid false positives.
+     const nameGuess = (displayName || '').replace(/'/g, "''");
+     const orFilterEquip = `customer_name.ilike.%${nameGuess}%,site_name.ilike.%${nameGuess}%`;
+     const orFilterContracts = `cust_name.ilike.%${nameGuess}%,site_name.ilike.%${nameGuess}%`;
+     const orFilterHistory = `customer_name.ilike.%${nameGuess}%`;
+
+     const [equipment, contracts, history] = await Promise.all([
+       fetchAll('customer_equipment', r => normalizeName(r.customer_name) === norm || normalizeName(r.site_name) === norm, orFilterEquip).catch(() => []),
+       fetchAll('maintenance_contracts', r => normalizeName(r.cust_name) === norm || normalizeName(r.site_name) === norm, orFilterContracts).catch(() => []),
+       fetchAll('Service History', r => normalizeName(r.customer_name) === norm, orFilterHistory).catch(() => []),
+     ]);
+
+     render(customer, displayName, equipment, contracts, history);
+   } catch (err) {
+     content.innerHTML = `<div class="empty-state">Couldn't load this customer.<br>${esc(err.message || err)}</div>`;
+   }
+ }
+
+ function render(customer, displayName, equipment, contracts, history) {
+   const content = document.getElementById('content');
+
+   const contactBits = [];
+   if (customer) {
+     if (customer.address) contactBits.push(esc(customer.address));
+     if (customer.postcode) contactBits.push(`<strong>${esc(customer.postcode)}</strong>`);
+     if (customer.phone) contactBits.push(`<a href="tel:${esc((customer.phone||'').replace(/\s/g,''))}">${esc(customer.phone)}</a>`);
+     if (customer.website) contactBits.push(`<a href="${esc(/^https?:\/\//i.test(customer.website)?customer.website:'https://'+customer.website)}" target="_blank" rel="noopener">${esc(customer.website)}</a>`);
+   }
+   if (!customer) contactBits.push('<em>Not found in Contacts — showing linked records only, matched by name.</em>');
+
+   const activeContracts = contracts.filter(c => !c.end_date || new Date(c.end_date) >= new Date());
+   const expiringContracts = contracts.filter(c => isExpiringSoon(c.end_date));
+   const breakdownVisits = history.filter(h => classifyJobType(h.job_type_name) === 'Breakdown').length;
+
+   let html = `
+     <div class="page-title">
+       <div class="eyebrow">Portal Directory</div>
+       <h1>${esc(displayName)}</h1>
+     </div>
+     <div class="contact-line">${contactBits.join(' &middot; ')}</div>
+
+     <div class="stats-row">
+       <div class="stat-card"><div class="stat-value neutral">${equipment.length}</div><div class="stat-label">Machines On File</div></div>
+       <div class="stat-card"><div class="stat-value">${activeContracts.length}</div><div class="stat-label">Active Contracts</div></div>
+       <div class="stat-card"><div class="stat-value neutral">${history.length}</div><div class="stat-label">Total Service Visits</div></div>
+       <div class="stat-card"><div class="stat-value">${breakdownVisits}</div><div class="stat-label">Breakdown Callouts</div></div>
+       ${expiringContracts.length ? `<div class="stat-card" style="border-color:rgba(223,10,30,0.3);"><div class="stat-value">${expiringContracts.length}</div><div class="stat-label">Contracts Expiring Soon</div></div>` : ''}
+     </div>
+   `;
+
+   if (history.length) {
+     html += `
+       <div class="section">
+         <div class="charts-row">
+           <div class="card chart-card"><div class="section-title" style="margin-bottom:14px;">Visits Over Time</div><canvas id="timelineChart"></canvas></div>
+           <div class="card chart-card"><div class="section-title" style="margin-bottom:14px;">Visit Breakdown</div><div class="donut-wrap"><canvas id="typeChart"></canvas></div></div>
+         </div>
+         <div class="card">
+           <div class="section-title" style="margin-bottom:4px;">Recurring Issues</div>
+           <div class="section-note" style="margin-bottom:14px; display:block;">Patterns spotted across this customer's whole fleet</div>
+           ${(() => {
+             const issues = buildIssueCounts(history);
+             if (!issues.length) return '<div class="no-issues">No recurring issue pattern detected.</div>';
+             const max = issues[0].count;
+             return issues.map(c => `
+               <div class="issue-row">
+                 <div class="issue-icon">${c.icon}</div>
+                 <div class="issue-main">
+                   <div class="issue-top-line"><span class="issue-name">${c.label}</span><span class="issue-count">${c.count} visit${c.count===1?'':'s'}</span></div>
+                   <div class="issue-bar-track"><div class="issue-bar-fill" style="width:${Math.max(6,(c.count/max)*100)}%"></div></div>
+                 </div>
+               </div>`).join('');
+           })()}
+         </div>
+       </div>
+     `;
+   }
+
+   if (contracts.length) {
+     html += `
+       <div class="section">
+         <div class="section-head"><div class="section-title">Maintenance Contracts (${contracts.length})</div></div>
+         <div class="card" style="padding:0; overflow-x:auto;">
+           <table class="data-table">
+             <thead><tr><th>Type</th><th>Site</th><th>Equipment</th><th>Annual Charge</th><th>Start</th><th>End</th></tr></thead>
+             <tbody>
+               ${contracts.map(c => {
+                 const expiring = isExpiringSoon(c.end_date);
+                 const active = !c.end_date || new Date(c.end_date) >= new Date();
+                 const badge = expiring ? '<span class="badge expiring">Expiring</span>' : (active ? '<span class="badge active">Active</span>' : '<span class="badge inactive">Ended</span>');
+                 return `<tr>
+                   <td>${esc(c.contract_type||'—')} ${badge}</td>
+                   <td class="muted-cell">${esc(c.site_name||'—')}</td>
+                   <td><span class="equip-tag">${esc(c.equip_code||'—')}</span></td>
+                   <td>${fmtCharge(c.annual_charge) || '<span class="muted-cell">—</span>'}</td>
+                   <td class="muted-cell">${fmtDate(c.start_date) || '—'}</td>
+                   <td class="muted-cell">${fmtDate(c.end_date) || 'Ongoing'}</td>
+                 </tr>`;
+               }).join('')}
+             </tbody>
+           </table>
+         </div>
+       </div>
+     `;
+   }
+
+   if (equipment.length) {
+     html += `
+       <div class="section">
+         <div class="section-head"><div class="section-title">Equipment (${equipment.length})</div><div class="section-note">Click a machine to see its full service history</div></div>
+         <div class="card" style="padding:0; overflow-x:auto;">
+           <table class="data-table">
+             <thead><tr><th>Equipment</th><th>Make / Model</th><th>Serial No</th><th>Site</th></tr></thead>
+             <tbody>
+               ${equipment.map(e => `
+                 <tr class="clickable" onclick="window.location.href='service-history.html?serial=${encodeURIComponent(e.serial_no||e.equip_code||'')}'">
+                   <td><span class="equip-tag">${esc(e.equip_code||'—')}</span></td>
+                   <td>${esc(e.make||'')} ${esc(e.model||'')}</td>
+                   <td class="muted-cell">${esc(e.serial_no||'—')}</td>
+                   <td class="muted-cell">${esc(e.site_name||'—')}</td>
+                 </tr>`).join('')}
+             </tbody>
+           </table>
+         </div>
+       </div>
+     `;
+   }
+
+   if (!contracts.length && !equipment.length && !history.length) {
+     html += `<div class="empty-state">No linked contracts, equipment, or service history found for this customer.<br>Matching is name-based, so slightly different spellings across systems can miss.</div>`;
+   }
+
+   content.innerHTML = html;
+   if (history.length) drawCharts(history);
+ }
+
+ function drawCharts(jobs) {
+   const byMonth = {};
+   jobs.forEach(j => {
+     if (!j.visit_date) return;
+     const d = new Date(j.visit_date);
+     if (isNaN(d)) return;
+     const key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+     byMonth[key] = (byMonth[key]||0) + 1;
+   });
+   const monthKeys = Object.keys(byMonth).sort();
+   const monthLabels = monthKeys.map(k => { const [y,m] = k.split('-'); return new Date(y, m-1, 1).toLocaleDateString('en-GB', { month:'short', year:'2-digit' }); });
+
+   const timelineEl = document.getElementById('timelineChart');
+   if (timelineEl && monthKeys.length) {
+     new Chart(timelineEl, {
+       type: 'bar',
+       data: { labels: monthLabels, datasets: [{ data: monthKeys.map(k => byMonth[k]), backgroundColor: '#df0a1e', borderRadius: 4, maxBarThickness: 24 }] },
+       options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
+         scales: { y:{beginAtZero:true, ticks:{precision:0, font:{size:10}}, grid:{color:'#f2f2f2'}}, x:{ticks:{font:{size:9}, maxRotation:0}, grid:{display:false}} } }
+     });
+   }
+
+   const typeCounts = { 'Breakdown':0, 'Service / PM':0, 'Other':0 };
+   jobs.forEach(j => typeCounts[classifyJobType(j.job_type_name)]++);
+   const typeEl = document.getElementById('typeChart');
+   if (typeEl) {
+     new Chart(typeEl, {
+       type: 'doughnut',
+       data: { labels: Object.keys(typeCounts), datasets: [{ data: Object.values(typeCounts), backgroundColor: ['#df0a1e','#4caf50','#c0c0c0'], borderWidth:2, borderColor:'#fff' }] },
+       options: { responsive:true, maintainAspectRatio:false, cutout:'68%', plugins:{legend:{position:'bottom', labels:{font:{size:10.5}, boxWidth:10, padding:12}}} }
+     });
+   }
+ }
+
+ loadCustomer();
+
+ window.addEventListener('pageshow', (event) => {
+   if (event.persisted) loadCustomer();
+ });
+</script>
