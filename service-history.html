@@ -755,9 +755,10 @@
                 ? (expired ? `expired ${formatDate(contract.end_date)}` : `expires ${formatDate(contract.end_date)}`)
                 : 'ongoing, no end date';
 
+            const linkSerial = contract.serial_no || contract.equip_code || serial;
             el.className = 'contract-banner show ' + statusCls;
             el.innerHTML = `\u{1F4C4} Under <strong>${contract.contract_type || 'Maintenance'}</strong> contract — ${contract.cust_name || 'Unknown customer'} — ${endText}` +
-                `<a href="maintenance-contracts.html">View contracts →</a>`;
+                `<a href="maintenance-contracts.html?q=${encodeURIComponent(linkSerial)}">View this contract →</a>`;
         } catch (err) {
             // fail quietly - this is a nice-to-have banner, not core functionality
             if (el) el.className = '';
