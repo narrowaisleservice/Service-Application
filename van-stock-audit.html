@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Van Stock — Audit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --red:#df0a1e; --red-dark:#b8081a; --black:#111214; --grey-bg:#f5f5f6;
+    --border:#e2e2e4; --text:#1a1a1c; --text-dim:#6b6b70; --green:#1a8a3f; --green-bg:#e6f4ea;
+    --amber-bg:#fff4e0; --amber:#9a6a00;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'IBM Plex Sans',sans-serif;background:var(--grey-bg);color:var(--text);}
+  header{background:var(--black);color:#fff;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;position:sticky;top:0;z-index:20;}
+  header h1{font-family:'DM Sans',sans-serif;font-size:16px;margin:0;font-weight:700;}
+  header nav a{color:#ccc;text-decoration:none;margin-left:14px;font-size:13px;font-weight:500;}
+  header nav a.active{color:var(--red);}
+  main{max-width:640px;margin:0 auto;padding:16px 12px 100px;}
+  .card{background:#fff;border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px;}
+  select, input[type=text], input[type=number]{font-family:'IBM Plex Sans',sans-serif;padding:12px;border:1px solid var(--border);border-radius:8px;font-size:16px;width:100%;}
+  label{font-size:12px;color:var(--text-dim);font-weight:600;display:block;margin-bottom:5px;}
+  button{font-family:'DM Sans',sans-serif;font-weight:700;font-size:14px;padding:12px 18px;border-radius:8px;border:none;cursor:pointer;}
+  .btn-red{background:var(--red);color:#fff;width:100%;}
+  .btn-red:hover{background:var(--red-dark);}
+  .btn-ghost{background:transparent;color:var(--text-dim);border:1px solid var(--border);width:100%;margin-top:8px;}
+  .item{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--border);}
+  .item:last-child{border-bottom:none;}
+  .item-info{flex:1;min-width:0;}
+  .item-info .desc{font-weight:600;font-size:14px;}
+  .item-info .meta{font-size:12px;color:var(--text-dim);font-family:'DM Mono',monospace;}
+  .item-qty{width:78px;flex:0 0 auto;}
+  .item-qty input{text-align:center;font-weight:700;font-size:16px;padding:10px 4px;}
+  .status-pill{flex:0 0 auto;font-size:11px;font-weight:700;padding:4px 8px;border-radius:12px;min-width:60px;text-align:center;}
+  .status-ok{background:var(--green-bg);color:var(--green);}
+  .status-short{background:#fdeeee;color:var(--red-dark);}
+  .status-none{background:var(--grey-bg);color:var(--text-dim);}
+  .van-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+  .van-header h2{font-family:'DM Sans',sans-serif;font-size:17px;margin:0;}
+  .van-sub{font-size:12px;color:var(--text-dim);margin-bottom:14px;}
+  .msg{font-size:13px;padding:10px 12px;border-radius:6px;margin-bottom:14px;}
+  .msg.ok{background:var(--green-bg);color:var(--green);}
+  .msg.err{background:#fdeeee;color:var(--red-dark);}
+  .add-toggle{font-size:13px;color:var(--red);cursor:pointer;font-weight:600;margin-top:10px;display:inline-block;}
+  .add-form{display:none;margin-top:12px;background:var(--grey-bg);padding:12px;border-radius:8px;}
+  .add-form.open{display:block;}
+  .add-form .row{display:flex;gap:8px;margin-bottom:8px;}
+  .save-bar{position:sticky;bottom:0;background:linear-gradient(to top, var(--grey-bg) 60%, transparent);padding:14px 0 6px;}
+  .loading{color:var(--text-dim);font-size:13px;padding:20px;text-align:center;}
+  .empty{color:var(--text-dim);font-size:13px;padding:20px 0;text-align:center;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Van Stock — Audit</h1>
+  <nav>
+    <a href="van-stock.html">Dashboard</a>
+    <a href="van-stock-audit.html" class="active">Audit</a>
+    <a href="van-stock-setup.html">Setup</a>
+  </nav>
+</header>
+
+<main>
+  <div id="globalMsg"></div>
+
+  <div class="card">
+    <label for="vanSelect">Select van to audit</label>
+    <select id="vanSelect" onchange="loadVanItems(this.value)">
+      <option value="">Loading vans…</option>
+    </select>
+  </div>
+
+  <div id="auditArea"></div>
+</main>
+
+<script>
+const SUPABASE_URL = 'https://dontubctlexlvifwhmbj.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRvbnR1YmN0bGV4bHZpZndobWJqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ3OTU3NjMsImV4cCI6MjEwMDM3MTc2M30.v5ZblgN7aw832OdBLNWUHW3A2sK0v3skhNDgUoTIOnk';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let currentUserEmail = '';
+let currentVanId = null;
+let currentItems = [];
+
+async function checkAuth(){
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = 'login.html'; return null; }
+  currentUserEmail = session.user.email;
+  return session;
+}
+
+function showMsg(text, ok){
+  const el = document.getElementById('globalMsg');
+  el.innerHTML = `<div class="msg ${ok ? 'ok' : 'err'}">${text}</div>`;
+  setTimeout(() => el.innerHTML = '', 4000);
+}
+
+async function loadVans(){
+  const { data, error } = await sb.from('van_stock_vans').select('*').order('van_name');
+  const sel = document.getElementById('vanSelect');
+  if (error || !data.length) { sel.innerHTML = '<option value="">No vans set up yet</option>'; return; }
+  sel.innerHTML = '<option value="">— Choose a van —</option>' +
+    data.map(v => `<option value="${v.id}">${escapeHtml(v.van_name)}${v.engineer_name ? ' — ' + escapeHtml(v.engineer_name) : ''}</option>`).join('');
+
+  const params = new URLSearchParams(window.location.search);
+  const preselect = params.get('van');
+  if (preselect) { sel.value = preselect; loadVanItems(preselect); }
+}
+
+async function loadVanItems(vanId){
+  const area = document.getElementById('auditArea');
+  if (!vanId) { area.innerHTML = ''; currentVanId = null; return; }
+  currentVanId = vanId;
+  area.innerHTML = '<div class="card loading">Loading van stock…</div>';
+
+  const { data: van } = await sb.from('van_stock_vans').select('*').eq('id', vanId).single();
+  const { data: items, error } = await sb.from('van_stock_items').select('*').eq('van_id', vanId).order('description');
+
+  if (error) { area.innerHTML = '<div class="card">Error loading items.</div>'; return; }
+  currentItems = items || [];
+
+  const itemsHtml = currentItems.length ? currentItems.map(i => itemRow(i)).join('') :
+    '<div class="empty">No items on this van yet. Add one below, or sync the standard list from the Setup page.</div>';
+
+  area.innerHTML = `
+    <div class="card">
+      <div class="van-header">
+        <h2>${escapeHtml(van.van_name)}</h2>
+        <span class="status-pill ${van.is_standard ? 'status-ok' : 'status-none'}">${van.is_standard ? 'Standard' : 'Custom'}</span>
+      </div>
+      <div class="van-sub">${van.engineer_name ? escapeHtml(van.engineer_name) : 'No engineer set'}</div>
+
+      <div id="itemsList">${itemsHtml}</div>
+
+      <span class="add-toggle" onclick="toggleAddForm()">+ Add item found in van</span>
+      <div class="add-form" id="addForm">
+        <div class="row">
+          <input type="text" id="addDesc" placeholder="Description">
+        </div>
+        <div class="row">
+          <input type="text" id="addPartNo" placeholder="Part number (optional)" style="flex:2;">
+          <input type="number" id="addQty" placeholder="Qty" style="flex:1;" min="0">
+        </div>
+        <button class="btn-red" onclick="addExtraItem()">Add to list</button>
+      </div>
+
+      <div class="save-bar">
+        <button class="btn-red" onclick="saveAudit()">Save Audit</button>
+      </div>
+    </div>
+  `;
+}
+
+function itemRow(i){
+  let statusClass = 'status-none', statusText = '—';
+  if (i.counted_qty !== null && i.counted_qty !== undefined) {
+    if (i.target_qty === null || i.target_qty === undefined) { statusClass = 'status-ok'; statusText = 'noted'; }
+    else if (i.counted_qty < i.target_qty) { statusClass = 'status-short'; statusText = `-${i.target_qty - i.counted_qty}`; }
+    else { statusClass = 'status-ok'; statusText = 'OK'; }
+  }
+  return `
+    <div class="item" data-id="${i.id}">
+      <div class="item-info">
+        <div class="desc">${escapeHtml(i.description)}</div>
+        <div class="meta">${escapeHtml(i.part_number || '')}${i.target_qty !== null ? ' · target ' + i.target_qty : ''}</div>
+      </div>
+      <div class="item-qty"><input type="number" min="0" value="${i.counted_qty ?? ''}" data-item-id="${i.id}" oninput="updateStatusPill(this)"></div>
+      <div class="status-pill ${statusClass}" id="pill-${i.id}">${statusText}</div>
+    </div>
+  `;
+}
+
+function updateStatusPill(inputEl){
+  const id = inputEl.dataset.itemId;
+  const item = currentItems.find(i => String(i.id) === String(id));
+  const pill = document.getElementById('pill-' + id);
+  const val = inputEl.value === '' ? null : parseInt(inputEl.value);
+  if (val === null) { pill.className = 'status-pill status-none'; pill.textContent = '—'; return; }
+  if (item.target_qty === null || item.target_qty === undefined) { pill.className = 'status-pill status-ok'; pill.textContent = 'noted'; return; }
+  if (val < item.target_qty) { pill.className = 'status-pill status-short'; pill.textContent = `-${item.target_qty - val}`; }
+  else { pill.className = 'status-pill status-ok'; pill.textContent = 'OK'; }
+}
+
+function toggleAddForm(){
+  document.getElementById('addForm').classList.toggle('open');
+}
+
+async function addExtraItem(){
+  const description = document.getElementById('addDesc').value.trim();
+  const part_number = document.getElementById('addPartNo').value.trim();
+  const qtyVal = document.getElementById('addQty').value;
+  if (!description) { showMsg('Description is required', false); return; }
+  const { error } = await sb.from('van_stock_items').insert({
+    van_id: currentVanId,
+    description,
+    part_number: part_number || null,
+    target_qty: null,
+    counted_qty: qtyVal === '' ? null : parseInt(qtyVal),
+    last_counted_at: qtyVal === '' ? null : new Date().toISOString(),
+    last_counted_by: qtyVal === '' ? null : currentUserEmail
+  });
+  if (error) { showMsg('Could not add item: ' + error.message, false); return; }
+  showMsg('Item added', true);
+  loadVanItems(currentVanId);
+}
+
+async function saveAudit(){
+  const inputs = document.querySelectorAll('#itemsList input[data-item-id]');
+  const now = new Date().toISOString();
+  let updates = 0, errors = 0;
+  for (const inp of inputs) {
+    if (inp.value === '') continue;
+    const id = inp.dataset.itemId;
+    const counted_qty = parseInt(inp.value);
+    const { error } = await sb.from('van_stock_items')
+      .update({ counted_qty, last_counted_at: now, last_counted_by: currentUserEmail })
+      .eq('id', id);
+    if (error) errors++; else updates++;
+  }
+  if (errors) showMsg(`Saved ${updates} item(s), ${errors} failed`, false);
+  else showMsg(`Audit saved — ${updates} item(s) recorded`, true);
+  loadVanItems(currentVanId);
+}
+
+function escapeHtml(str){ return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+(async function init(){
+  const session = await checkAuth();
+  if (!session) return;
+  loadVans();
+})();
+</script>
+</body>
+</html>

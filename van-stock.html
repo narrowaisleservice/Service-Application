@@ -1,84 +1,199 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Van Stock - Narrow Aisle Portal</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: #1a1a1a;
-            color: #e0e0e0;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        .header {
-            background: linear-gradient(180deg, rgba(30, 30, 30, 0.8) 0%, rgba(20, 20, 20, 0.6) 100%);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(220, 38, 38, 0.15);
-            padding: 16px 24px;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            z-index: 100;
-        }
-        .back-btn {
-            background: none;
-            border: none;
-            color: #ffffff;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 4px;
-            border-radius: 6px;
-            flex-shrink: 0;
-        }
-        .back-btn:hover, .back-btn:active {
-            color: #dc2626;
-            background: rgba(255,255,255,0.08);
-        }
-        .header h1 {
-            font-size: 20px;
-            font-weight: 800;
-            flex: 1;
-        }
-        .content {
-            flex: 1;
-            overflow: hidden;
-        }
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            display: block;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Van Stock</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --red:#df0a1e; --red-dark:#b8081a; --black:#111214; --grey-bg:#f5f5f6;
+    --border:#e2e2e4; --text:#1a1a1c; --text-dim:#6b6b70; --green:#1a8a3f; --green-bg:#e6f4ea;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'IBM Plex Sans',sans-serif;background:var(--grey-bg);color:var(--text);}
+  header{background:var(--black);color:#fff;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+  header h1{font-family:'DM Sans',sans-serif;font-size:18px;margin:0;font-weight:700;}
+  header nav a{color:#ccc;text-decoration:none;margin-left:18px;font-size:14px;font-weight:500;}
+  header nav a.active{color:var(--red);}
+  main{max-width:960px;margin:0 auto;padding:24px 16px 80px;}
+  .search-card{background:#fff;border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:22px;}
+  .search-card input{width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:8px;font-size:15px;font-family:'IBM Plex Sans',sans-serif;}
+  .search-results{margin-top:10px;}
+  .search-results .r{padding:8px 4px;border-bottom:1px solid var(--border);font-size:13px;display:flex;justify-content:space-between;}
+  .search-results .r:last-child{border-bottom:none;}
+  .search-results .r a{color:var(--red);text-decoration:none;font-weight:600;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;}
+  .van-card{background:#fff;border:1px solid var(--border);border-radius:10px;padding:16px;cursor:pointer;transition:box-shadow .15s;}
+  .van-card:hover{box-shadow:0 3px 12px rgba(0,0,0,.06);}
+  .van-card .top{display:flex;justify-content:space-between;align-items:flex-start;}
+  .van-card h3{font-family:'DM Sans',sans-serif;font-size:16px;margin:0 0 3px;}
+  .van-card .eng{font-size:13px;color:var(--text-dim);margin-bottom:10px;}
+  .badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;}
+  .badge.standard{background:var(--green-bg);color:var(--green);}
+  .badge.custom{background:#fdeeee;color:var(--red-dark);}
+  .van-card .stats{display:flex;gap:14px;font-size:12px;color:var(--text-dim);margin-top:6px;}
+  .van-card .shortfall{color:var(--red-dark);font-weight:700;}
+  .van-card .audit-date{font-size:11px;color:var(--text-dim);margin-top:8px;}
+  .van-card .audit-date.stale{color:var(--red-dark);font-weight:600;}
+  .detail{background:#fff;border:1px solid var(--border);border-radius:10px;padding:18px;margin-top:14px;}
+  .detail table{width:100%;border-collapse:collapse;font-size:13px;}
+  .detail th{text-align:left;color:var(--text-dim);font-size:11px;text-transform:uppercase;padding:6px;border-bottom:1px solid var(--border);}
+  .detail td{padding:8px 6px;border-bottom:1px solid var(--border);}
+  .detail .short{color:var(--red-dark);font-weight:700;}
+  .detail .ok{color:var(--green);font-weight:700;}
+  .detail-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+  .detail-header a{font-size:13px;background:var(--red);color:#fff;padding:8px 14px;border-radius:6px;text-decoration:none;font-weight:700;}
+  .close-btn{cursor:pointer;color:var(--text-dim);font-size:13px;}
+  .loading{color:var(--text-dim);font-size:13px;padding:30px;text-align:center;}
+</style>
 </head>
 <body>
-    <div class="header">
-        <button type="button" class="back-btn" id="backBtn" aria-label="Go back">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-        </button>
-        <h1>Van Stock</h1>
+
+<header>
+  <h1>Van Stock</h1>
+  <nav>
+    <a href="van-stock.html" class="active">Dashboard</a>
+    <a href="van-stock-audit.html">Audit</a>
+    <a href="van-stock-setup.html">Setup</a>
+  </nav>
+</header>
+
+<main>
+
+  <div class="search-card">
+    <input type="text" id="partSearch" placeholder="Search a part across all vans (part number or description)…" oninput="searchAcrossVans(this.value)">
+    <div class="search-results" id="searchResults"></div>
+  </div>
+
+  <div class="grid" id="vanGrid">
+    <div class="loading">Loading vans…</div>
+  </div>
+
+  <div id="detailArea"></div>
+
+</main>
+
+<script>
+const SUPABASE_URL = 'https://dontubctlexlvifwhmbj.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRvbnR1YmN0bGV4bHZpZndobWJqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ3OTU3NjMsImV4cCI6MjEwMDM3MTc2M30.v5ZblgN7aw832OdBLNWUHW3A2sK0v3skhNDgUoTIOnk';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let searchTimer = null;
+
+async function checkAuth(){
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = 'login.html'; return null; }
+  return session;
+}
+
+async function loadVans(){
+  const grid = document.getElementById('vanGrid');
+  const { data: vans, error } = await sb.from('van_stock_vans').select('*').order('van_name');
+  if (error) { grid.innerHTML = '<div class="loading">Error loading vans</div>'; return; }
+  if (!vans.length) { grid.innerHTML = '<div class="loading">No vans set up yet — go to Setup to add some.</div>'; return; }
+
+  const { data: allItems } = await sb.from('van_stock_items').select('*');
+
+  grid.innerHTML = vans.map(v => {
+    const items = (allItems || []).filter(i => i.van_id === v.id);
+    const counted = items.filter(i => i.counted_qty !== null && i.counted_qty !== undefined);
+    const shortfalls = items.filter(i => i.target_qty !== null && i.counted_qty !== null && i.counted_qty < i.target_qty);
+    const lastAudit = counted.length ? counted.reduce((max, i) => i.last_counted_at > max ? i.last_counted_at : max, counted[0].last_counted_at) : null;
+    const daysAgo = lastAudit ? Math.floor((Date.now() - new Date(lastAudit)) / 86400000) : null;
+    const stale = daysAgo === null || daysAgo > 35;
+
+    return `
+      <div class="van-card" onclick="showDetail(${v.id})">
+        <div class="top">
+          <div>
+            <h3>${escapeHtml(v.van_name)}</h3>
+            <div class="eng">${escapeHtml(v.engineer_name || 'No engineer set')}</div>
+          </div>
+          <span class="badge ${v.is_standard ? 'standard' : 'custom'}">${v.is_standard ? 'Standard' : 'Custom'}</span>
+        </div>
+        <div class="stats">
+          <span>${items.length} item${items.length !== 1 ? 's' : ''}</span>
+          ${shortfalls.length ? `<span class="shortfall">${shortfalls.length} short</span>` : '<span>All OK</span>'}
+        </div>
+        <div class="audit-date ${stale ? 'stale' : ''}">${lastAudit ? 'Last audited ' + daysAgo + ' day' + (daysAgo === 1 ? '' : 's') + ' ago' : 'Never audited'}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function showDetail(vanId){
+  const area = document.getElementById('detailArea');
+  area.innerHTML = '<div class="loading">Loading…</div>';
+  const { data: van } = await sb.from('van_stock_vans').select('*').eq('id', vanId).single();
+  const { data: items } = await sb.from('van_stock_items').select('*').eq('van_id', vanId).order('description');
+
+  const rows = (items || []).map(i => {
+    let statusClass = '', statusText = '—';
+    if (i.counted_qty !== null && i.counted_qty !== undefined) {
+      if (i.target_qty === null) { statusText = 'noted'; }
+      else if (i.counted_qty < i.target_qty) { statusClass = 'short'; statusText = `Short by ${i.target_qty - i.counted_qty}`; }
+      else { statusClass = 'ok'; statusText = 'OK'; }
+    }
+    return `
+      <tr>
+        <td>${escapeHtml(i.part_number || '—')}</td>
+        <td>${escapeHtml(i.description)}</td>
+        <td>${i.target_qty ?? '—'}</td>
+        <td>${i.counted_qty ?? '—'}</td>
+        <td class="${statusClass}">${statusText}</td>
+      </tr>
+    `;
+  }).join('');
+
+  area.innerHTML = `
+    <div class="detail">
+      <div class="detail-header">
+        <div>
+          <strong>${escapeHtml(van.van_name)}</strong>
+          <span style="color:var(--text-dim);font-size:13px;"> — ${escapeHtml(van.engineer_name || 'no engineer set')}</span>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <a href="van-stock-audit.html?van=${van.id}">Audit this van</a>
+          <span class="close-btn" onclick="document.getElementById('detailArea').innerHTML=''">Close ✕</span>
+        </div>
+      </div>
+      <table>
+        <thead><tr><th>Part #</th><th>Description</th><th>Target</th><th>Counted</th><th>Status</th></tr></thead>
+        <tbody>${rows || '<tr><td colspan="5">No items on this van yet.</td></tr>'}</tbody>
+      </table>
     </div>
-    <div class="content">
-        <iframe src="https://narrowaisleservice.github.io/Flexi-Parts-System/#van-stock" title="Van Stock"></iframe>
-    </div>
-    <script>
-        document.getElementById('backBtn').addEventListener('click', () => {
-            if (document.referrer && new URL(document.referrer).host === location.host) {
-                history.back();
-            } else {
-                window.location.href = 'portal-hub-professional.html';
-            }
-        });
-    </script>
+  `;
+  area.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function searchAcrossVans(term){
+  clearTimeout(searchTimer);
+  const results = document.getElementById('searchResults');
+  if (term.trim().length < 2) { results.innerHTML = ''; return; }
+  searchTimer = setTimeout(async () => {
+    const { data, error } = await sb.from('van_stock_items')
+      .select('*, van_stock_vans(van_name)')
+      .or(`part_number.ilike.%${term}%,description.ilike.%${term}%`)
+      .limit(50);
+    if (error || !data.length) { results.innerHTML = '<div class="r">No matches</div>'; return; }
+    results.innerHTML = data.map(i => `
+      <div class="r">
+        <span>${escapeHtml(i.description)} ${i.part_number ? '(' + escapeHtml(i.part_number) + ')' : ''} — counted ${i.counted_qty ?? '—'}${i.target_qty !== null ? ' / target ' + i.target_qty : ''}</span>
+        <a href="van-stock-audit.html?van=${i.van_id}">${escapeHtml(i.van_stock_vans?.van_name || 'Van #' + i.van_id)}</a>
+      </div>
+    `).join('');
+  }, 250);
+}
+
+function escapeHtml(str){ return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+(async function init(){
+  const session = await checkAuth();
+  if (!session) return;
+  loadVans();
+})();
+</script>
 </body>
 </html>

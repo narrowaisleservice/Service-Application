@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Van Stock — Setup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --red:#df0a1e; --red-dark:#b8081a; --black:#111214; --grey-bg:#f5f5f6;
+    --border:#e2e2e4; --text:#1a1a1c; --text-dim:#6b6b70; --green:#1a8a3f; --amber:#b8860b;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'IBM Plex Sans',sans-serif;background:var(--grey-bg);color:var(--text);}
+  header{background:var(--black);color:#fff;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+  header h1{font-family:'DM Sans',sans-serif;font-size:18px;margin:0;font-weight:700;}
+  header nav a{color:#ccc;text-decoration:none;margin-left:18px;font-size:14px;font-weight:500;}
+  header nav a:hover{color:#fff;}
+  header nav a.active{color:var(--red);}
+  main{max-width:960px;margin:0 auto;padding:24px 16px 80px;}
+  .card{background:#fff;border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:24px;}
+  .card h2{font-family:'DM Sans',sans-serif;font-size:16px;margin:0 0 14px;display:flex;align-items:center;justify-content:space-between;}
+  table{width:100%;border-collapse:collapse;font-size:14px;}
+  th{text-align:left;color:var(--text-dim);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.03em;padding:8px 8px;border-bottom:1px solid var(--border);}
+  td{padding:10px 8px;border-bottom:1px solid var(--border);vertical-align:middle;}
+  tr:last-child td{border-bottom:none;}
+  .badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;}
+  .badge.standard{background:#e6f4ea;color:var(--green);}
+  .badge.custom{background:#fdeeee;color:var(--red-dark);}
+  input[type=text],input[type=number]{font-family:'IBM Plex Sans',sans-serif;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:14px;width:100%;}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;}
+  .row > div{flex:1;min-width:120px;}
+  label{font-size:12px;color:var(--text-dim);font-weight:600;display:block;margin-bottom:4px;}
+  button{font-family:'DM Sans',sans-serif;font-weight:700;font-size:13px;padding:9px 16px;border-radius:6px;border:none;cursor:pointer;}
+  .btn-red{background:var(--red);color:#fff;}
+  .btn-red:hover{background:var(--red-dark);}
+  .btn-ghost{background:transparent;color:var(--text-dim);border:1px solid var(--border);}
+  .btn-ghost:hover{background:var(--grey-bg);}
+  .btn-sm{padding:5px 10px;font-size:12px;}
+  .icon-btn{background:none;border:none;cursor:pointer;color:var(--text-dim);font-size:15px;padding:4px 6px;}
+  .icon-btn:hover{color:var(--red);}
+  .add-form{background:var(--grey-bg);border-radius:8px;padding:14px;margin-top:14px;}
+  .suggest-box{position:relative;}
+  .suggest-list{position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--border);border-radius:6px;max-height:200px;overflow-y:auto;z-index:10;box-shadow:0 4px 10px rgba(0,0,0,.08);display:none;}
+  .suggest-list div{padding:8px 10px;font-size:13px;cursor:pointer;border-bottom:1px solid var(--border);}
+  .suggest-list div:hover{background:var(--grey-bg);}
+  .suggest-list div small{color:var(--text-dim);display:block;}
+  .msg{font-size:13px;padding:10px 12px;border-radius:6px;margin-bottom:14px;}
+  .msg.ok{background:#e6f4ea;color:var(--green);}
+  .msg.err{background:#fdeeee;color:var(--red-dark);}
+  .toolbar{display:flex;justify-content:flex-end;gap:8px;margin-bottom:10px;}
+  .loading{color:var(--text-dim);font-size:13px;padding:20px;text-align:center;}
+  .checkbox-row{display:flex;align-items:center;gap:6px;}
+  .checkbox-row input{width:auto;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Van Stock — Setup</h1>
+  <nav>
+    <a href="van-stock.html">Dashboard</a>
+    <a href="van-stock-audit.html">Audit</a>
+    <a href="van-stock-setup.html" class="active">Setup</a>
+  </nav>
+</header>
+
+<main>
+
+  <div id="globalMsg"></div>
+
+  <div class="card">
+    <h2>Vans</h2>
+    <table id="vansTable">
+      <thead><tr><th>Van</th><th>Engineer</th><th>Type</th><th>Notes</th><th></th></tr></thead>
+      <tbody><tr><td colspan="5" class="loading">Loading…</td></tr></tbody>
+    </table>
+
+    <div class="add-form">
+      <div class="row">
+        <div><label>Van name / reg</label><input type="text" id="newVanName" placeholder="e.g. Van 7 / AB12 CDE"></div>
+        <div><label>Engineer</label><input type="text" id="newVanEngineer" placeholder="e.g. L. Duncan"></div>
+        <div style="flex:0 0 auto;"><label>&nbsp;</label>
+          <div class="checkbox-row"><input type="checkbox" id="newVanStandard" checked><span style="font-size:13px;">Standard list</span></div>
+        </div>
+        <div style="flex:0 0 auto;"><label>&nbsp;</label><button class="btn-red" onclick="addVan()">Add Van</button></div>
+      </div>
+      <div class="row" style="margin-top:8px;">
+        <div><label>Notes (optional)</label><input type="text" id="newVanNotes" placeholder="e.g. welding equipment, no standard consumables"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>
+      Standard Stock List
+      <button class="btn-red btn-sm" onclick="syncStandardToVans()">Sync to all standard vans</button>
+    </h2>
+    <p style="font-size:13px;color:var(--text-dim);margin-top:-8px;">Every van marked "Standard list" above should carry this set. Syncing adds any missing items to each standard van without touching existing counts.</p>
+    <table id="standardTable">
+      <thead><tr><th>Part #</th><th>Description</th><th>Target Qty</th><th></th></tr></thead>
+      <tbody><tr><td colspan="4" class="loading">Loading…</td></tr></tbody>
+    </table>
+
+    <div class="add-form">
+      <div class="row">
+        <div class="suggest-box">
+          <label>Search parts catalogue (or type your own)</label>
+          <input type="text" id="partSearch" placeholder="Start typing a part number or description…" oninput="searchParts(this.value)" autocomplete="off">
+          <div class="suggest-list" id="suggestList"></div>
+        </div>
+      </div>
+      <div class="row" style="margin-top:8px;">
+        <div><label>Part number</label><input type="text" id="stdPartNumber"></div>
+        <div style="flex:2;"><label>Description</label><input type="text" id="stdDescription"></div>
+        <div style="flex:0 0 100px;"><label>Target qty</label><input type="number" id="stdQty" value="1" min="1"></div>
+        <div style="flex:0 0 auto;"><label>&nbsp;</label><button class="btn-red" onclick="addStandardItem()">Add</button></div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+const SUPABASE_URL = 'https://dontubctlexlvifwhmbj.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRvbnR1YmN0bGV4bHZpZndobWJqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ3OTU3NjMsImV4cCI6MjEwMDM3MTc2M30.v5ZblgN7aw832OdBLNWUHW3A2sK0v3skhNDgUoTIOnk';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let searchTimer = null;
+
+async function checkAuth(){
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = 'login.html'; return null; }
+  return session;
+}
+
+function showMsg(text, ok){
+  const el = document.getElementById('globalMsg');
+  el.innerHTML = `<div class="msg ${ok ? 'ok' : 'err'}">${text}</div>`;
+  setTimeout(() => el.innerHTML = '', 4000);
+}
+
+async function loadVans(){
+  const { data, error } = await sb.from('van_stock_vans').select('*').order('van_name');
+  const tbody = document.querySelector('#vansTable tbody');
+  if (error) { tbody.innerHTML = `<tr><td colspan="5">Error loading vans</td></tr>`; return; }
+  if (!data.length) { tbody.innerHTML = `<tr><td colspan="5" class="loading">No vans yet — add one below.</td></tr>`; return; }
+  tbody.innerHTML = data.map(v => `
+    <tr>
+      <td><strong>${escapeHtml(v.van_name)}</strong></td>
+      <td>${escapeHtml(v.engineer_name || '—')}</td>
+      <td><span class="badge ${v.is_standard ? 'standard' : 'custom'}">${v.is_standard ? 'Standard' : 'Custom'}</span></td>
+      <td style="color:var(--text-dim);">${escapeHtml(v.notes || '')}</td>
+      <td><button class="icon-btn" onclick="deleteVan(${v.id}, '${escapeAttr(v.van_name)}')">✕</button></td>
+    </tr>
+  `).join('');
+}
+
+async function addVan(){
+  const van_name = document.getElementById('newVanName').value.trim();
+  const engineer_name = document.getElementById('newVanEngineer').value.trim();
+  const is_standard = document.getElementById('newVanStandard').checked;
+  const notes = document.getElementById('newVanNotes').value.trim();
+  if (!van_name) { showMsg('Van name is required', false); return; }
+  const { error } = await sb.from('van_stock_vans').insert({ van_name, engineer_name, is_standard, notes });
+  if (error) { showMsg('Could not add van: ' + error.message, false); return; }
+  document.getElementById('newVanName').value = '';
+  document.getElementById('newVanEngineer').value = '';
+  document.getElementById('newVanNotes').value = '';
+  document.getElementById('newVanStandard').checked = true;
+  showMsg('Van added', true);
+  loadVans();
+}
+
+async function deleteVan(id, name){
+  if (!confirm(`Delete "${name}"? This also removes its stock/audit records.`)) return;
+  const { error } = await sb.from('van_stock_vans').delete().eq('id', id);
+  if (error) { showMsg('Could not delete: ' + error.message, false); return; }
+  loadVans();
+}
+
+async function loadStandardItems(){
+  const { data, error } = await sb.from('van_stock_standard_items').select('*').order('sort_order').order('description');
+  const tbody = document.querySelector('#standardTable tbody');
+  if (error) { tbody.innerHTML = `<tr><td colspan="4">Error loading list</td></tr>`; return; }
+  if (!data.length) { tbody.innerHTML = `<tr><td colspan="4" class="loading">No items yet — add one below.</td></tr>`; return; }
+  tbody.innerHTML = data.map(i => `
+    <tr>
+      <td>${escapeHtml(i.part_number || '—')}</td>
+      <td>${escapeHtml(i.description)}</td>
+      <td>${i.target_qty}</td>
+      <td><button class="icon-btn" onclick="deleteStandardItem(${i.id})">✕</button></td>
+    </tr>
+  `).join('');
+}
+
+async function addStandardItem(){
+  const part_number = document.getElementById('stdPartNumber').value.trim();
+  const description = document.getElementById('stdDescription').value.trim();
+  const target_qty = parseInt(document.getElementById('stdQty').value) || 1;
+  if (!description) { showMsg('Description is required', false); return; }
+  const { error } = await sb.from('van_stock_standard_items').insert({ part_number, description, target_qty });
+  if (error) { showMsg('Could not add item: ' + error.message, false); return; }
+  document.getElementById('stdPartNumber').value = '';
+  document.getElementById('stdDescription').value = '';
+  document.getElementById('stdQty').value = '1';
+  document.getElementById('partSearch').value = '';
+  showMsg('Item added to standard list', true);
+  loadStandardItems();
+}
+
+async function deleteStandardItem(id){
+  if (!confirm('Remove this item from the standard list?')) return;
+  const { error } = await sb.from('van_stock_standard_items').delete().eq('id', id);
+  if (error) { showMsg('Could not delete: ' + error.message, false); return; }
+  loadStandardItems();
+}
+
+function searchParts(term){
+  clearTimeout(searchTimer);
+  const list = document.getElementById('suggestList');
+  if (term.trim().length < 2) { list.style.display = 'none'; return; }
+  searchTimer = setTimeout(async () => {
+    const { data, error } = await sb.from('parts')
+      .select('part_number, description')
+      .or(`part_number.ilike.%${term}%,description.ilike.%${term}%`)
+      .limit(15);
+    if (error || !data.length) { list.style.display = 'none'; return; }
+    list.innerHTML = data.map(p => `
+      <div onclick='pickPart(${JSON.stringify(p.part_number || "")}, ${JSON.stringify(p.description || "")})'>
+        ${escapeHtml(p.description || '')}<small>${escapeHtml(p.part_number || '')}</small>
+      </div>
+    `).join('');
+    list.style.display = 'block';
+  }, 250);
+}
+
+function pickPart(part_number, description){
+  document.getElementById('stdPartNumber').value = part_number;
+  document.getElementById('stdDescription').value = description;
+  document.getElementById('suggestList').style.display = 'none';
+  document.getElementById('partSearch').value = description;
+}
+
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.suggest-box')) document.getElementById('suggestList').style.display = 'none';
+});
+
+async function syncStandardToVans(){
+  const { data: vans, error: vErr } = await sb.from('van_stock_vans').select('id').eq('is_standard', true);
+  const { data: stdItems, error: sErr } = await sb.from('van_stock_standard_items').select('*');
+  if (vErr || sErr) { showMsg('Sync failed loading data', false); return; }
+  if (!vans.length || !stdItems.length) { showMsg('Need at least one standard van and one standard item first', false); return; }
+
+  let added = 0;
+  for (const van of vans) {
+    const { data: existing } = await sb.from('van_stock_items').select('description').eq('van_id', van.id);
+    const existingDescs = new Set((existing || []).map(e => e.description));
+    const toInsert = stdItems
+      .filter(si => !existingDescs.has(si.description))
+      .map(si => ({
+        van_id: van.id,
+        part_number: si.part_number,
+        description: si.description,
+        target_qty: si.target_qty,
+        counted_qty: null
+      }));
+    if (toInsert.length) {
+      const { error } = await sb.from('van_stock_items').insert(toInsert);
+      if (!error) added += toInsert.length;
+    }
+  }
+  showMsg(`Sync complete — ${added} item(s) added across ${vans.length} standard van(s)`, true);
+}
+
+function escapeHtml(str){ return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function escapeAttr(str){ return String(str).replace(/'/g, "\\'"); }
+
+(async function init(){
+  const session = await checkAuth();
+  if (!session) return;
+  loadVans();
+  loadStandardItems();
+})();
+</script>
+</body>
+</html>
