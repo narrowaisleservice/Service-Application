@@ -950,11 +950,7 @@
         });
         // =====================================
 
-        db.auth.getSession().then(({ data: { session } }) => {
-            if (!session) {
-                window.location.href = 'login.html';
-            }
-        });
+
 
         const portalUser = localStorage.getItem('portalUser');
         const portalRole = localStorage.getItem('portalRole');
