@@ -862,6 +862,7 @@
             <div class="nav-section-title">Management</div>
             <div class="nav-item" onclick="window.location.href='routing.html'">🗺️ Routing</div>
             <div class="nav-item" onclick="window.location.href='asset-tracking.html'">🧰 Asset Tracking</div>
+            <div class="nav-item" onclick="window.location.href='insights-dashboard.html'">📈 Insights</div>
         </div>
 
         <div class="nav-section">
@@ -992,6 +993,8 @@
             lightning: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4 14h6l-1 8 9-12h-6z"></path></svg>',
             note: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"></path><path d="M15 3v4h4"></path><path d="M8 12h8M8 16h5"></path></svg>',
             route: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-7.5 7-12a7 7 0 0 0-14 0c0 4.5 7 12 7 12z"></path><circle cx="12" cy="9" r="2.3"></circle></svg>',
+            trend: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"></path><path d="M15 7h6v6"></path></svg>',
+            portal: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M3 9h18"></path><circle cx="7" cy="6.5" r="0.6" fill="currentColor" stroke="none"></circle><circle cx="9.5" cy="6.5" r="0.6" fill="currentColor" stroke="none"></circle></svg>',
         };
 
         const QUICK_ACCESS = [
@@ -1000,7 +1003,8 @@
             { label: 'Weld Review', icon: 'wrench', link: 'weld-review.html' },
             { label: 'Routing', icon: 'route', link: 'routing.html' },
             { label: 'Customers', icon: 'people', link: 'contacts.html' },
-            { label: 'Transport Quote', icon: 'van', link: 'transport-quote-calculator.html' }
+            { label: 'Transport Quote', icon: 'van', link: 'transport-quote-calculator.html' },
+            { label: 'Insights', icon: 'trend', link: 'insights-dashboard.html' }
         ];
 
         const sections = {
@@ -1082,7 +1086,8 @@
                     { title: 'Customer Database', desc: 'Find customer contact info', icon: 'people', link: 'contacts.html', badge: 'Essential' },
                     { title: 'Service Records', desc: 'Customer truck service history', icon: 'clipboard', link: 'service-history.html', badge: '' },
                     { title: 'Customer Equipment', desc: 'Browse equipment owned by each customer', icon: 'forklift', link: 'customer-equipment.html', badge: 'New' },
-                    { title: 'Maintenance Contracts', desc: 'Active contracts by customer and site', icon: 'currency', link: 'maintenance-contracts.html', badge: 'New' }
+                    { title: 'Maintenance Contracts', desc: 'Active contracts by customer and site', icon: 'currency', link: 'maintenance-contracts.html', badge: 'New' },
+                    { title: 'Customer Portal', desc: 'Preview the client-facing self-service portal', icon: 'portal', link: 'customer-portal-login.html', badge: 'New' }
                 ]
             },
             'troubleshooting': {
@@ -1206,20 +1211,23 @@
             try {
                 const today = new Date().toISOString().slice(0, 10);
                 const in90 = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
-                const [coRes, fsRes, weldRes, assetRes, contractRes] = await Promise.all([
+                const [coRes, fsRes, weldRes, assetRes, contractRes, overdueRes] = await Promise.all([
                     db.from('controller_orders').select('id', { count: 'exact', head: true }).neq('status', 'Sent'),
                     db.from('field_service_orders').select('id', { count: 'exact', head: true }).neq('status', 'Sent'),
                     db.from('weld_reports').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
                     db.from('equipment_assets').select('id', { count: 'exact', head: true }),
-                    db.from('maintenance_contracts').select('id', { count: 'exact', head: true }).gte('end_date', today).lte('end_date', in90)
+                    db.from('maintenance_contracts').select('id', { count: 'exact', head: true }).gte('end_date', today).lte('end_date', in90),
+                    db.rpc('overdue_equipment', { months_threshold: 12 })
                 ]);
                 if (!document.getElementById('homeStatsRow')) return; // user navigated away
                 const ordersInProgress = (coRes.count || 0) + (fsRes.count || 0);
+                const overdueCount = overdueRes.data ? overdueRes.data.length : null;
                 statsEl.innerHTML = `
                     <div class="stat-card"><div class="stat-value">${ordersInProgress}</div><div class="stat-label">Orders In Progress</div></div>
                     <div class="stat-card"><div class="stat-value">${weldRes.count || 0}</div><div class="stat-label">Weld Reports Pending</div></div>
                     <div class="stat-card"><div class="stat-value">${assetRes.count || 0}</div><div class="stat-label">Tools Checked Out</div></div>
                     <div class="stat-card" style="cursor:pointer;" onclick="window.location.href='maintenance-contracts.html'"><div class="stat-value">${contractRes.count || 0}</div><div class="stat-label">Contracts Expiring Soon</div></div>
+                    ${overdueCount !== null ? `<div class="stat-card" style="cursor:pointer;" onclick="window.location.href='insights-dashboard.html'"><div class="stat-value">${overdueCount}</div><div class="stat-label">Trucks Overdue Service</div></div>` : ''}
                 `;
             } catch (e) {
                 statsEl.style.display = 'none';
