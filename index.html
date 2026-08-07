@@ -241,11 +241,6 @@
     }
 
     // if already signed in, skip straight to the portal
-    db.auth.getSession().then(({ data: { session } }) => {
-        if (session) {
-            window.location.href = 'portal-hub-professional.html';
-        }
-    });
 
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
         e.preventDefault();
