@@ -109,39 +109,6 @@ body{
 .engineer-dot{width:7px;height:7px;background:var(--green);border-radius:50%;animation:pulse 2.5s infinite;flex-shrink:0;}
 .engineer-name{font-size:14px;color:var(--text);letter-spacing:0.05em;font-weight:600;}
 .engineer-role{font-size:11px;color:var(--text-dim);letter-spacing:0.12em;text-transform:uppercase;font-weight:500;}
-.cart-summary{display:flex;align-items:center;gap:10px;}
-.cart-count{font-size:12px;color:var(--amber);letter-spacing:0.06em;font-weight:600;}
-.btn-view-cart{
-  background:transparent;
-  border:1px solid var(--border);
-  color:var(--text-muted);
-  font-family:var(--font);
-  font-size:12px;
-  font-weight:600;
-  letter-spacing:0.1em;
-  padding:7px 16px;
-  cursor:pointer;
-  transition:all 0.15s;
-  text-transform:uppercase;
-  border-radius:var(--radius);
-}
-.btn-view-cart:hover{border-color:var(--amber);color:var(--amber);}
-.btn-submit-order{
-  background:var(--red);
-  border:none;
-  color:#fff;
-  font-family:var(--font);
-  font-size:13px;
-  font-weight:700;
-  letter-spacing:0.12em;
-  text-transform:uppercase;
-  padding:8px 20px;
-  cursor:pointer;
-  transition:background 0.15s;
-  border-radius:var(--radius);
-}
-.btn-submit-order:hover{background:#b91c1c;}
-.btn-submit-order:disabled{background:#e8e8e8;color:var(--text-dim);cursor:not-allowed;}
 
 /* Controller select */
 .section-label-top{
@@ -154,7 +121,7 @@ body{
 }
 .controller-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px;}
 @media(max-width:820px){.controller-grid{grid-template-columns:repeat(2,1fr);}}
-@media(max-width:820px){.container{padding:0 16px 60px;}.header{padding:22px 22px 20px;gap:16px;margin:20px 0 20px;}.controller-btn{padding:18px 10px;}.ctrl-name{font-size:20px;}.result-name{font-size:22px;}.cart-drawer{width:100%;}}
+@media(max-width:820px){.container{padding:0 16px 60px;}.header{padding:22px 22px 20px;gap:16px;margin:20px 0 20px;}.controller-btn{padding:18px 10px;}.ctrl-name{font-size:20px;}.result-name{font-size:22px;}}
 .controller-btn{
   background:var(--card);
   border:1px solid var(--border);
@@ -227,6 +194,96 @@ body{
   flex-shrink:0;
 }
 .search-btn:hover{background:var(--red);color:#fff;}
+
+/* Mode toggle */
+.mode-toggle{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
+.mode-btn{
+  flex:1;
+  min-width:130px;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:11px 16px;
+  cursor:pointer;
+  transition:all 0.15s;
+  font-family:var(--font);
+  font-size:13px;
+  font-weight:700;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  color:var(--text-muted);
+  box-shadow:0 1px 4px rgba(0,0,0,0.03);
+}
+.mode-btn:hover{border-color:var(--border-hover);background:var(--surface2);}
+.mode-btn.active{border-color:var(--red);background:var(--red-dim);color:var(--red);}
+
+/* Tester panel */
+.tester-section{margin-bottom:20px;}
+.tester-section-label{
+  font-size:11px;font-weight:700;letter-spacing:0.25em;text-transform:uppercase;
+  color:var(--red);margin-bottom:10px;display:flex;align-items:center;gap:8px;
+}
+.tester-section-label::before{content:'';display:block;width:14px;height:1px;background:var(--red);}
+.tester-grid{display:flex;flex-direction:column;gap:6px;}
+.tester-item{
+  display:grid;grid-template-columns:200px 1fr;gap:16px;
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:12px 16px;box-shadow:0 1px 4px rgba(0,0,0,0.03);align-items:start;
+}
+@media(max-width:640px){.tester-item{grid-template-columns:1fr;gap:4px;}}
+.tester-item-name{font-size:13px;font-weight:700;letter-spacing:0.06em;color:var(--text);text-transform:uppercase;}
+.tester-item-desc{font-size:13px;color:var(--text-muted);line-height:1.5;}
+.tester-note{
+  font-size:11px;color:var(--text-dim);letter-spacing:0.04em;font-style:italic;
+  padding:10px 16px;margin-bottom:12px;
+}
+
+/* Parameter tables */
+.param-table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 1px 4px rgba(0,0,0,0.03);}
+.param-table{width:100%;border-collapse:collapse;font-size:12px;background:var(--card);min-width:720px;}
+.param-table th,.param-table td{padding:8px 10px;text-align:center;border-bottom:1px solid var(--border);white-space:nowrap;}
+.param-table th{background:var(--surface2);font-weight:700;letter-spacing:0.04em;color:var(--text-muted);text-transform:uppercase;font-size:10px;}
+.param-table td:first-child,.param-table th:first-child{text-align:left;position:sticky;left:0;background:var(--card);font-weight:700;color:var(--text);z-index:1;}
+.param-table th:first-child{background:var(--surface2);}
+.param-table td:nth-child(2){color:var(--text-dim);font-size:10px;text-transform:uppercase;}
+.param-footnote{font-size:11px;color:var(--text-dim);padding:10px 4px 0;line-height:1.6;}
+
+/* Spare parts */
+.spare-part-row{
+  display:grid;grid-template-columns:110px 1fr;gap:14px;align-items:center;
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:10px 16px;box-shadow:0 1px 4px rgba(0,0,0,0.03);
+}
+.spare-part-code{font-size:13px;font-weight:700;color:var(--red);letter-spacing:0.06em;}
+.spare-part-desc{font-size:13px;color:var(--text);}
+
+/* VACC calibration steps */
+.vacc-steps{list-style:none;display:flex;flex-direction:column;gap:10px;}
+.vacc-steps li{display:flex;gap:14px;align-items:flex-start;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;box-shadow:0 1px 4px rgba(0,0,0,0.03);}
+.vacc-step-num{font-size:11px;font-weight:700;color:#fff;background:var(--red);min-width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.vacc-step-text{font-size:14px;line-height:1.55;color:#333;}
+
+/* Pinout tables */
+.pinout-table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 1px 4px rgba(0,0,0,0.03);margin-bottom:4px;}
+.pinout-table{width:100%;border-collapse:collapse;font-size:12px;background:var(--card);min-width:480px;}
+.pinout-table th,.pinout-table td{padding:7px 12px;text-align:left;border-bottom:1px solid var(--border);}
+.pinout-table th{background:var(--surface2);font-weight:700;letter-spacing:0.04em;color:var(--text-muted);text-transform:uppercase;font-size:10px;}
+.pinout-table td:first-child{font-weight:700;color:var(--red);white-space:nowrap;width:60px;}
+.pinout-table td:nth-child(2){font-weight:700;color:var(--text);white-space:nowrap;}
+.pinout-table td:nth-child(3){color:var(--text-muted);}
+.pinout-connector-label{font-size:14px;font-weight:900;text-transform:uppercase;letter-spacing:0.04em;color:var(--text);margin:18px 0 8px;}
+.pinout-connector-label:first-child{margin-top:0;}
+
+/* Static guide sections (CAN bus / maintenance) */
+.guide-intro{font-size:14px;line-height:1.65;color:#333;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,0.03);}
+.guide-section{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,0.03);}
+.guide-section-title{font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--red);margin-bottom:10px;}
+.guide-points{list-style:none;display:flex;flex-direction:column;gap:6px;}
+.guide-points li{font-size:14px;line-height:1.55;color:#333;padding-left:16px;position:relative;}
+.guide-points li::before{content:'▸';position:absolute;left:0;color:var(--red);}
+.maint-item{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 20px;margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,0.03);}
+.maint-item-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;}
+.maint-item-desc{font-size:13px;color:var(--text-muted);line-height:1.5;}
 
 /* Codes panel */
 .codes-panel{
@@ -391,7 +448,7 @@ body{
 .parts-grid{display:flex;flex-direction:column;gap:8px;margin-top:12px;}
 .part-card{
   display:grid;
-  grid-template-columns:auto 1fr auto;
+  grid-template-columns:auto 1fr;
   background:var(--surface2);
   border:1px solid var(--border);
   border-radius:var(--radius);
@@ -423,88 +480,7 @@ body{
 .part-meta-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
 .part-number{font-size:11px;font-weight:700;color:var(--red);letter-spacing:0.1em;}
 .part-reason{font-size:13px;color:var(--text-muted);font-weight:400;}
-.part-action{display:flex;align-items:center;padding:0 16px 0 12px;border-left:1px solid var(--border);flex-shrink:0;}
-.part-add-btn{
-  background:var(--red);
-  border:none;
-  color:#fff;
-  font-family:var(--font);
-  font-size:13px;
-  font-weight:700;
-  letter-spacing:0.1em;
-  text-transform:uppercase;
-  padding:8px 16px;
-  cursor:pointer;
-  transition:all 0.15s;
-  white-space:nowrap;
-  display:flex;
-  align-items:center;
-  gap:6px;
-  border-radius:4px;
-}
-.part-add-btn:hover{background:#b91c1c;}
-.part-add-btn.added{background:var(--green);cursor:default;}
-.part-add-btn svg{width:13px;height:13px;fill:currentColor;flex-shrink:0;}
 .no-parts{font-size:11px;font-weight:600;color:var(--text-dim);letter-spacing:0.12em;text-transform:uppercase;padding:12px 0;}
-
-/* Cart */
-.cart-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;display:none;backdrop-filter:blur(2px);}
-.cart-overlay.open{display:block;}
-@keyframes slideRight{from{transform:translateX(100%);}to{transform:translateX(0);}}
-.cart-drawer{
-  position:fixed;right:0;top:0;bottom:0;width:400px;max-width:100vw;
-  background:var(--card);
-  border-left:1px solid var(--border);
-  z-index:101;display:flex;flex-direction:column;
-  animation:slideRight 0.22s ease-out;
-  box-shadow:-4px 0 24px rgba(0,0,0,0.1);
-}
-.cart-header{
-  padding:20px 24px;
-  border-bottom:1px solid var(--border);
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-}
-.cart-title{font-size:22px;font-weight:900;letter-spacing:0.08em;text-transform:uppercase;}
-.cart-close{background:none;border:none;color:var(--text-muted);font-size:18px;cursor:pointer;padding:4px 8px;transition:color 0.15s;line-height:1;}
-.cart-close:hover{color:var(--text);}
-.cart-body{flex:1;overflow-y:auto;padding:16px 24px;}
-.cart-empty{text-align:center;padding:48px 0;font-size:12px;font-weight:600;color:var(--text-dim);letter-spacing:0.1em;text-transform:uppercase;}
-.cart-item{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);}
-.cart-item-info{flex:1;min-width:0;}
-.cart-item-name{font-size:15px;font-weight:700;color:var(--text);}
-.cart-item-no{font-size:11px;font-weight:700;color:var(--red);letter-spacing:0.1em;margin-top:2px;}
-.cart-item-fault{font-size:10px;color:var(--text-dim);letter-spacing:0.06em;margin-top:2px;font-weight:500;}
-.cart-item-qty{display:flex;align-items:center;gap:6px;}
-.qty-btn{
-  background:var(--surface2);border:1px solid var(--border);color:var(--text);
-  width:24px;height:24px;display:flex;align-items:center;justify-content:center;
-  cursor:pointer;font-size:14px;transition:all 0.15s;border-radius:3px;flex-shrink:0;
-}
-.qty-btn:hover{border-color:var(--red);color:var(--red);}
-.qty-val{font-size:13px;font-weight:700;color:var(--text);min-width:18px;text-align:center;}
-.cart-item-remove{background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:15px;padding:2px 6px;transition:color 0.15s;flex-shrink:0;}
-.cart-item-remove:hover{color:var(--red);}
-.cart-footer{padding:20px 24px;border-top:1px solid var(--border);}
-.cart-footer-info{font-size:11px;color:var(--text-muted);letter-spacing:0.06em;margin-bottom:12px;font-weight:500;}
-.cart-comments{
-  width:100%;background:var(--surface2);border:1px solid var(--border);
-  color:var(--text);font-family:var(--font);font-size:12px;font-weight:500;
-  padding:10px 14px;outline:none;resize:none;margin-bottom:12px;
-  letter-spacing:0.04em;border-radius:4px;
-}
-.cart-comments:focus{border-color:var(--red);}
-.cart-comments::placeholder{color:var(--text-dim);}
-.btn-place-order{
-  width:100%;background:var(--red);border:none;color:#fff;
-  font-family:var(--font);font-size:16px;font-weight:700;letter-spacing:0.15em;
-  text-transform:uppercase;padding:15px;cursor:pointer;
-  transition:background 0.15s;display:flex;align-items:center;justify-content:center;gap:10px;
-  border-radius:var(--radius);
-}
-.btn-place-order:hover{background:#b91c1c;}
-.btn-place-order:disabled{background:#e8e8e8;color:var(--text-dim);cursor:not-allowed;}
 
 /* Not found */
 .not-found{
@@ -548,17 +524,6 @@ body{
   box-shadow:0 4px 20px rgba(0,0,0,0.12);
 }
 .toast.error{border-color:var(--red);color:var(--red);}
-
-/* Order success */
-.order-success{
-  background:var(--green-subtle);border:1px solid rgba(21,128,61,0.25);
-  padding:18px 24px;margin-bottom:24px;
-  display:flex;align-items:center;gap:16px;
-  animation:slideIn 0.3s ease-out;border-radius:var(--radius);
-}
-.order-success-icon{font-size:22px;color:var(--green);}
-.order-success-text{font-size:12px;font-weight:600;color:var(--green);letter-spacing:0.08em;text-transform:uppercase;}
-.order-success-num{font-size:22px;font-weight:900;color:var(--green);letter-spacing:0.1em;}
 </style>
 </head>
 <body>
@@ -572,7 +537,7 @@ body{
     <div class="header-text">
       <div class="header-eyebrow">Diagnostic Tool &nbsp;/&nbsp; Flexi Portal</div>
       <h1>Flexi <span>Fault</span> Finder</h1>
-      <div class="header-sub">Narrow Aisle Ltd &nbsp;·&nbsp; All Controllers &nbsp;·&nbsp; Integrated Parts Ordering</div>
+      <div class="header-sub">Narrow Aisle Ltd &nbsp;·&nbsp; All Controllers &nbsp;·&nbsp; Console &amp; Fault Reference</div>
     </div>
   </div>
 
@@ -585,14 +550,7 @@ body{
         <div class="engineer-role" id="engineerRole">—</div>
       </div>
     </div>
-    <div class="cart-summary">
-      <span class="cart-count" id="cartCount">0 parts in order</span>
-      <button class="btn-view-cart" onclick="openCart()">View Order</button>
-      <button class="btn-submit-order" id="btnSubmitTop" onclick="openCart()" disabled>Submit Order</button>
-    </div>
   </div>
-
-  <div id="orderSuccess" style="display:none;"></div>
 
   <!-- CONTROLLER SELECT -->
   <div class="section-label-top">Select Controller Type</div>
@@ -619,15 +577,27 @@ body{
     </button>
   </div>
 
+  <!-- MODE TOGGLE -->
+  <div class="mode-toggle">
+    <button class="mode-btn active" id="mode-faults" onclick="setViewMode('faults')">Fault Codes</button>
+    <button class="mode-btn" id="mode-tester" onclick="setViewMode('tester')">Tester Reference</button>
+    <button class="mode-btn" id="mode-params" onclick="setViewMode('params')">Parameters</button>
+    <button class="mode-btn" id="mode-parts" onclick="setViewMode('parts')">Spare Parts</button>
+    <button class="mode-btn" id="mode-vacc" onclick="setViewMode('vacc')">Calibration</button>
+    <button class="mode-btn" id="mode-pinout" onclick="setViewMode('pinout')">Pinouts</button>
+    <button class="mode-btn" id="mode-canbus" onclick="setViewMode('canbus')">CAN Bus Guide</button>
+    <button class="mode-btn" id="mode-maint" onclick="setViewMode('maint')">Maintenance</button>
+  </div>
+
   <!-- SEARCH -->
-  <div class="search-bar">
+  <div class="search-bar" id="searchBar">
     <div class="search-prefix">Code ›</div>
     <input type="text" id="searchInput" placeholder="Enter fault code — e.g. AL8, A82, AL 30 or just a number" autocomplete="off" spellcheck="false">
     <button class="search-btn" onclick="searchFault()">Search</button>
   </div>
 
   <!-- CODES PANEL -->
-  <div class="codes-panel">
+  <div class="codes-panel" id="codesPanel">
     <div class="codes-panel-header"><span id="gridLabel">Select a controller to view fault codes</span></div>
     <div class="fault-grid" id="faultGrid"></div>
   </div>
@@ -635,30 +605,32 @@ body{
   <!-- RESULT -->
   <div id="resultBox"></div>
 
+  <!-- TESTER PANEL -->
+  <div id="testerBox" style="display:none;"></div>
+
+  <!-- PARAMETERS PANEL -->
+  <div id="paramsBox" style="display:none;"></div>
+
+  <!-- SPARE PARTS PANEL -->
+  <div id="partsBox" style="display:none;"></div>
+
+  <!-- CALIBRATION PANEL -->
+  <div id="vaccBox" style="display:none;"></div>
+
+  <!-- PINOUTS PANEL -->
+  <div id="pinoutBox" style="display:none;"></div>
+
+  <!-- CAN BUS GUIDE PANEL -->
+  <div id="canbusBox" style="display:none;"></div>
+
+  <!-- MAINTENANCE PANEL -->
+  <div id="maintBox" style="display:none;"></div>
+
   <!-- FOOTER -->
   <div class="footer">Flexi Narrow Aisle Ltd &nbsp;·&nbsp; Fault Reference &nbsp;·&nbsp; Internal Use Only</div>
 </div>
 
-<!-- CART -->
-<div class="cart-overlay" id="cartOverlay" onclick="closeCart()"></div>
-<div class="cart-drawer" id="cartDrawer" style="display:none;">
-  <div class="cart-header">
-    <div class="cart-title">Parts Order</div>
-    <button class="cart-close" onclick="closeCart()">✕</button>
-  </div>
-  <div class="cart-body" id="cartBody"></div>
-  <div class="cart-footer">
-    <div class="cart-footer-info" id="cartFooterInfo"></div>
-    <textarea class="cart-comments" id="cartComments" rows="3" placeholder="Comments / notes for this order…"></textarea>
-    <button class="btn-place-order" id="btnPlaceOrder" onclick="submitOrder()">
-      <svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-      Place Order
-    </button>
-  </div>
-</div>
-
 <script>
-var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzyqm5dVvIW8snsuO9WX8WBy3xrIywGyT9-05QQZGX04e48hv5v2wsm6pPnbP8g9Rng/exec';
 var currentUser = { name: 'Engineer', username: 'engineer', role: 'User' };
 (function loadSession(){
   try {
@@ -1030,9 +1002,606 @@ var faultData = {
 };
 
 var severityLabels = { red:'PARK IMMEDIATELY', amber:'MONITOR — REDUCE USE', green:'CAN FINISH SHIFT' };
+var testerData = {
+  AC3: {
+    label: 'AC3 — Live TESTER Values (from Zapi console)',
+    sections: [
+      { title: 'Traction', items: [
+        { name:'MOTOR VOLTAGE', desc:'Voltage currently being sent to the motor, shown as a percentage of full battery voltage.' },
+        { name:'FREQUENCY', desc:'Output frequency being driven to the motor.' },
+        { name:'ENCODER', desc:'Motor speed as measured by the speed sensor, in the same units as Frequency.' },
+        { name:'SLIP VALUE', desc:'Difference between the rotating field speed and the actual motor shaft speed.' },
+        { name:'CURRENT RMS', desc:'RMS motor current being drawn.' },
+        { name:'TEMPERATURE', desc:'Heatsink temperature at the MOSFET power stage.' },
+        { name:'MOTOR TEMPERAT.', desc:'Motor temperature reading. Shows 0° if the motor temperature sensor option is set to None.' },
+        { name:'ACCELERATOR', desc:'Accelerator potentiometer wiper voltage — shown as both a raw voltage and a percentage of travel.' },
+        { name:'FORWARD SWITCH', desc:'State of the forward direction input — ON/+VB when the switch is closed, OFF/GND when open.' },
+        { name:'BACKWARD SWITCH', desc:'State of the reverse direction input.' },
+        { name:'ENABLE SWITCH', desc:'State of the accelerator-enable input.' },
+        { name:'SEAT SWITCH', desc:'State of the seat microswitch input.' },
+        { name:'BACKING F.', desc:'State of the inching (creep) forward input.' },
+        { name:'BACKING B.', desc:'State of the inching (creep) backward input.' },
+        { name:'CUTBACK SWITCH', desc:'State of the speed-reduction microswitch — ON/GND when active, OFF/+VB when not.' },
+        { name:'BRAKE SWITCH', desc:'State of the brake pedal microswitch.' },
+        { name:'EXCLUSIVE HYDRO', desc:'State of the exclusive-hydro input.' },
+        { name:'BRAKEPEDAL POT.', desc:'Brake pedal potentiometer position, as a percentage (100% = fully pressed).' },
+        { name:'HAND BRAKE', desc:'State of the handbrake microswitch — ON/GND when the handbrake is applied (switch open), OFF/+VB when released.' },
+        { name:'VOLTAGE BOOSTER', desc:'Extra voltage boost being applied under load, as a percentage of full voltage.' },
+        { name:'BATTERY VOLTAGE', desc:'Battery voltage measured at the key switch input.' },
+        { name:'BATTERY CHARGE', desc:'Estimated remaining battery charge, as a percentage.' }
+      ]},
+      { title: 'Pump', items: [
+        { name:'MOTOR VOLTAGE', desc:'Voltage currently being sent to the pump motor, as a percentage of full battery voltage.' },
+        { name:'FREQUENCY', desc:'Output frequency being driven to the pump motor.' },
+        { name:'ENCODER', desc:'Pump motor speed from the speed sensor, in the same units as Frequency.' },
+        { name:'SLIP VALUE', desc:'Difference between rotating field speed and pump motor shaft speed.' },
+        { name:'CURRENT RMS', desc:'RMS pump motor current being drawn.' },
+        { name:'TEMPERATURE', desc:'Heatsink temperature at the MOSFET power stage.' },
+        { name:'MOTOR TEMPERATURE', desc:'Pump motor temperature reading. Shows 0° if the sensor option is set to None.' },
+        { name:'ACCELERATOR', desc:'Lift potentiometer wiper voltage, shown as both a voltage and a percentage.' },
+        { name:'LIFTING SWITCH', desc:'State of the lift-request input.' },
+        { name:'1ST SPEED SWITCH', desc:'State of the 1st speed selection input.' },
+        { name:'2ND SPEED SWITCH', desc:'State of the 2nd speed selection input.' },
+        { name:'3RD SPEED SWITCH', desc:'State of the 3rd speed selection input.' },
+        { name:'4TH SPEED SWITCH', desc:'State of the 4th speed selection input.' },
+        { name:'HYDRO SPEED REQ.', desc:'State of the hydraulic steering speed request input.' },
+        { name:'CUTBACK SWITCH', desc:'State of the speed-reduction microswitch.' },
+        { name:'VOLTAGE BOOSTER', desc:'Extra voltage boost applied under load, as a percentage of full voltage.' },
+        { name:'BATTERY VOLTAGE', desc:'Battery voltage measured at the key switch input.' },
+        { name:'BATTERY CHARGE', desc:'Estimated remaining battery charge, as a percentage.' }
+      ]}
+    ]
+  },
+  GEN1: {
+    label: 'ACE GEN1 — Live TESTER Values (from Zapi console, per node)',
+    sections: [
+      { title: 'Traction (ACE3)', items: [
+        { name:'MOTOR VOLTAGE', desc:'Voltage currently sent to the traction motor, as a percentage of full battery voltage.' },
+        { name:'FREQUENCY', desc:'Output frequency being driven to the traction motor.' },
+        { name:'ENCODER', desc:'Traction motor speed from the encoder, same units as Frequency.' },
+        { name:'SLIP VALUE', desc:'Difference between rotating field speed and motor shaft speed.' },
+        { name:'CURRENT RMS', desc:'RMS traction motor current being drawn.' },
+        { name:'TEMPERATURE', desc:'Heatsink temperature at the MOSFET power stage.' },
+        { name:'MOTOR TEMPERAT.', desc:'Traction motor temperature reading — reads 0° if the sensor option is set to None.' },
+        { name:'ACCELERATOR', desc:'Accelerator potentiometer wiper voltage, shown as both a voltage and a percentage.' },
+        { name:'FORWARD / BACKWARD SWITCH', desc:'State of the forward / reverse direction inputs.' },
+        { name:'SEAT SWITCH', desc:'State of the seat/tiller microswitch input.' },
+        { name:'HAND BRAKE', desc:'State of the handbrake microswitch.' },
+        { name:'BATTERY VOLTAGE', desc:'Battery voltage measured at the key switch input.' },
+        { name:'BATTERY CHARGE', desc:'Estimated remaining battery charge, as a percentage.' }
+      ]},
+      { title: 'Pump (ACE2)', items: [
+        { name:'MOTOR VOLTAGE', desc:'Voltage currently sent to the pump motor, as a percentage of full battery voltage.' },
+        { name:'FREQUENCY', desc:'Output frequency being driven to the pump motor.' },
+        { name:'ENCODER', desc:'Pump motor speed from the encoder, same units as Frequency.' },
+        { name:'CURRENT RMS', desc:'RMS pump motor current being drawn.' },
+        { name:'TEMPERATURE', desc:'Heatsink temperature at the MOSFET power stage.' },
+        { name:'MOTOR TEMPERATURE', desc:'Pump motor temperature reading — reads 0° if the sensor option is set to None.' },
+        { name:'ACCELERATOR', desc:'Lift potentiometer wiper voltage, shown as both a voltage and a percentage.' },
+        { name:'LIFTING SWITCH', desc:'State of the lift-request input.' },
+        { name:'BATTERY VOLTAGE', desc:'Battery voltage measured at the key switch input.' },
+        { name:'BATTERY CHARGE', desc:'Estimated remaining battery charge, as a percentage.' }
+      ]},
+      { title: 'Steer (ACEX)', items: [
+        { name:'MOTOR VOLTAGE', desc:'Voltage currently sent to the steer motor, as a percentage of full battery voltage.' },
+        { name:'FREQUENCY', desc:'Output frequency being driven to the steer motor.' },
+        { name:'ENCODER', desc:'Steer motor speed from the encoder, same units as Frequency.' },
+        { name:'CURRENT RMS', desc:'RMS steer motor current being drawn.' },
+        { name:'TEMPERATURE', desc:'Heatsink temperature at the MOSFET power stage.' },
+        { name:'BATTERY VOLTAGE', desc:'Battery voltage measured at the key switch input.' }
+      ]}
+    ],
+    note: 'Steer node TESTER fields are the common core set confirmed across the ACE family — the exact console field list for this specific steer node hasn\'t been independently verified against a steer-specific manual.'
+  }
+};
+var paramsData = {
+  AC3: {
+    label: 'AC3 — Parameter Adjustment Tables (level 0–9)',
+    sections: [
+      { title: 'Traction', params: [
+        { name:'ACCELERATION DELAY', unit:'Sec.', levels:[2.5,3.0,3.5,4.0,4.5,5.0,5.5,6.0,6.5,7.0] },
+        { name:'RELEASE BRAKING', unit:'Sec.', levels:[5.5,5.0,4.5,4.0,3.5,3.0,2.5,2.0,1.5,1.0] },
+        { name:'INVERS. BRAKING', unit:'Sec.', levels:[5.5,5.0,4.5,4.0,3.5,3.0,2.5,2.0,1.5,1.0] },
+        { name:'PEDAL BRAKING', unit:'Sec.', levels:[5.5,5.0,4.5,4.0,3.5,3.0,2.5,2.0,1.5,1.0] },
+        { name:'SPEED LIMIT BRK.', unit:'Sec.', levels:[8.9,8.3,7.7,7.1,6.6,6.0,5.5,4.9,4.4,3.8] },
+        { name:'BRAKE CUTBACK', unit:'Sec.', levels:[5.5,5.0,4.5,4.0,3.5,3.0,2.5,2.0,1.5,1.0] },
+        { name:'MAX SPEED FORW', unit:'Hz', levels:[65,80,95,110,125,140,155,170,185,200] },
+        { name:'MAX SPEED BACK', unit:'Hz', levels:[65,80,95,110,125,140,155,170,185,200] },
+        { name:'CUTBACK SPEED', unit:'%Max Sp', levels:[10,20,30,40,50,60,70,80,90,100] },
+        { name:'CURVE CUTBACK', unit:'%Max Sp', levels:[0,10,21,33,44,55,66,78,89,100] },
+        { name:'FREQUENCY CREEP', unit:'Hz', levels:[0.3,0.6,0.9,1.2,1.5,1.8,2.1,2.4,2.7,3.0] },
+        { name:'MAXIMUM CURRENT', unit:'%IMAX', levels:[47,53,58,64,70,76,82,88,94,100] },
+        { name:'BACKING SPEED', unit:'Hz', levels:[0,2,4,6,8,10,12,14,16,18] },
+        { name:'BACKING TIME', unit:'Sec.', levels:[0.2,0.5,1.0,1.4,1.8,2.3,2.7,3.1,3.6,4.0] },
+        { name:'AUXILIARY TIME', unit:'Sec.', levels:[0,1,1.5,2.0,2.5,3.0,3.5,4.0,4.5,5] }
+      ], footnotes:[
+        'Acceleration time shown is 0Hz to 100Hz — the software\'s ideal ramp. Real-world ramps vary with motor control parameters and load.',
+        'Braking values are deceleration ramps — time to go from 100Hz to 0Hz. Real-world ramps vary with motor control parameters and load.'
+      ]},
+      { title: 'Pump', params: [
+        { name:'ACCELER. DELAY', unit:'Sec.', levels:[0.5,0.7,1.0,1.4,1.9,2.5,3.2,4.0,4.8,5.5] },
+        { name:'DECELER. DELAY', unit:'Sec.', levels:[0.5,0.7,1.0,1.4,1.9,2.5,3.2,4.0,4.8,5.5] },
+        { name:'MAX SPEED UP', unit:'Hz', levels:[65,80,95,110,125,140,155,170,185,200] },
+        { name:'MIN SPEED UP', unit:'Hz', levels:[0,13.5,15.0,16.5,18.0,19.5,21.0,22.5,24.0,25.5] },
+        { name:'CUTBACK SPEED', unit:'%Max Sp', levels:[10,20,30,40,50,60,70,80,90,100] },
+        { name:'SPEED FINE (ALL)', unit:'Hz', levels:['—','—','—','—','—','—','—','—','—','—'] },
+        { name:'MAXIMUM CURRENT', unit:'%IMAX', levels:[47,53,58,64,70,76,82,88,94,100] },
+        { name:'AUXILIARY TIME', unit:'Sec.', levels:[0,0.2,0.4,0.8,1.0,1.5,2.0,3.0,4.0,5.0] }
+      ], footnotes:[
+        'Acceleration/deceleration times are ideal ramps from the software (0Hz↔100Hz) — real ramps vary with motor parameters and load.',
+        'SPEED FINE parameters (1st–4th, HYD) are adjustable directly in 1Hz steps across a 0–200Hz range, not via the 0–9 level table.'
+      ]}
+    ]
+  }
+};
+var partsRefData = {
+  AC3: {
+    label: 'AC3 / AC4 FLASH — ZAPI OEM Spare Parts',
+    parts: [
+      { code:'C16507', desc:'Protected 500A strip fuse' },
+      { code:'C16505', desc:'Protected 355A strip fuse' },
+      { code:'C16500', desc:'10A 20mm control circuit fuse' },
+      { code:'C16520', desc:'6.3A 20mm control circuit fuse' },
+      { code:'C29509', desc:'SW200 80V single-pole contactor' },
+      { code:'C29532', desc:'SW200 48V single-pole contactor' },
+      { code:'C12532', desc:'Ampseal connector, 35 pins, female' },
+      { code:'C12442', desc:'Molex Minifit connector, 2 pins, female' },
+      { code:'C12358', desc:'Molex Minifit connector, 4 pins, female' },
+      { code:'C12359', desc:'Molex Minifit connector, 6 pins, female' },
+      { code:'C12414', desc:'Molex Minifit connector, 8 pins, female' },
+      { code:'C12407', desc:'Molex Minifit connector, 12 pins, female' },
+      { code:'C12403', desc:'Molex Minifit connector, 14 pins, female' },
+      { code:'C12796', desc:'Female Ampseal pin, harness side' },
+      { code:'C12777', desc:'Female Molex Minifit pin, harness side' }
+    ]
+  },
+  GEN1: {
+    label: 'ACE GEN1 (ACE2) — ZAPI OEM Spare Parts',
+    note: 'Partial list — only a few items were legible from the source page; the full ACE2/ACE3/ACEX spare parts chapters haven\'t been fully extracted yet.',
+    parts: [
+      { code:'C29522', desc:'SW180 48V single-pole contactor' },
+      { code:'C29508', desc:'SW180 24V single-pole contactor' },
+      { code:'C12531', desc:'Ampseal connector, 23 pins, female' },
+      { code:'C12372', desc:'Molex connector, 8 pins, female' }
+    ]
+  }
+};
+partsRefData.GEN1.note += ' These are generic ZAPI part numbers — no confirmed mapping to Narrow Aisle\'s own catalog numbers exists in this tool, so treat this as a separate reference, not a substitute for the parts already listed against each fault code.';
+partsRefData.AC3.note = 'These are generic ZAPI part numbers — no confirmed mapping to Narrow Aisle\'s own catalog numbers exists in this tool, so treat this as a separate reference, not a substitute for the parts already listed against each fault code.';
+var vaccData = {
+  AC3: {
+    label: 'PROGRAM VACC — Accelerator Signal Acquisition (AC3 console)',
+    note: 'This procedure re-teaches the controller the real minimum and maximum wiper voltage of the accelerator (or lift) potentiometer, in both directions — it\'s the standard fix for a VACC NOT OK / PEDAL FAILURE-type alarm caused by an uncalibrated or replaced potentiometer.',
+    steps: [
+      'From the Opening Zapi Display, press ENTER to go into the General Menu.',
+      'The display shows MAIN MENU / PARAMETER CHANGE.',
+      'Press ROLL UP or ROLL DOWN until PROGRAM VACC appears on the display.',
+      'The display shows MAIN MENU / PROGRAM VACC.',
+      'Press ENTER to go into the PROGRAM VACC routine — the display shows the current minimum and maximum wiper voltages for both directions.',
+      'Press ENTER to clear these stored values — the display resets to 0.0.',
+      'Select Forward direction and close any interlock switches that need to be closed (seat/tiller switch etc.).',
+      'Slowly depress the accelerator pedal (or move the tiller butterfly) to its maximum value — the new minimum and maximum voltages are shown on the console along with an arrow indicating direction.',
+      'Select Reverse direction and repeat the same slow full-travel movement.',
+      'When finished, press OUT.',
+      'The display asks "ARE YOU SURE?" — press ENTER to accept the new calibration, or OUT to discard it.',
+      'The console returns to MAIN MENU / PROGRAM VACC — press OUT again to return to the Opening Zapi Display.'
+    ]
+  }
+};
+
+var pinoutData = {
+  AC3: {
+    label: 'AC3 / AC4 FLASH — Connector Pinouts',
+    note: 'From the official ZAPI manual\'s generic pinout. Your truck\'s actual harness/schematic labels may use different wire codes — cross-check against the Flexi wiring diagram for this installation before assuming a 1:1 match.',
+    connectors: [
+      { name: 'Ampseal 35-pin + Molex Spox (console)', configs: [
+        { title:'Traction', pins:[
+          ['A1','+12V (+5V)','Encoder power supply positive — 5V or 12V, jumper-selectable at build'],
+          ['A2','ENC GND','Encoder power supply negative'],
+          ['A3','PPOT','Accelerator potentiometer positive supply — keep load >1kΩ'],
+          ['A4','SEAT','Seat microswitch input — active high'],
+          ['A5','FORWARD','Forward direction request input — active high'],
+          ['A6','BACKWARD','Backward direction request input — active high'],
+          ['A7','EX. HYDRO/ENABLE','Exclusive hydro or accelerator-enable input — active high'],
+          ['A8','PB','Brake pedal switch input — active high'],
+          ['A9','SR/HB','Speed reduction / handbrake input — active low (switch open)'],
+          ['A10','BACKING FORW.','Inching (creep) forward input — active high'],
+          ['A11','BACKING BACK.','Inching (creep) backward input — active high'],
+          ['A12','SAFETY','MC coil power output disabled unless this is tied to -Batt'],
+          ['A13','ENC A','Encoder phase A'],
+          ['A14','ENC B','Encoder phase B'],
+          ['A15','NPOT','Accelerator negative — monitored for wire-disconnect diagnosis'],
+          ['A16','CPOT','Accelerator potentiometer wiper (analog input)'],
+          ['A17','CAN T','CAN termination — bridge to A18 (CAN H) to insert 120Ω termination'],
+          ['A18','CAN H','CAN bus high'],
+          ['A19','CAN L','CAN bus low'],
+          ['A20','NPOTB','Ground reference for brake pot'],
+          ['A21','CPOTB','Brake potentiometer wiper (analog input)'],
+          ['A22','ENC A*','Encoder phase A inverted (differential encoders only)'],
+          ['A23','ENC B*','Encoder phase B inverted (differential encoders only)'],
+          ['A24','NTHERM','Ground reference for motor thermal sensor'],
+          ['A25','PTHERM','Motor temperature sensor input'],
+          ['A26','NMC','Main contactor coil driver (negative, drives to -Batt) — on/off or PWM'],
+          ['A27','PMC','Main contactor coil positive — equal to key voltage'],
+          ['A28','NBRAKE','Brake or hydraulic-steering contactor coil driver (negative)'],
+          ['A29','PBRAKE','Electromechanical brake coil positive — equal to key voltage'],
+          ['A30','CM','Common return for FW/BW/SR/PB/SEAT/inching/exclusive-hydro switches'],
+          ['A31','MODE','Traction/pump software select — open = traction, tied to A35 = pump'],
+          ['A32','PPOTB','Brake potentiometer positive — same voltage as A3, load >1kΩ'],
+          ['A33','KEY','Key supply, via microswitch and fuse'],
+          ['A34','-BATT','Ground reference'],
+          ['A35','-BATT','Ground reference'],
+          ['B1','PCLRXD','Serial receive +'],
+          ['B2','NCLRXD','Serial receive −'],
+          ['B3','PCLTXD','Serial transmit +'],
+          ['B4','NCLTXD','Serial transmit −'],
+          ['B5','GND','Console power negative'],
+          ['B6','+12','Console power positive'],
+          ['B7','FLASH','Bridge to B8 for flash memory programming'],
+          ['B8','FLASH','Bridge to B7 for flash memory programming']
+        ]},
+        { title:'Pump', pins:[
+          ['A1','+12V (+5V)','Encoder power supply positive'],
+          ['A2','ENC GND','Encoder power supply negative'],
+          ['A3','PPOT','Lift potentiometer positive supply — keep load >1kΩ'],
+          ['A4','4 TH','4th speed request input — active high'],
+          ['A5','LIFT ENABLE','Potentiometer-controlled lift enable input — active high'],
+          ['A6','1 ST','1st speed request input — active high'],
+          ['A7','DIG IN','Free digital input — active high'],
+          ['A8','3 RD','3rd speed request input — active high'],
+          ['A9','2 ND','2nd speed request input — active high'],
+          ['A10','HYDRO.','Hydraulic steering request input — active high'],
+          ['A11','SR.','Speed reduction input — active low (switch open)'],
+          ['A12','SAFETY','MC coil power output disabled unless this is tied to -Batt'],
+          ['A13','ENC A','Encoder phase A'],
+          ['A14','ENC B','Encoder phase B'],
+          ['A15','NPOT','Lift unit negative — monitored for wire-disconnect diagnosis'],
+          ['A16','CPOT','Lift potentiometer wiper (analog input)'],
+          ['A17','CAN T','CAN termination — bridge to A18 to insert 120Ω termination'],
+          ['A18','CAN H','CAN bus high'],
+          ['A19','CAN L','CAN bus low'],
+          ['A20','NPOT-AUX','Ground reference'],
+          ['A21','CPOT-AUX','Free analog input'],
+          ['A22','ENC A*','Encoder phase A inverted (differential encoders only)'],
+          ['A23','ENC B*','Encoder phase B inverted (differential encoders only)'],
+          ['A24','NTHERM','Ground reference for motor thermal sensor'],
+          ['A25','PTHERM','Motor temperature sensor input'],
+          ['A26','NAUX','Main contactor (single-pump config) or aux load driver, negative'],
+          ['A27','PAUX','Main contactor or aux load positive — equal to key voltage'],
+          ['A28','NHYDRO','Hydraulic steering contactor coil driver (negative)'],
+          ['A29','PHYDRO','Hydraulic steering contactor coil positive — equal to key voltage'],
+          ['A30','CM','Common return for LIFT ENABLE/1st-4th/HYDRO/SR switches'],
+          ['A31','MODE','Traction/pump software select — tied to A35 = pump'],
+          ['A32','PPOT-AUX','Auxiliary potentiometer positive — same voltage as A3, load >1kΩ'],
+          ['A33','KEY','Key supply, via microswitch and fuse'],
+          ['A34','-BATT','Ground reference'],
+          ['A35','-BATT','Ground reference'],
+          ['B1','PCLRXD','Serial receive +'],['B2','NCLRXD','Serial receive −'],
+          ['B3','PCLTXD','Serial transmit +'],['B4','NCLTXD','Serial transmit −'],
+          ['B5','GND','Console power negative'],['B6','+12','Console power positive'],
+          ['B7','FLASH','Bridge to B8 for flash memory programming'],
+          ['B8','FLASH','Bridge to B7 for flash memory programming']
+        ]}
+      ]},
+      { name:'Amp Saab 42-pin', configs:[
+        { title:'Traction', pins:[
+          ['A1','PPOT','Accelerator potentiometer positive, load >1kΩ'],['A2','NPOTB','Ground ref, brake pot'],
+          ['A3','PPOTB','Brake potentiometer positive, same voltage as A1'],['A4','MOT TH.','Motor temperature sensor input'],
+          ['A5','NTHERM','Ground ref, motor thermal sensor'],['A6','-BATT','Ground reference'],
+          ['A7','NMC','Main contactor coil driver (negative)'],['A8','PMC','Main contactor coil positive'],
+          ['A9','NBRAKE','Brake/hydro contactor coil driver (negative)'],['A10','PBRAKE','Electromech. brake coil positive'],
+          ['A11','CM','Common return for switch inputs'],['A12','KEY','Key supply via microswitch and fuse'],
+          ['A13','SAFETY','Ties to -Batt to enable MC coil output'],['A14','-BATT','Ground reference'],
+          ['A15','CPOT','Accelerator potentiometer wiper'],['A16','NPOT','Accelerator negative (wire-disconnect diagnosis)'],
+          ['A17','CPOTB','Brake potentiometer wiper'],['A18','ENC A*','Encoder phase A inverted'],
+          ['A19','ENC B*','Encoder phase B inverted'],['A20','MODE','Traction/pump select — tied to A6 = pump'],
+          ['A21','FORWARD','Forward direction request, active high'],['A22','BACKWARD','Backward direction request, active high'],
+          ['A23','PB','Brake pedal switch, active high'],['A24','BACKING FORW.','Inching forward, active high'],
+          ['A25','BACKING BACK.','Inching backward, active high'],['A26','EX. HYDRO/ENABLE','Exclusive hydro / accel-enable, active high'],
+          ['A27','SEAT','Seat microswitch, active high'],['A28','SR/HB','Speed reduction/handbrake, active low'],
+          ['A29','+12V (+5V)','Encoder power positive'],['A30','ENC GND','Encoder power negative'],
+          ['A31','ENC A','Encoder phase A'],['A32','ENC B','Encoder phase B'],
+          ['A33','CANT','CAN termination — bridge to A18 (CAN H) for 120Ω'],['A34','CANL','CAN bus low'],
+          ['A35','CANH','CAN bus high'],['A36','PCLRXD','Serial receive +'],
+          ['A37','NCLRXD','Serial receive −'],['A38','PCLTXD','Serial transmit +'],
+          ['A39','NCLTXD','Serial transmit −'],['A40','GND','Console power negative'],
+          ['A41','+12','Console power positive'],['A42','FLASH','Bridge to A41 for flash programming']
+        ]},
+        { title:'Pump', pins:[
+          ['A1','PPOT','Lift potentiometer positive, load >1kΩ'],['A2','NPOT-AUX','Ground reference'],
+          ['A3','PPOT-AUX','Auxiliary potentiometer positive, same voltage as A1'],['A4','PTHERM','Motor temperature sensor input'],
+          ['A5','NTHERM','Ground ref, motor thermal sensor'],['A6','-BATT','Ground reference'],
+          ['A7','NAUX','Main contactor / aux load driver (negative)'],['A8','PAUX','Main contactor / aux load positive'],
+          ['A9','NHYDRO','Hydraulic steering contactor driver (negative)'],['A10','PHYDRO','Hydraulic steering contactor positive'],
+          ['A11','CM','Common return for switch inputs'],['A12','KEY','Key supply via microswitch and fuse'],
+          ['A13','SAFETY','Ties to -Batt to enable MC coil output'],['A14','-BATT','Ground reference'],
+          ['A15','CPOT','Lift potentiometer wiper'],['A16','NPOT','Lift potentiometer negative'],
+          ['A17','CPOT-AUX','Free analog input'],['A18','ENC A*','Encoder phase A inverted'],
+          ['A19','ENC B*','Encoder phase B inverted'],['A20','MODE','Traction/pump select — tied to A6 = pump'],
+          ['A21','LIFT ENABLE','Lift-enable input, active high'],['A22','1 ST','1st speed request, active high'],
+          ['A23','3 RD','3rd speed request, active high'],['A24','HYDRO.','Hydraulic steering request, active high'],
+          ['A25','SR.','Speed reduction input, active low'],['A26','DIG IN','Free digital input, active high'],
+          ['A27','4 TH','4th speed request, active high'],['A28','2 ND','2nd speed request, active high'],
+          ['A29','+12V (+5V)','Encoder power positive'],['A30','ENC GND','Encoder power negative'],
+          ['A31','ENC A','Encoder phase A'],['A32','ENC B','Encoder phase B'],
+          ['A33','CANT','CAN termination — bridge to A18 for 120Ω'],['A34','CANL','CAN bus low'],
+          ['A35','CANH','CAN bus high'],['A36','PCLRXD','Serial receive +'],
+          ['A37','NCLRXD','Serial receive −'],['A38','PCLTXD','Serial transmit +'],
+          ['A39','NCLTXD','Serial transmit −'],['A40','GND','Console power negative'],
+          ['A41','+12','Console power positive'],['A42','FLASH','Bridge to A41 for flash programming']
+        ]}
+      ]},
+      { name:'Molex Minifit', configs:[
+        { title:'Traction', pins:[
+          ['A1','CPOT','Accelerator potentiometer wiper'],['A2','PPOT','Accelerator positive, load >1kΩ'],
+          ['A3','NPOT','Accelerator negative (wire-disconnect diagnosis)'],['A4','CM','Common return for FW/BW/inching/exclusive-hydro'],
+          ['A5','FORW','Forward direction request, active high'],['A6','BW','Backward direction request, active high'],
+          ['A7','PB','Brake pedal switch, active high'],['A8','CPOTB','Brake potentiometer wiper'],
+          ['A9','PPOTB','Brake potentiometer positive, same voltage as A2'],['A10','NPOTB','Ground reference'],
+          ['A11','-BATT','Ground reference'],['A12','BACK. FORW','Inching forward, active high'],
+          ['A13','BACK. BACK','Inching backward, active high'],['A14','EX. HYDRO/ENABLE','Exclusive hydro / accel-enable, active high'],
+          ['B1','KEY','Key supply via microswitch and fuse'],['B2','PMC','Main contactor coil positive'],
+          ['B3','PBRAKE','Electromech. brake coil positive'],['B4','SEAT','Seat microswitch, active high'],
+          ['B5','SAFETY','Ties to -Batt to enable MC coil output'],['B6','PTHERM','Motor temperature sensor input'],
+          ['B7','CM','Common return, SR/PB/SEAT'],['B8','NMC','Main contactor coil driver (negative)'],
+          ['B9','NBRAKE','Brake/hydro contactor coil driver (negative)'],['B10','SR/HB','Speed reduction/handbrake, active low'],
+          ['B11','GND','Ground reference'],['B12','NTHERM','Ground ref, motor thermal sensor'],
+          ['C1','CAN-L','CAN bus low'],['C2','CAN-L-OUT','CAN bus low (pass-through)'],
+          ['C3','CAN-H','CAN bus high'],['C4','CAN-H-OUT','CAN bus high (pass-through)'],
+          ['D1','-BATT','Ground reference'],['D2','MODE','Traction/pump select — tied to D1 = pump'],
+          ['E1-E6','ENCODER','Incremental encoder connector'],
+          ['F1','PCLRXD','Serial receive +'],['F2','NCLRXD','Serial receive −'],
+          ['F3','PCLTXD','Serial transmit +'],['F4','NCLTXD','Serial transmit −'],
+          ['F5','GND','Console power negative'],['F6','+12','Console power positive'],
+          ['F7','FLASH','Bridge to F8 for flash programming'],['F8','FLASH','Bridge to F7 for flash programming']
+        ]},
+        { title:'Pump', pins:[
+          ['A1','CPOT','Lift potentiometer wiper'],['A2','PPOT','Lift positive, load >1kΩ'],
+          ['A3','NPOT','Lift potentiometer negative'],['A4','CM','Common return, LIFT ENABLE/1st/3rd/HYDRO/SR'],
+          ['A5','LIFT ENABLE','Lift-enable input, active high'],['A6','1 ST','1st speed request, active high'],
+          ['A7','3 RD','3rd speed request, active high'],['A8','CPOT-AUX','Free analog input'],
+          ['A9','PPOT-AUX','Auxiliary potentiometer positive, same voltage as A2'],['A10','NPOTB','Ground reference'],
+          ['A11','-BATT','Ground reference'],['A12','HYDRO.','Hydraulic steering request, active high'],
+          ['A13','SR.','Speed reduction, active low'],['A14','DIG IN','Free digital input, active high'],
+          ['B1','KEY','Key supply via microswitch and fuse'],['B2','PAUX','Main contactor / aux load positive'],
+          ['B3','PHYDRO','Hydraulic steering contactor positive'],['B4','4 TH','4th speed request, active high'],
+          ['B5','SAFETY','Ties to -Batt to enable MC coil output'],['B6','PTHERM','Motor temperature sensor input'],
+          ['B7','CM','Common return, 2nd/4th switches'],['B8','NAUX','Main contactor / aux load driver (negative)'],
+          ['B9','NHYDRO','Hydraulic steering contactor driver (negative)'],['B10','2 ND','2nd speed request, active high'],
+          ['B11','GND','Ground reference'],['B12','NTHERM','Ground ref, motor thermal sensor'],
+          ['C1','CAN-L','CAN bus low'],['C2','CAN-L-OUT','CAN bus low (pass-through)'],
+          ['C3','CAN-H','CAN bus high'],['C4','CAN-H-OUT','CAN bus high (pass-through)'],
+          ['D1','-BATT','Ground reference'],['D2','MODE','Traction/pump select — tied to D1 = pump'],
+          ['E1-E6','ENCODER','Incremental encoder connector'],
+          ['F1','PCLRXD','Serial receive +'],['F2','NCLRXD','Serial receive −'],
+          ['F3','PCLTXD','Serial transmit +'],['F4','NCLTXD','Serial transmit −'],
+          ['F5','GND','Console power negative'],['F6','+12','Console power positive'],
+          ['F7','FLASH','Bridge to F8 for flash programming'],['F8','FLASH','Bridge to F7 for flash programming']
+        ]}
+      ]}
+    ]
+  }
+};
+
+var canBusGuide = {
+  label: 'CAN Bus Wiring Guidance (ZAPI general guidance)',
+  intro: 'CAN (Controller Area Network) is the serial link connecting traction, pump, steer and display modules — running at up to 1 Mbit/s. Power cables on an industrial truck carry hundreds of amps, and the resulting voltage drops across cable impedance can inject errors onto the CAN lines if it\'s routed or terminated badly.',
+  sections: [
+    { title:'Cable choice', points:[
+      'Twisted pair is the baseline recommendation for CAN wiring.',
+      'For better immunity to disturbances, use a cable with a shield tied to the truck frame.',
+      'A simple double/duplex unshielded cable is often sufficient in less noisy layouts.'
+    ]},
+    { title:'Wrong layout', points:[
+      'Looping the CAN cable so it runs alongside or crosses high-current power cables lets voltage-drop noise couple onto the data lines — this looks like a reasonable layout but causes intermittent bus errors.'
+    ]},
+    { title:'Correct layout — daisy chain', points:[
+      'Use when the connected modules differ significantly in power (e.g. a large traction inverter vs. a small display).',
+      'Start the chain from the -BATT post of the highest-current controller, then connect the rest in decreasing order of power.'
+    ]},
+    { title:'Correct layout — star / common ground', points:[
+      'Use when two similar-power controllers (e.g. traction + pump) share the bus with a lower-power module.',
+      'Create a common ground point; keep the cables from the two similar controllers to that point as short as possible.',
+      'Size the cable between battery negative and the common ground point for both current-carrying capacity and voltage-drop — larger diameter cable means lower impedance.'
+    ]},
+    { title:'Termination', points:[
+      'A 120Ω termination resistor is required at each physical end of the CAN bus.',
+      'With the machine powered OFF, resistance measured between CAN H and CAN L should read approximately 60Ω if both terminations are present and the wiring is intact (two 120Ω resistors in parallel).'
+    ]},
+    { title:'Why CAN is used', points:[
+      'Simplified design — fewer, smaller cables than discrete point-to-point wiring.',
+      'Improved reliability from fewer physical connections.',
+      'Easier fault analysis — a single connection point lets a PC or console read all traffic on the bus.'
+    ]}
+  ]
+};
+
+var maintenanceChecklist = {
+  label: 'Periodic Maintenance — Every 3 Months (ZAPI general guidance)',
+  intro: 'Applies across the ZAPI ACE/AC-family controllers used in these trucks. Checks should be carried out by qualified personnel using original replacement parts — report anything that could compromise safety to a Narrow Aisle / Zapi agent immediately, and never operate a truck with a faulty electronic controller.',
+  items: [
+    { title:'Contactor contacts', desc:'Check the wear and condition of each contactor\'s moving and fixed contacts.' },
+    { title:'Foot pedal / tiller microswitch', desc:'Confirm there is no meaningful electrical resistance across the contacts using a test meter (measure volt drop between terminals). Switches should operate with a firm, positive click.' },
+    { title:'Battery, inverter and motor cables', desc:'Check insulation is sound and all connections are tight — battery cables, cables to the inverter, and cables to the motor.' },
+    { title:'Pedal / tiller mechanical operation', desc:'Check return springs are functioning correctly, and that potentiometers wind up to their full or programmed level through the pedal/tiller\'s travel.' },
+    { title:'Contactor mechanical operation', desc:'Moving contacts should be free to move without restriction — no sticking or mechanical binding.' }
+  ]
+};
+
+var viewMode = 'faults';
 var activeController = null;
 var activeBtn = null;
-var cart = [];
+
+function setViewMode(mode) {
+  viewMode = mode;
+  ['faults','tester','params','parts','vacc','pinout','canbus','maint'].forEach(function(m){
+    document.getElementById('mode-' + m).classList.toggle('active', mode === m);
+  });
+  var showFaultsUI = (mode === 'faults');
+  document.getElementById('searchBar').style.display = showFaultsUI ? 'flex' : 'none';
+  document.getElementById('codesPanel').style.display = showFaultsUI ? 'block' : 'none';
+  document.getElementById('resultBox').style.display = showFaultsUI ? 'block' : 'none';
+  document.getElementById('testerBox').style.display = (mode === 'tester') ? 'block' : 'none';
+  document.getElementById('paramsBox').style.display = (mode === 'params') ? 'block' : 'none';
+  document.getElementById('partsBox').style.display = (mode === 'parts') ? 'block' : 'none';
+  document.getElementById('vaccBox').style.display = (mode === 'vacc') ? 'block' : 'none';
+  document.getElementById('pinoutBox').style.display = (mode === 'pinout') ? 'block' : 'none';
+  document.getElementById('canbusBox').style.display = (mode === 'canbus') ? 'block' : 'none';
+  document.getElementById('maintBox').style.display = (mode === 'maint') ? 'block' : 'none';
+  if(mode === 'tester'){ renderTester(); }
+  else if(mode === 'params'){ renderParams(); }
+  else if(mode === 'parts'){ renderParts(); }
+  else if(mode === 'vacc'){ renderVacc(); }
+  else if(mode === 'pinout'){ renderPinouts(); }
+  else if(mode === 'canbus'){ renderCanBusGuide(); }
+  else if(mode === 'maint'){ renderMaintenance(); }
+}
+
+function renderPinouts() {
+  var box = document.getElementById('pinoutBox');
+  if(!activeController){
+    box.innerHTML = '<div class="no-controller">Select a controller to view its connector pinouts</div>';
+    return;
+  }
+  var data = pinoutData[activeController];
+  if(!data){
+    box.innerHTML = '<div class="no-controller">No pinout reference available yet for ' + activeController + '</div>';
+    return;
+  }
+  var html = '';
+  if(data.note){ html += '<div class="tester-note">' + data.note + '</div>'; }
+  data.connectors.forEach(function(conn){
+    html += '<div class="pinout-connector-label">' + conn.name + '</div>';
+    conn.configs.forEach(function(cfg){
+      html += '<div class="tester-section-label" style="margin-top:8px;">' + cfg.title + '</div>';
+      html += '<div class="pinout-table-wrap"><table class="pinout-table"><thead><tr><th>Pin</th><th>Signal</th><th>Function</th></tr></thead><tbody>';
+      cfg.pins.forEach(function(p){
+        html += '<tr><td>' + p[0] + '</td><td>' + p[1] + '</td><td>' + p[2] + '</td></tr>';
+      });
+      html += '</tbody></table></div>';
+    });
+  });
+  box.innerHTML = html;
+}
+
+function renderCanBusGuide() {
+  var box = document.getElementById('canbusBox');
+  var data = canBusGuide;
+  var html = '<div class="guide-intro">' + data.intro + '</div>';
+  data.sections.forEach(function(section){
+    html += '<div class="guide-section"><div class="guide-section-title">' + section.title + '</div><ul class="guide-points">';
+    section.points.forEach(function(pt){ html += '<li>' + pt + '</li>'; });
+    html += '</ul></div>';
+  });
+  box.innerHTML = html;
+}
+
+function renderMaintenance() {
+  var box = document.getElementById('maintBox');
+  var data = maintenanceChecklist;
+  var html = '<div class="guide-intro">' + data.intro + '</div>';
+  data.items.forEach(function(item){
+    html += '<div class="maint-item"><div class="maint-item-title">' + item.title + '</div><div class="maint-item-desc">' + item.desc + '</div></div>';
+  });
+  box.innerHTML = html;
+}
+
+function renderParams() {
+  var box = document.getElementById('paramsBox');
+  if(!activeController){
+    box.innerHTML = '<div class="no-controller">Select a controller to view its parameter tables</div>';
+    return;
+  }
+  var data = paramsData[activeController];
+  if(!data){
+    box.innerHTML = '<div class="no-controller">No parameter table data available yet for ' + activeController + '</div>';
+    return;
+  }
+  var html = '';
+  if(data.note){ html += '<div class="tester-note">' + data.note + '</div>'; }
+  data.sections.forEach(function(section){
+    html += '<div class="tester-section"><div class="tester-section-label">' + section.title + '</div>';
+    html += '<div class="param-table-wrap"><table class="param-table"><thead><tr><th>Parameter</th><th>Unit</th>';
+    for(var i=0;i<10;i++){ html += '<th>' + i + '</th>'; }
+    html += '</tr></thead><tbody>';
+    section.params.forEach(function(p){
+      html += '<tr><td>' + p.name + '</td><td>' + p.unit + '</td>';
+      p.levels.forEach(function(v){ html += '<td>' + v + '</td>'; });
+      html += '</tr>';
+    });
+    html += '</tbody></table></div>';
+    if(section.footnotes){
+      html += '<div class="param-footnote">' + section.footnotes.join('<br>') + '</div>';
+    }
+    html += '</div>';
+  });
+  box.innerHTML = html;
+}
+
+function renderParts() {
+  var box = document.getElementById('partsBox');
+  if(!activeController){
+    box.innerHTML = '<div class="no-controller">Select a controller to view its spare parts reference</div>';
+    return;
+  }
+  var data = partsRefData[activeController];
+  if(!data){
+    box.innerHTML = '<div class="no-controller">No spare parts reference available yet for ' + activeController + '</div>';
+    return;
+  }
+  var html = '';
+  if(data.note){ html += '<div class="tester-note">' + data.note + '</div>'; }
+  html += '<div class="tester-section"><div class="tester-section-label">' + data.label + '</div><div class="tester-grid">';
+  data.parts.forEach(function(p){
+    html += '<div class="spare-part-row"><div class="spare-part-code">' + p.code + '</div><div class="spare-part-desc">' + p.desc + '</div></div>';
+  });
+  html += '</div></div>';
+  box.innerHTML = html;
+}
+
+function renderVacc() {
+  var box = document.getElementById('vaccBox');
+  if(!activeController){
+    box.innerHTML = '<div class="no-controller">Select a controller to view its calibration procedure</div>';
+    return;
+  }
+  var data = vaccData[activeController];
+  if(!data){
+    box.innerHTML = '<div class="no-controller">No calibration procedure available yet for ' + activeController + '</div>';
+    return;
+  }
+  var html = '';
+  if(data.note){ html += '<div class="tester-note">' + data.note + '</div>'; }
+  html += '<div class="tester-section"><div class="tester-section-label">' + data.label + '</div><ol class="vacc-steps">';
+  data.steps.forEach(function(step, i){
+    html += '<li><span class="vacc-step-num">' + (i+1) + '</span><span class="vacc-step-text">' + step + '</span></li>';
+  });
+  html += '</ol></div>';
+  box.innerHTML = html;
+}
+
+function renderTester() {
+  var box = document.getElementById('testerBox');
+  if(!activeController){
+    box.innerHTML = '<div class="no-controller">Select a controller to view its TESTER reference</div>';
+    return;
+  }
+  var data = testerData[activeController];
+  if(!data){
+    box.innerHTML = '<div class="no-controller">No TESTER reference data available yet for ' + activeController + '</div>';
+    return;
+  }
+  var html = '';
+  if(data.note){ html += '<div class="tester-note">' + data.note + '</div>'; }
+  data.sections.forEach(function(section){
+    html += '<div class="tester-section"><div class="tester-section-label">' + section.title + '</div><div class="tester-grid">';
+    section.items.forEach(function(item){
+      html += '<div class="tester-item"><div class="tester-item-name">' + item.name + '</div><div class="tester-item-desc">' + item.desc + '</div></div>';
+    });
+    html += '</div></div>';
+  });
+  box.innerHTML = html;
+}
 
 function selectController(ctrl) {
   activeController = ctrl;
@@ -1043,6 +1612,11 @@ function selectController(ctrl) {
   document.getElementById('searchInput').value = '';
   if(activeBtn){ activeBtn.classList.remove('active'); activeBtn = null; }
   buildGrid();
+  if(viewMode === 'tester'){ renderTester(); }
+  else if(viewMode === 'params'){ renderParams(); }
+  else if(viewMode === 'parts'){ renderParts(); }
+  else if(viewMode === 'vacc'){ renderVacc(); }
+  else if(viewMode === 'pinout'){ renderPinouts(); }
 }
 
 function buildGrid() {
@@ -1136,19 +1710,13 @@ function showFault(code, btn) {
       var conf = (p.confidence||'medium').toLowerCase();
       var confLabelMap = {high:'HIGH LIKELIHOOD', medium:'POSSIBLE', low:'CHECK ALSO'};
       var confLabel = confLabelMap[conf] || 'POSSIBLE';
-      var inCart = cart.some(function(c){ return c.partNo === p.partNo && c.faultCode === code; });
-      var safeId = (p.partNo + '-' + code).replace(/[^a-zA-Z0-9]/g,'_');
       partsHtml +=
         '<div class="part-card">' +
           '<div class="part-accent ' + conf + '"></div>' +
           '<div class="part-body">' +
             '<div class="part-header-row"><div class="part-name">' + p.name + '</div><span class="part-pill ' + conf + '">' + confLabel + '</span></div>' +
             '<div class="part-meta-row"><span class="part-number">' + p.partNo + '</span><span class="part-reason">' + p.reason + '</span></div>' +
-          '</div>' +
-          '<div class="part-action">' +
-            '<button class="part-add-btn' + (inCart?' added':'') + '" id="addbtn-' + safeId + '" onclick="addToCart(' + escHtml(JSON.stringify(p)) + ', \'' + code + '\', \'' + escHtml(fault.name) + '\', this)">' +
-            (inCart ? '<svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"></path></svg> Added' : '<svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"></path></svg> Add') +
-            '</button></div></div>';
+          '</div></div>';
     });
     partsHtml += '</div>';
   } else { partsHtml = '<p class="no-parts">No parts data for this fault code</p>'; }
@@ -1169,100 +1737,6 @@ function showFaultByCode(code){
   document.getElementById('resultBox').scrollIntoView({behavior:'smooth'});
 }
 
-function addToCart(part, faultCode, faultName, btnEl) {
-  var existing = cart.find(function(c){ return c.partNo === part.partNo && c.faultCode === faultCode; });
-  if(existing){ existing.qty++; }
-  else { cart.push({ partNo: part.partNo, name: part.name, qty: 1, faultCode: faultCode, faultName: faultName }); }
-  if(btnEl){
-    btnEl.innerHTML = '<svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"></path></svg> Added';
-    btnEl.classList.add('added'); btnEl.disabled = true;
-  }
-  updateCartUI();
-  showToast(part.name + ' added to order');
-}
-
-function updateCartUI() {
-  var count = cart.reduce(function(s,c){ return s + c.qty; }, 0);
-  document.getElementById('cartCount').textContent = count + (count === 1 ? ' part' : ' parts') + ' in order';
-  document.getElementById('btnSubmitTop').disabled = count === 0;
-  renderCartBody();
-}
-
-function renderCartBody() {
-  var body = document.getElementById('cartBody');
-  var info = document.getElementById('cartFooterInfo');
-  var btn = document.getElementById('btnPlaceOrder');
-  if(!cart.length){
-    body.innerHTML = '<div class="cart-empty">No parts added yet</div>';
-    info.textContent = ''; btn.disabled = true; return;
-  }
-  btn.disabled = false;
-  info.textContent = 'Engineer: ' + currentUser.name + '  ·  Controller: ' + (activeController||'—');
-  var html = '';
-  cart.forEach(function(item, idx){
-    html += '<div class="cart-item"><div class="cart-item-info"><div class="cart-item-name">' + item.name + '</div><div class="cart-item-no">' + item.partNo + '</div><div class="cart-item-fault">From fault: ' + item.faultCode + ' — ' + item.faultName + '</div></div><div class="cart-item-qty"><button class="qty-btn" onclick="changeQty(' + idx + ', -1)">−</button><span class="qty-val">' + item.qty + '</span><button class="qty-btn" onclick="changeQty(' + idx + ', 1)">+</button></div><button class="cart-item-remove" onclick="removeFromCart(' + idx + ')">✕</button></div>';
-  });
-  body.innerHTML = html;
-}
-
-function changeQty(idx, delta) { cart[idx].qty = Math.max(1, cart[idx].qty + delta); updateCartUI(); }
-
-function removeFromCart(idx) {
-  var removed = cart.splice(idx, 1)[0];
-  var safeId = (removed.partNo + '-' + removed.faultCode).replace(/[^a-zA-Z0-9]/g,'_');
-  var btn = document.getElementById('addbtn-' + safeId);
-  if(btn){ btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"></path></svg> Add'; btn.classList.remove('added'); btn.disabled = false; }
-  updateCartUI();
-}
-
-function openCart() {
-  renderCartBody();
-  document.getElementById('cartOverlay').classList.add('open');
-  var d = document.getElementById('cartDrawer');
-  d.style.display = 'flex'; d.style.flexDirection = 'column';
-}
-
-function closeCart() {
-  document.getElementById('cartOverlay').classList.remove('open');
-  document.getElementById('cartDrawer').style.display = 'none';
-}
-
-function submitOrder() {
-  if(!cart.length) return;
-  var btn = document.getElementById('btnPlaceOrder');
-  btn.classList.add('loading'); btn.textContent = 'Submitting…';
-  var orderNumber = generateOrderNumber();
-  var parts = cart.map(function(item){ return {'Part Number':item.partNo,'Description':item.name,'Supplier Code':'','System':activeController||'','Stock Level':'','qty':item.qty,'faultCode':item.faultCode}; });
-  var payload = { action:'submitOrder', orderNumber:orderNumber, serviceController:currentUser.name, worksOrder:'', machineSerial:'', model:'', system:activeController||'', parts:parts, comments:document.getElementById('cartComments').value||'' };
-  var formBody = new URLSearchParams();
-  formBody.append('payload', JSON.stringify(payload));
-  fetch(SCRIPT_URL, { method:'POST', body:formBody })
-  .then(function(r){ return r.json(); })
-  .then(function(data){
-    if(data.success){
-      closeCart(); cart = []; updateCartUI();
-      document.getElementById('cartComments').value = '';
-      showOrderSuccess(orderNumber);
-      showToast('Order ' + orderNumber + ' submitted successfully');
-    } else { showToast('Order failed: ' + (data.error || 'Unknown error'), true); }
-  })
-  .catch(function(err){ showToast('Connection error — please try again', true); console.error(err); })
-  .finally(function(){
-    btn.classList.remove('loading');
-    btn.innerHTML = '<svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Place Order';
-    btn.disabled = false;
-  });
-}
-
-function generateOrderNumber() { return Math.floor(Math.random() * 900000 + 100000).toString() + '-' + Math.floor(Math.random() * 900 + 100); }
-
-function showOrderSuccess(orderNumber) {
-  var el = document.getElementById('orderSuccess');
-  el.style.display = 'block';
-  el.innerHTML = '<div class="order-success"><div class="order-success-icon">✓</div><div><div class="order-success-text">ORDER SUBMITTED SUCCESSFULLY</div><div class="order-success-num">' + orderNumber + '</div><div class="order-success-text" style="margin-top:4px;font-size:10px;color:#15803d;">Now visible in the Orders Dashboard</div></div></div>';
-  setTimeout(function(){ el.style.display = 'none'; }, 8000);
-}
-
 function showToast(msg, isError) {
   var existing = document.querySelector('.toast');
   if(existing) existing.remove();
@@ -1271,11 +1745,6 @@ function showToast(msg, isError) {
   t.innerHTML = (isError ? '⚠ ' : '✓ ') + msg;
   document.body.appendChild(t);
   setTimeout(function(){ t.remove(); }, 3500);
-}
-
-function escHtml(s) {
-  if(typeof s !== 'string') s = JSON.stringify(s);
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/'/g,'&#39;').replace(/"/g,'&quot;');
 }
 
 document.getElementById('searchInput').addEventListener('keydown', function(e){ if(e.key === 'Enter') searchFault(); });
