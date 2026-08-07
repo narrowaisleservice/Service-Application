@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Insights | Narrow Aisle Service Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --red:#df0a1e;
+    --black:#0a0a0a;
+    --grey-50:#f7f7f7;
+    --grey-100:#f0f0f0;
+    --grey-200:#e4e4e4;
+    --grey-500:#8a8a8a;
+    --grey-700:#4a4a4a;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'IBM Plex Sans',sans-serif;background:var(--grey-50);color:var(--black);}
+  header{
+    background:var(--black);color:#fff;padding:18px 28px;
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand .mark{width:10px;height:10px;background:var(--red);border-radius:2px;}
+  .brand span{font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#ccc;}
+  .logout{background:none;border:1px solid #444;color:#ccc;padding:7px 14px;border-radius:6px;font-size:12px;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;}
+  .logout:hover{border-color:var(--red);color:#fff;}
+  main{max-width:1180px;margin:0 auto;padding:28px;}
+  h1{font-size:22px;margin:0 0 20px;}
+  .tabs{display:flex;gap:4px;margin-bottom:22px;border-bottom:1px solid var(--grey-200);}
+  .tab{padding:10px 18px;font-size:13px;font-weight:600;color:var(--grey-500);cursor:pointer;border-bottom:2px solid transparent;user-select:none;}
+  .tab.active{color:var(--red);border-bottom-color:var(--red);}
+  .panel{display:none;}
+  .panel.active{display:block;}
+
+  .kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px;}
+  .kpi{background:#fff;border:1px solid var(--grey-200);border-radius:8px;padding:18px 20px;}
+  .kpi .num{font-family:'DM Mono',monospace;font-size:28px;font-weight:500;color:var(--red);}
+  .kpi .label{font-size:12px;color:var(--grey-700);text-transform:uppercase;letter-spacing:.03em;margin-top:4px;}
+
+  .chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+  @media (max-width:800px){.chart-grid{grid-template-columns:1fr;}}
+  .chart-card{background:#fff;border:1px solid var(--grey-200);border-radius:8px;padding:18px 20px;}
+  .chart-card h3{margin:0 0 14px;font-size:14px;font-weight:700;}
+  .bar-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+  .bar-label{width:130px;font-size:12px;color:var(--grey-700);flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .bar-track{flex:1;background:var(--grey-100);border-radius:3px;height:16px;position:relative;}
+  .bar-fill{background:var(--red);height:100%;border-radius:3px;}
+  .bar-val{font-family:'DM Mono',monospace;font-size:11px;color:var(--grey-700);width:44px;text-align:right;flex-shrink:0;}
+
+  table{width:100%;border-collapse:collapse;background:#fff;border-radius:8px;overflow:hidden;border:1px solid var(--grey-200);}
+  th,td{text-align:left;padding:10px 14px;font-size:13px;border-bottom:1px solid var(--grey-200);}
+  th{background:var(--grey-100);font-weight:600;color:var(--grey-700);text-transform:uppercase;font-size:11px;letter-spacing:.03em;}
+  tr:last-child td{border-bottom:none;}
+  .empty{padding:40px;text-align:center;color:var(--grey-500);font-size:14px;}
+  .loading{padding:40px;text-align:center;color:var(--grey-500);font-size:14px;}
+  .overdue-controls{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+  select{padding:8px 10px;border:1.5px solid var(--grey-200);border-radius:6px;font-family:'IBM Plex Sans',sans-serif;font-size:13px;}
+  .flag-never{color:var(--red);font-weight:600;}
+  .flag-old{color:#f57f17;font-weight:600;}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><div class="mark"></div><span>Narrow Aisle · Insights</span></div>
+  <button class="logout" onclick="logout()">Sign out</button>
+</header>
+
+<main>
+  <h1>Service Insights</h1>
+  <div class="tabs">
+    <div class="tab active" data-tab="overview">Overview</div>
+    <div class="tab" data-tab="overdue">Overdue Service</div>
+    <div class="tab" data-tab="weld">Weld Patterns</div>
+  </div>
+
+  <div class="panel active" id="panel-overview">
+    <div class="kpi-row" id="kpiRow">
+      <div class="kpi"><div class="num" id="kpiTotalJobs">–</div><div class="label">Total jobs</div></div>
+      <div class="kpi"><div class="num" id="kpiFtf">–</div><div class="label">First-time-fix rate</div></div>
+      <div class="kpi"><div class="num" id="kpiEngineers">–</div><div class="label">Active engineers</div></div>
+      <div class="kpi"><div class="num" id="kpiDepots">–</div><div class="label">Depots</div></div>
+    </div>
+    <div class="chart-grid">
+      <div class="chart-card"><h3>Jobs per engineer</h3><div id="chartEngineers" class="loading">Loading...</div></div>
+      <div class="chart-card"><h3>Most-visited truck models</h3><div id="chartModels" class="loading">Loading...</div></div>
+      <div class="chart-card"><h3>Visits by depot</h3><div id="chartDepots" class="loading">Loading...</div></div>
+      <div class="chart-card"><h3>Visits per month (last 24mo)</h3><div id="chartMonths" class="loading">Loading...</div></div>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-overdue">
+    <div class="overdue-controls">
+      <label style="font-size:13px;color:var(--grey-700);">Flag equipment not seen in:</label>
+      <select id="overdueThreshold">
+        <option value="6">6 months</option>
+        <option value="12" selected>12 months</option>
+        <option value="18">18 months</option>
+        <option value="24">24 months</option>
+      </select>
+    </div>
+    <div id="overdueBody" class="loading">Loading...</div>
+  </div>
+
+  <div class="panel" id="panel-weld">
+    <div id="weldBody" class="loading">Loading...</div>
+  </div>
+</main>
+
+<script>
+  const SUPABASE_URL = 'https://dontubctlexlvifwhmbj.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRvbnR1YmN0bGV4bHZpZndobWJqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ3OTU3NjMsImV4cCI6MjEwMDM3MTc2M30.v5ZblgN7aw832OdBLNWUHW3A2sK0v3skhNDgUoTIOnk';
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  async function logout(){
+    await supabase.auth.signOut();
+    window.location.href = 'login.html';
+  }
+
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+    });
+  });
+
+  function barChart(containerId, rows, labelKey, valueKey, formatLabel){
+    const el = document.getElementById(containerId);
+    if (!rows || !rows.length){ el.innerHTML = '<div class="empty">No data yet.</div>'; return; }
+    const max = Math.max(...rows.map(r => Number(r[valueKey]) || 0));
+    el.innerHTML = rows.map(r => {
+      const val = Number(r[valueKey]) || 0;
+      const pct = max ? (val / max * 100) : 0;
+      const label = formatLabel ? formatLabel(r[labelKey]) : (r[labelKey] || '(blank)');
+      return `<div class="bar-row">
+        <div class="bar-label" title="${label}">${label}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+        <div class="bar-val">${val}</div>
+      </div>`;
+    }).join('');
+  }
+
+  function monthLabel(dateStr){
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('en-GB', { month: 'short', year: '2-digit' });
+  }
+
+  async function loadOverdue(months){
+    const body = document.getElementById('overdueBody');
+    body.innerHTML = '<div class="loading">Loading...</div>';
+    const { data, error } = await supabase.rpc('overdue_equipment', { months_threshold: Number(months) });
+    if (error){ body.innerHTML = '<div class="empty">Could not load overdue equipment.</div>'; return; }
+    if (!data || !data.length){ body.innerHTML = '<div class="empty">Nothing overdue at this threshold.</div>'; return; }
+    body.innerHTML = `<table><thead><tr>
+      <th>Customer</th><th>Site</th><th>Truck</th><th>Serial</th><th>Depot</th><th>Last visit</th>
+    </tr></thead><tbody>` + data.map(r => {
+      const flag = r.last_visit_date === null
+        ? '<span class="flag-never">Never recorded</span>'
+        : `<span class="flag-old">${r.months_since_visit} mo ago</span>`;
+      return `<tr>
+        <td>${r.customer_name || ''}</td>
+        <td>${r.site_name || ''}</td>
+        <td>${r.make || ''} ${r.model || ''}</td>
+        <td>${r.serial_no || ''}</td>
+        <td>${r.depot || ''}</td>
+        <td>${flag}</td>
+      </tr>`;
+    }).join('') + '</tbody></table>';
+  }
+
+  document.getElementById('overdueThreshold').addEventListener('change', e => loadOverdue(e.target.value));
+
+  async function loadWeldPatterns(){
+    const body = document.getElementById('weldBody');
+    const { data, error } = await supabase.rpc('weld_repeat_patterns');
+    if (error){ body.innerHTML = '<div class="empty">Could not load weld patterns.</div>'; return; }
+    if (!data || !data.length){
+      body.innerHTML = '<div class="empty">No repeat crack locations yet — this fills in automatically once weld reports build up in the system.</div>';
+      return;
+    }
+    body.innerHTML = `<table><thead><tr>
+      <th>Customer</th><th>Serial</th><th>Equip Code</th><th>Reports</th><th>Verdicts</th>
+    </tr></thead><tbody>` + data.map(r => `
+      <tr>
+        <td>${r.customer_name || ''}</td>
+        <td>${r.serial_no || ''}</td>
+        <td>${r.equip_code || ''}</td>
+        <td>${r.crack_count}</td>
+        <td>${(r.verdicts || []).join(', ')}</td>
+      </tr>
+    `).join('') + '</tbody></table>';
+  }
+
+  (async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) { window.location.href = 'login.html'; return; }
+
+    // Fires and fails cleanly for anyone logged in as a customer-portal account
+    const [jobsRes, monthsRes, modelsRes, depotsRes, ftfRes] = await Promise.all([
+      supabase.rpc('kpi_jobs_per_engineer'),
+      supabase.rpc('kpi_visits_by_month'),
+      supabase.rpc('kpi_top_models'),
+      supabase.rpc('kpi_visits_by_depot'),
+      supabase.rpc('kpi_first_time_fix_rate')
+    ]);
+
+    if (jobsRes.error) {
+      document.querySelector('main').innerHTML = '<div class="empty" style="padding:80px 20px;">This page is for staff accounts only.</div>';
+      return;
+    }
+
+    const engineers = jobsRes.data || [];
+    const months = monthsRes.data || [];
+    const models = modelsRes.data || [];
+    const depots = depotsRes.data || [];
+    const ftf = (ftfRes.data && ftfRes.data[0]) || {};
+
+    document.getElementById('kpiTotalJobs').textContent = ftf.total_jobs ?? '–';
+    document.getElementById('kpiFtf').textContent = ftf.first_time_fix_pct != null ? ftf.first_time_fix_pct + '%' : '–';
+    document.getElementById('kpiEngineers').textContent = engineers.length;
+    document.getElementById('kpiDepots').textContent = depots.length;
+
+    barChart('chartEngineers', engineers.slice(0, 12), 'employee', 'job_count');
+    barChart('chartModels', models, 'make_model', 'visit_count');
+    barChart('chartDepots', depots, 'depot', 'visit_count');
+    barChart('chartMonths', months.slice(-12), 'month', 'visit_count', monthLabel);
+
+    loadOverdue(12);
+    loadWeldPatterns();
+  })();
+</script>
+</body>
+</html>

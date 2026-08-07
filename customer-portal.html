@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Customer Portal | Narrow Aisle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --red:#df0a1e;
+    --black:#0a0a0a;
+    --grey-50:#f7f7f7;
+    --grey-100:#f0f0f0;
+    --grey-200:#e4e4e4;
+    --grey-500:#8a8a8a;
+    --grey-700:#4a4a4a;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'IBM Plex Sans',sans-serif;
+    background:var(--grey-50);
+    color:var(--black);
+  }
+  header{
+    background:var(--black);
+    color:#fff;
+    padding:18px 28px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand .mark{width:10px;height:10px;background:var(--red);border-radius:2px;}
+  .brand span{
+    font-family:'DM Mono',monospace;
+    font-size:12px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:#ccc;
+  }
+  .custName{font-size:15px;font-weight:600;}
+  .logout{
+    background:none;border:1px solid #444;color:#ccc;
+    padding:7px 14px;border-radius:6px;font-size:12px;cursor:pointer;
+    font-family:'IBM Plex Sans',sans-serif;
+  }
+  .logout:hover{border-color:var(--red);color:#fff;}
+  main{max-width:1100px;margin:0 auto;padding:28px;}
+  .tabs{display:flex;gap:4px;margin-bottom:22px;border-bottom:1px solid var(--grey-200);}
+  .tab{
+    padding:10px 18px;font-size:13px;font-weight:600;color:var(--grey-500);
+    cursor:pointer;border-bottom:2px solid transparent;user-select:none;
+  }
+  .tab.active{color:var(--red);border-bottom-color:var(--red);}
+  .panel{display:none;}
+  .panel.active{display:block;}
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;}
+  .card{
+    background:#fff;border:1px solid var(--grey-200);border-radius:8px;padding:16px 18px;
+  }
+  .card h3{margin:0 0 8px;font-size:15px;font-weight:700;}
+  .card .line{font-size:13px;color:var(--grey-700);margin-bottom:3px;}
+  .card .tag{
+    display:inline-block;font-family:'DM Mono',monospace;font-size:11px;
+    background:var(--grey-100);padding:2px 8px;border-radius:4px;color:var(--grey-700);margin-top:8px;
+  }
+  .contract-badge{
+    display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px;margin-top:8px;
+  }
+  .badge-ok{background:#e8f5e9;color:#2e7d32;}
+  .badge-soon{background:#fff8e1;color:#f57f17;}
+  .badge-expired{background:#fdeceb;color:var(--red);}
+  table{width:100%;border-collapse:collapse;background:#fff;border-radius:8px;overflow:hidden;border:1px solid var(--grey-200);}
+  th,td{text-align:left;padding:10px 14px;font-size:13px;border-bottom:1px solid var(--grey-200);}
+  th{background:var(--grey-100);font-weight:600;color:var(--grey-700);text-transform:uppercase;font-size:11px;letter-spacing:.03em;}
+  tr:last-child td{border-bottom:none;}
+  .empty{padding:40px;text-align:center;color:var(--grey-500);font-size:14px;}
+  .loading{padding:40px;text-align:center;color:var(--grey-500);font-size:14px;}
+  .search{
+    margin-bottom:14px;padding:9px 12px;border:1.5px solid var(--grey-200);border-radius:6px;
+    font-family:'IBM Plex Sans',sans-serif;font-size:13px;width:100%;max-width:320px;
+  }
+  .search:focus{outline:none;border-color:var(--red);}
+  .mono{font-family:'DM Mono',monospace;font-size:12px;color:var(--grey-700);}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><div class="mark"></div><span>Narrow Aisle · Customer Portal</span></div>
+  <div style="display:flex;align-items:center;gap:16px;">
+    <span class="custName" id="custName">Loading...</span>
+    <button class="logout" onclick="logout()">Sign out</button>
+  </div>
+</header>
+
+<main>
+  <div class="tabs">
+    <div class="tab active" data-tab="equipment">Equipment</div>
+    <div class="tab" data-tab="history">Service History</div>
+    <div class="tab" data-tab="contracts">Contracts</div>
+  </div>
+
+  <div class="panel active" id="panel-equipment">
+    <input class="search" id="eqSearch" placeholder="Search equipment (make, model, serial, site)...">
+    <div id="equipmentBody" class="loading">Loading equipment...</div>
+  </div>
+
+  <div class="panel" id="panel-history">
+    <input class="search" id="histSearch" placeholder="Search service history (description, engineer)...">
+    <div id="historyBody" class="loading">Loading service history...</div>
+  </div>
+
+  <div class="panel" id="panel-contracts">
+    <div id="contractsBody" class="loading">Loading contracts...</div>
+  </div>
+</main>
+
+<script>
+  const SUPABASE_URL = 'https://dontubctlexlvifwhmbj.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRvbnR1YmN0bGV4bHZpZndobWJqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ3OTU3NjMsImV4cCI6MjEwMDM3MTc2M30.v5ZblgN7aw832OdBLNWUHW3A2sK0v3skhNDgUoTIOnk';
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  let equipmentData = [];
+  let historyData = [];
+
+  async function logout(){
+    await supabase.auth.signOut();
+    window.location.href = 'customer-portal-login.html';
+  }
+
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+    });
+  });
+
+  function renderEquipment(rows){
+    const body = document.getElementById('equipmentBody');
+    if (!rows.length){ body.innerHTML = '<div class="empty">No equipment on file.</div>'; return; }
+    body.innerHTML = '<div class="cards">' + rows.map(r => `
+      <div class="card">
+        <h3>${r.make || ''} ${r.model || ''}</h3>
+        <div class="line">${r.site_name || 'Site not recorded'}</div>
+        <div class="line">${r.site_address || ''}</div>
+        <span class="tag">Serial: ${r.serial_no || 'n/a'}</span>
+        <span class="tag">Code: ${r.equip_code || 'n/a'}</span>
+      </div>
+    `).join('') + '</div>';
+  }
+
+  function renderHistory(rows){
+    const body = document.getElementById('historyBody');
+    if (!rows.length){ body.innerHTML = '<div class="empty">No service history on file yet.</div>'; return; }
+    body.innerHTML = `<table><thead><tr>
+      <th>Date</th><th>Truck</th><th>Job Type</th><th>Description</th><th>Engineer</th>
+    </tr></thead><tbody>` + rows.map(r => `
+      <tr>
+        <td class="mono">${r.visit_date || ''}</td>
+        <td>${r.make_model || ''}<br><span class="mono">${r.serial_no || ''}</span></td>
+        <td>${r.job_type_name || ''}</td>
+        <td>${r.short_desc || r.work_report || ''}</td>
+        <td>${r.employee || ''}</td>
+      </tr>
+    `).join('') + '</tbody></table>';
+  }
+
+  function contractBadge(endDate){
+    if (!endDate) return '';
+    const days = (new Date(endDate) - new Date()) / 86400000;
+    if (days < 0) return '<span class="contract-badge badge-expired">Expired</span>';
+    if (days < 60) return '<span class="contract-badge badge-soon">Renews soon</span>';
+    return '<span class="contract-badge badge-ok">Active</span>';
+  }
+
+  function renderContracts(rows){
+    const body = document.getElementById('contractsBody');
+    if (!rows.length){ body.innerHTML = '<div class="empty">No maintenance contracts on file.</div>'; return; }
+    body.innerHTML = '<div class="cards">' + rows.map(r => `
+      <div class="card">
+        <h3>${r.contract_type || 'Maintenance contract'}</h3>
+        <div class="line">${r.site_name || ''}</div>
+        <div class="line">${r.make || ''} · Serial ${r.serial_no || 'n/a'}</div>
+        <div class="line">£${r.annual_charge != null ? Number(r.annual_charge).toLocaleString() : 'n/a'} / year</div>
+        <div class="line mono">${r.start_date || '?'} → ${r.end_date || '?'}</div>
+        ${contractBadge(r.end_date)}
+      </div>
+    `).join('') + '</div>';
+  }
+
+  document.getElementById('eqSearch').addEventListener('input', e => {
+    const q = e.target.value.toLowerCase();
+    renderEquipment(equipmentData.filter(r =>
+      Object.values(r).some(v => v && String(v).toLowerCase().includes(q))
+    ));
+  });
+
+  document.getElementById('histSearch').addEventListener('input', e => {
+    const q = e.target.value.toLowerCase();
+    renderHistory(historyData.filter(r =>
+      Object.values(r).some(v => v && String(v).toLowerCase().includes(q))
+    ));
+  });
+
+  (async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) { window.location.href = 'customer-portal-login.html'; return; }
+
+    const { data: custData, error: custError } = await supabase.rpc('portal_get_my_customer');
+    if (custError || !custData || custData.length === 0) {
+      window.location.href = 'customer-portal-login.html';
+      return;
+    }
+    document.getElementById('custName').textContent = custData[0].customer_name;
+
+    const [eqRes, histRes, contRes] = await Promise.all([
+      supabase.rpc('portal_get_my_equipment'),
+      supabase.rpc('portal_get_my_service_history'),
+      supabase.rpc('portal_get_my_contracts')
+    ]);
+
+    equipmentData = eqRes.data || [];
+    historyData = histRes.data || [];
+
+    renderEquipment(equipmentData);
+    renderHistory(historyData);
+    renderContracts(contRes.data || []);
+  })();
+</script>
+</body>
+</html>

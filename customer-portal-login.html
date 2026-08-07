@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Customer Portal | Narrow Aisle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --red:#df0a1e;
+    --black:#0a0a0a;
+    --grey-50:#f7f7f7;
+    --grey-200:#e4e4e4;
+    --grey-500:#8a8a8a;
+    --grey-700:#4a4a4a;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'IBM Plex Sans',sans-serif;
+    background:var(--black);
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+  }
+  .card{
+    background:#fff;
+    width:100%;
+    max-width:380px;
+    border-radius:10px;
+    padding:36px 32px;
+    box-shadow:0 20px 60px rgba(0,0,0,.4);
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:28px;
+  }
+  .brand .mark{
+    width:10px;height:10px;background:var(--red);border-radius:2px;flex-shrink:0;
+  }
+  .brand span{
+    font-family:'DM Mono',monospace;
+    font-size:12px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--grey-700);
+  }
+  h1{
+    font-size:22px;
+    font-weight:700;
+    margin:0 0 6px;
+    color:var(--black);
+  }
+  p.sub{
+    margin:0 0 28px;
+    color:var(--grey-500);
+    font-size:14px;
+  }
+  label{
+    display:block;
+    font-size:12px;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:.04em;
+    color:var(--grey-700);
+    margin-bottom:6px;
+  }
+  input{
+    width:100%;
+    padding:11px 12px;
+    border:1.5px solid var(--grey-200);
+    border-radius:6px;
+    font-family:'IBM Plex Sans',sans-serif;
+    font-size:14px;
+    margin-bottom:18px;
+    transition:border-color .15s;
+  }
+  input:focus{
+    outline:none;
+    border-color:var(--red);
+  }
+  button{
+    width:100%;
+    padding:12px;
+    background:var(--red);
+    color:#fff;
+    border:none;
+    border-radius:6px;
+    font-family:'IBM Plex Sans',sans-serif;
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+    transition:opacity .15s;
+  }
+  button:hover{opacity:.9;}
+  button:disabled{opacity:.5;cursor:not-allowed;}
+  .msg{
+    margin-top:16px;
+    font-size:13px;
+    padding:10px 12px;
+    border-radius:6px;
+    display:none;
+  }
+  .msg.error{
+    display:block;
+    background:#fdeceb;
+    color:var(--red);
+  }
+  .msg.info{
+    display:block;
+    background:var(--grey-50);
+    color:var(--grey-700);
+  }
+  .foot{
+    margin-top:22px;
+    font-size:12px;
+    color:var(--grey-500);
+    text-align:center;
+  }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="brand"><div class="mark"></div><span>Narrow Aisle</span></div>
+    <h1>Customer Portal</h1>
+    <p class="sub">Sign in to view your equipment and service history.</p>
+
+    <form id="loginForm">
+      <label for="email">Email</label>
+      <input type="email" id="email" required autocomplete="username">
+      <label for="password">Password</label>
+      <input type="password" id="password" required autocomplete="current-password">
+      <button type="submit" id="submitBtn">Sign in</button>
+      <div class="msg" id="msgBox"></div>
+    </form>
+
+    <div class="foot">Don't have login details? Contact your Narrow Aisle account manager.</div>
+  </div>
+
+<script>
+  const SUPABASE_URL = 'https://dontubctlexlvifwhmbj.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRvbnR1YmN0bGV4bHZpZndobWJqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ3OTU3NjMsImV4cCI6MjEwMDM3MTc2M30.v5ZblgN7aw832OdBLNWUHW3A2sK0v3skhNDgUoTIOnk';
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const form = document.getElementById('loginForm');
+  const msgBox = document.getElementById('msgBox');
+  const submitBtn = document.getElementById('submitBtn');
+
+  function showMsg(text, type){
+    msgBox.textContent = text;
+    msgBox.className = 'msg ' + type;
+  }
+
+  // If already signed in and linked to a customer, skip straight to the dashboard
+  (async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      const { data, error } = await supabase.rpc('portal_get_my_customer');
+      if (!error && data && data.length > 0) {
+        window.location.href = 'customer-portal.html';
+      }
+    }
+  })();
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Signing in...';
+    msgBox.className = 'msg';
+
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password });
+
+    if (authError) {
+      showMsg('Incorrect email or password.', 'error');
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Sign in';
+      return;
+    }
+
+    // Confirm this account is actually linked to a customer record
+    const { data: custData, error: custError } = await supabase.rpc('portal_get_my_customer');
+
+    if (custError || !custData || custData.length === 0) {
+      showMsg('This account isn\'t linked to a customer yet. Contact Narrow Aisle to get set up.', 'error');
+      await supabase.auth.signOut();
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Sign in';
+      return;
+    }
+
+    window.location.href = 'customer-portal.html';
+  });
+</script>
+</body>
+</html>
