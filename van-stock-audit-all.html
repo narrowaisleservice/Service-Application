@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Van Stock Audit — Narrow Aisle Service Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=DM+Sans:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --red:#df0a1e; --black:#111111; --grey-900:#1a1a1a; --grey-600:#666666;
+    --grey-300:#d9d9d9; --grey-100:#f4f4f4; --white:#ffffff; --green:#1e8e3e;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'IBM Plex Sans', sans-serif;background:var(--grey-100);color:var(--grey-900);min-height:100vh;padding-bottom:100px;}
+  header{background:var(--black);color:var(--white);padding:18px 20px;position:sticky;top:0;z-index:20;}
+  header h1{font-family:'DM Sans', sans-serif;font-size:1.05rem;font-weight:700;}
+  header h1 span{color:var(--red);}
+  .van-select-row{display:flex;gap:10px;align-items:center;margin-top:12px;}
+  .van-select{
+    flex:1;padding:10px 12px;border-radius:8px;border:1px solid #444;
+    background:#1e1e1e;color:var(--white);font-family:'IBM Plex Sans',sans-serif;font-size:.92rem;
+  }
+  .signout-btn{background:none;border:1px solid #444;color:#ccc;font-size:.72rem;padding:8px 10px;border-radius:6px;cursor:pointer;white-space:nowrap;}
+  main{max-width:640px;margin:0 auto;padding:16px;}
+  .state-box{background:var(--white);border-radius:10px;padding:32px 20px;text-align:center;color:var(--grey-600);margin-top:20px;border:1px solid var(--grey-300);}
+  .state-box.error{color:var(--red);}
+  .summary-bar{display:flex;gap:10px;margin:14px 0;}
+  .summary-pill{flex:1;background:var(--white);border:1px solid var(--grey-300);border-radius:10px;padding:10px 12px;text-align:center;}
+  .summary-pill .num{font-family:'DM Mono', monospace;font-size:1.3rem;font-weight:500;display:block;}
+  .summary-pill .label{font-size:.68rem;text-transform:uppercase;letter-spacing:.5px;color:var(--grey-600);}
+  .summary-pill.shortfall .num{color:var(--red);}
+  .summary-pill.ok .num{color:var(--green);}
+  .last-audit-note{font-size:.78rem;color:var(--grey-600);margin-bottom:14px;font-family:'DM Mono', monospace;}
+  .item-list{display:flex;flex-direction:column;gap:8px;}
+  .item-row{background:var(--white);border:1px solid var(--grey-300);border-left:4px solid var(--grey-300);border-radius:8px;padding:12px 14px;display:flex;align-items:center;gap:12px;}
+  .item-row.short{border-left-color:var(--red);}
+  .item-row.ok{border-left-color:var(--green);}
+  .item-info{flex:1;min-width:0;}
+  .item-desc{font-weight:600;font-size:.92rem;line-height:1.25;}
+  .item-part{font-family:'DM Mono', monospace;font-size:.72rem;color:var(--grey-600);margin-top:2px;}
+  .item-meta{font-size:.72rem;color:var(--grey-600);margin-top:4px;display:flex;gap:10px;flex-wrap:wrap;}
+  .item-meta .stores{color:var(--grey-900);font-weight:500;}
+  .qty-control{display:flex;align-items:center;gap:6px;}
+  .qty-btn{width:32px;height:32px;border-radius:8px;border:1px solid var(--grey-300);background:var(--grey-100);font-size:1.1rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;user-select:none;}
+  .qty-btn:active{background:var(--grey-300);}
+  .qty-input{width:48px;height:36px;text-align:center;font-family:'DM Mono', monospace;font-size:1rem;font-weight:500;border:1px solid var(--grey-300);border-radius:8px;}
+  .remove-btn{background:none;border:none;color:var(--grey-600);font-size:1.1rem;padding:4px 6px;cursor:pointer;}
+  .remove-btn:active{color:var(--red);}
+  .add-extra-btn{width:100%;margin-top:16px;padding:12px;border-radius:8px;border:1.5px dashed var(--grey-300);background:none;color:var(--grey-600);font-weight:600;font-size:.88rem;cursor:pointer;}
+  .add-extra-btn:active{background:var(--grey-100);}
+  .extra-form{background:var(--white);border:1px solid var(--grey-300);border-radius:8px;padding:14px;margin-top:10px;display:none;flex-direction:column;gap:8px;position:relative;}
+  .extra-form.open{display:flex;}
+  .extra-form input{padding:10px;border:1px solid var(--grey-300);border-radius:6px;font-family:'IBM Plex Sans', sans-serif;font-size:.9rem;}
+  .part-results{border:1px solid var(--grey-300);border-radius:6px;max-height:220px;overflow-y:auto;display:none;background:var(--white);}
+  .part-results.open{display:block;}
+  .part-result{padding:10px;border-bottom:1px solid var(--grey-100);cursor:pointer;font-size:.85rem;}
+  .part-result:last-child{border-bottom:none;}
+  .part-result:active{background:var(--grey-100);}
+  .part-result .pn{font-family:'DM Mono', monospace;font-weight:600;font-size:.78rem;}
+  .part-result .pd{color:var(--grey-600);font-size:.78rem;margin-top:2px;}
+  .part-result .stock{font-size:.7rem;color:var(--green);margin-top:2px;}
+  .selected-part{background:var(--grey-100);border-radius:6px;padding:10px;font-size:.85rem;display:flex;justify-content:space-between;align-items:center;}
+  .selected-part .clear-part{color:var(--red);cursor:pointer;font-size:.78rem;font-weight:600;}
+  .extra-form-actions{display:flex;gap:8px;}
+  .extra-form-actions button{flex:1;padding:10px;border-radius:6px;border:none;font-weight:600;cursor:pointer;font-size:.85rem;}
+  .extra-cancel{background:var(--grey-100);color:var(--grey-900);}
+  .extra-confirm{background:var(--black);color:var(--white);}
+  .save-bar{position:fixed;bottom:0;left:0;right:0;background:var(--white);border-top:1px solid var(--grey-300);padding:12px 16px;display:flex;justify-content:center;z-index:20;}
+  .save-btn{width:100%;max-width:608px;background:var(--red);color:var(--white);border:none;padding:15px;border-radius:10px;font-weight:700;font-size:1rem;cursor:pointer;font-family:'DM Sans', sans-serif;}
+  .save-btn:active{opacity:.85;}
+  .save-btn:disabled{background:var(--grey-300);color:var(--grey-600);}
+  .toast{position:fixed;top:14px;left:50%;transform:translateX(-50%) translateY(-40px);background:var(--black);color:var(--white);padding:10px 18px;border-radius:8px;font-size:.85rem;font-weight:500;opacity:0;transition:all .25s ease;z-index:50;pointer-events:none;}
+  .toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+  .toast.error{background:var(--red);}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Van Stock <span>Audit</span></h1>
+  <div class="van-select-row">
+    <select class="van-select" id="vanSelect"><option value="">Select a van…</option></select>
+    <button class="signout-btn" id="signoutBtn">Sign out</button>
+  </div>
+</header>
+
+<main>
+  <div id="restrictedBox" class="state-box error" style="display:none;">This page is restricted to admin accounts.</div>
+  <div id="emptyBox" class="state-box">Choose a van above to start auditing.</div>
+  <div id="loadingBox" class="state-box" style="display:none;">Loading items…</div>
+
+  <div id="auditContent" style="display:none;">
+    <div class="last-audit-note" id="lastAuditNote"></div>
+    <div class="summary-bar">
+      <div class="summary-pill"><span class="num" id="totalCount">0</span><span class="label">Items</span></div>
+      <div class="summary-pill shortfall"><span class="num" id="shortCount">0</span><span class="label">Short</span></div>
+      <div class="summary-pill ok"><span class="num" id="okCount">0</span><span class="label">OK</span></div>
+    </div>
+    <div class="item-list" id="itemList"></div>
+
+    <button class="add-extra-btn" id="addExtraBtn">+ Add item from parts database</button>
+    <div class="extra-form" id="extraForm">
+      <input type="text" id="partSearch" placeholder="Search part number or description…" autocomplete="off">
+      <div class="part-results" id="partResults"></div>
+      <div class="selected-part" id="selectedPartBox" style="display:none;">
+        <div>
+          <div class="pn" id="selPartNum" style="font-family:'DM Mono',monospace;font-weight:600;"></div>
+          <div id="selPartDesc" style="color:var(--grey-600);font-size:.82rem;"></div>
+        </div>
+        <span class="clear-part" id="clearPartBtn">Change</span>
+      </div>
+      <input type="number" id="extraQty" placeholder="Quantity counted" min="0" inputmode="numeric">
+      <div class="extra-form-actions">
+        <button class="extra-cancel" id="extraCancelBtn">Cancel</button>
+        <button class="extra-confirm" id="extraConfirmBtn">Add item</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div class="save-bar" id="saveBar" style="display:none;">
+  <button class="save-btn" id="saveBtn">Save Audit</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL = 'https://dontubctlexlvifwhmbj.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRvbnR1YmN0bGV4bHZpZndobWJqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ3OTU3NjMsImV4cCI6MjEwMDM3MTc2M30.v5ZblgN7aw832OdBLNWUHW3A2sK0v3skhNDgUoTIOnk';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const ADMIN_EMAIL = 'j.williams@narrowaisle.co.uk';
+
+let currentEmail = null;
+let currentVanId = null;
+let items = [];
+let extraDrafts = []; // {part_number, description, counted_qty}
+let selectedPart = null;
+let partSearchTimer = null;
+
+const $ = (id) => document.getElementById(id);
+
+function showToast(msg, isError) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (isError ? ' error' : '');
+  setTimeout(() => { t.className = 'toast'; }, 2600);
+}
+
+function fmtDate(iso) {
+  if (!iso) return 'never audited';
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }) +
+         ' at ' + d.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' });
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str ?? '';
+  return div.innerHTML;
+}
+
+async function init() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = 'login.html'; return; }
+  currentEmail = session.user.email;
+
+  if (currentEmail.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+    $('restrictedBox').style.display = 'block';
+    $('emptyBox').style.display = 'none';
+    return;
+  }
+
+  const { data: vans, error } = await sb
+    .from('van_stock_vans')
+    .select('id, van_name, engineer_name')
+    .order('van_name', { ascending: true });
+
+  if (error) {
+    showToast('Could not load vans: ' + error.message, true);
+    return;
+  }
+
+  const select = $('vanSelect');
+  (vans || []).forEach(v => {
+    const opt = document.createElement('option');
+    opt.value = v.id;
+    opt.textContent = v.van_name + (v.engineer_name ? ' — ' + v.engineer_name : '');
+    select.appendChild(opt);
+  });
+
+  select.addEventListener('change', () => loadVan(select.value));
+}
+
+async function loadVan(vanId) {
+  if (!vanId) {
+    currentVanId = null;
+    $('auditContent').style.display = 'none';
+    $('saveBar').style.display = 'none';
+    $('emptyBox').style.display = 'block';
+    return;
+  }
+
+  currentVanId = vanId;
+  extraDrafts = [];
+  $('emptyBox').style.display = 'none';
+  $('auditContent').style.display = 'none';
+  $('loadingBox').style.display = 'block';
+
+  const { data: vanItems, error } = await sb
+    .from('van_stock_items')
+    .select('*')
+    .eq('van_id', vanId)
+    .order('description', { ascending: true });
+
+  if (error) {
+    showToast('Could not load items: ' + error.message, true);
+    $('loadingBox').style.display = 'none';
+    return;
+  }
+
+  items = (vanItems || []).map(i => ({ ...i, _dirty: false }));
+
+  // Cross-reference stores stock level from the parts database
+  const partNumbers = items.map(i => i.part_number).filter(Boolean);
+  let stockMap = {};
+  if (partNumbers.length) {
+    const { data: partsData } = await sb
+      .from('parts')
+      .select('part_number, stock_level, location')
+      .in('part_number', partNumbers);
+    (partsData || []).forEach(p => { stockMap[p.part_number] = p; });
+  }
+  items.forEach(i => { i._storesInfo = i.part_number ? stockMap[i.part_number] : null; });
+
+  const mostRecent = items.reduce((latest, i) => {
+    if (!i.last_counted_at) return latest;
+    return (!latest || i.last_counted_at > latest) ? i.last_counted_at : latest;
+  }, null);
+  $('lastAuditNote').textContent = 'Last audit: ' + fmtDate(mostRecent);
+
+  $('loadingBox').style.display = 'none';
+  $('auditContent').style.display = 'block';
+  $('saveBar').style.display = 'flex';
+  render();
+}
+
+function render() {
+  const list = $('itemList');
+  list.innerHTML = '';
+  let shortCount = 0, okCount = 0;
+
+  items.forEach((item) => {
+    const target = item.target_qty ?? 0;
+    const counted = item.counted_qty;
+    const isShort = counted !== null && counted !== undefined && counted < target;
+    const isOk = counted !== null && counted !== undefined && counted >= target;
+    if (isShort) shortCount++;
+    if (isOk) okCount++;
+
+    const row = document.createElement('div');
+    row.className = 'item-row ' + (isShort ? 'short' : (isOk ? 'ok' : ''));
+    const canRemove = target === 0;
+    const stores = item._storesInfo;
+
+    row.innerHTML = `
+      <div class="item-info">
+        <div class="item-desc">${escapeHtml(item.description || 'Unnamed item')}</div>
+        ${item.part_number ? `<div class="item-part">${escapeHtml(item.part_number)}</div>` : ''}
+        <div class="item-meta">
+          <span>Target: ${target}</span>
+          ${stores ? `<span class="stores">Stores: ${escapeHtml(stores.stock_level || '—')}${stores.location ? ' (' + escapeHtml(stores.location) + ')' : ''}</span>` : ''}
+        </div>
+      </div>
+      <div class="qty-control">
+        <button class="qty-btn" data-action="dec" data-id="${item.id}">−</button>
+        <input class="qty-input" type="number" min="0" inputmode="numeric" value="${counted ?? ''}" data-id="${item.id}">
+        <button class="qty-btn" data-action="inc" data-id="${item.id}">+</button>
+      </div>
+      ${canRemove ? `<button class="remove-btn" data-remove="${item.id}">✕</button>` : ''}
+    `;
+    list.appendChild(row);
+  });
+
+  extraDrafts.forEach((draft, idx) => {
+    const row = document.createElement('div');
+    row.className = 'item-row ok';
+    row.innerHTML = `
+      <div class="item-info">
+        <div class="item-desc">${escapeHtml(draft.description)} <span style="color:var(--grey-600);font-weight:400;">(new)</span></div>
+        ${draft.part_number ? `<div class="item-part">${escapeHtml(draft.part_number)}</div>` : ''}
+        <div class="item-meta"><span>Target: 0</span></div>
+      </div>
+      <div class="qty-control"><span style="font-family:'DM Mono',monospace;font-weight:500;">${draft.counted_qty}</span></div>
+      <button class="remove-btn" data-remove-draft="${idx}">✕</button>
+    `;
+    list.appendChild(row);
+  });
+
+  $('totalCount').textContent = items.length + extraDrafts.length;
+  $('shortCount').textContent = shortCount;
+  $('okCount').textContent = okCount + extraDrafts.length;
+
+  list.querySelectorAll('[data-action]').forEach(btn => {
+    btn.addEventListener('click', () => adjustQty(btn.dataset.id, btn.dataset.action));
+  });
+  list.querySelectorAll('.qty-input').forEach(input => {
+    input.addEventListener('input', () => {
+      const item = items.find(i => String(i.id) === input.dataset.id);
+      if (!item) return;
+      item.counted_qty = input.value === '' ? null : parseInt(input.value, 10);
+      item._dirty = true;
+      item.last_counted_by = currentEmail;
+      render();
+    });
+  });
+  list.querySelectorAll('[data-remove]').forEach(btn => {
+    btn.addEventListener('click', () => removeItem(btn.dataset.remove));
+  });
+  list.querySelectorAll('[data-remove-draft]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      extraDrafts.splice(parseInt(btn.dataset.removeDraft, 10), 1);
+      render();
+    });
+  });
+}
+
+function adjustQty(id, action) {
+  const item = items.find(i => String(i.id) === String(id));
+  if (!item) return;
+  let val = item.counted_qty ?? 0;
+  val = action === 'inc' ? val + 1 : Math.max(0, val - 1);
+  item.counted_qty = val;
+  item._dirty = true;
+  item.last_counted_by = currentEmail;
+  render();
+}
+
+async function removeItem(id) {
+  if (!confirm('Remove this item from the van?')) return;
+  const { error } = await sb.from('van_stock_items').delete().eq('id', id);
+  if (error) { showToast('Could not remove: ' + error.message, true); return; }
+  items = items.filter(i => String(i.id) !== String(id));
+  render();
+  showToast('Item removed');
+}
+
+// --- Add item via parts database search ---
+$('addExtraBtn').addEventListener('click', () => {
+  $('extraForm').classList.add('open');
+  $('partSearch').focus();
+});
+$('extraCancelBtn').addEventListener('click', resetExtraForm);
+
+function resetExtraForm() {
+  $('extraForm').classList.remove('open');
+  $('partSearch').value = '';
+  $('extraQty').value = '';
+  $('partResults').classList.remove('open');
+  $('partResults').innerHTML = '';
+  $('selectedPartBox').style.display = 'none';
+  selectedPart = null;
+}
+
+$('partSearch').addEventListener('input', () => {
+  clearTimeout(partSearchTimer);
+  const q = $('partSearch').value.trim();
+  if (q.length < 2) { $('partResults').classList.remove('open'); return; }
+  partSearchTimer = setTimeout(() => searchParts(q), 300);
+});
+
+async function searchParts(q) {
+  const { data, error } = await sb
+    .from('parts')
+    .select('part_number, description, stock_level, location')
+    .or(`part_number.ilike.%${q}%,description.ilike.%${q}%`)
+    .limit(8);
+
+  const box = $('partResults');
+  if (error || !data || !data.length) {
+    box.innerHTML = `<div class="part-result" style="color:var(--grey-600);">No matches</div>`;
+    box.classList.add('open');
+    return;
+  }
+  box.innerHTML = data.map((p, idx) => `
+    <div class="part-result" data-idx="${idx}">
+      <div class="pn">${escapeHtml(p.part_number || '')}</div>
+      <div class="pd">${escapeHtml(p.description || '')}</div>
+      ${p.stock_level ? `<div class="stock">Stores: ${escapeHtml(p.stock_level)}${p.location ? ' (' + escapeHtml(p.location) + ')' : ''}</div>` : ''}
+    </div>
+  `).join('');
+  box.classList.add('open');
+
+  box.querySelectorAll('.part-result[data-idx]').forEach(el => {
+    el.addEventListener('click', () => {
+      const p = data[parseInt(el.dataset.idx, 10)];
+      selectedPart = p;
+      $('selPartNum').textContent = p.part_number || '';
+      $('selPartDesc').textContent = p.description || '';
+      $('selectedPartBox').style.display = 'flex';
+      $('partSearch').value = '';
+      box.classList.remove('open');
+      box.innerHTML = '';
+      $('extraQty').focus();
+    });
+  });
+}
+
+$('clearPartBtn').addEventListener('click', () => {
+  selectedPart = null;
+  $('selectedPartBox').style.display = 'none';
+  $('partSearch').focus();
+});
+
+$('extraConfirmBtn').addEventListener('click', () => {
+  const qty = parseInt($('extraQty').value, 10);
+  if (!selectedPart) { showToast('Search and pick a part first', true); return; }
+  if (isNaN(qty)) { showToast('Enter a quantity counted', true); return; }
+  extraDrafts.push({
+    part_number: selectedPart.part_number || null,
+    description: selectedPart.description || selectedPart.part_number,
+    counted_qty: qty
+  });
+  resetExtraForm();
+  render();
+});
+
+$('saveBtn').addEventListener('click', async () => {
+  const btn = $('saveBtn');
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+  try {
+    const now = new Date().toISOString();
+    const dirtyItems = items.filter(i => i._dirty);
+    for (const item of dirtyItems) {
+      const { error } = await sb
+        .from('van_stock_items')
+        .update({ counted_qty: item.counted_qty, last_counted_at: now, last_counted_by: currentEmail })
+        .eq('id', item.id);
+      if (error) throw error;
+      item._dirty = false;
+    }
+    if (extraDrafts.length) {
+      const rows = extraDrafts.map(d => ({
+        van_id: currentVanId,
+        part_number: d.part_number,
+        description: d.description,
+        target_qty: 0,
+        counted_qty: d.counted_qty,
+        last_counted_at: now,
+        last_counted_by: currentEmail
+      }));
+      const { data: inserted, error } = await sb.from('van_stock_items').insert(rows).select();
+      if (error) throw error;
+      items = items.concat((inserted || []).map(i => ({ ...i, _dirty: false })));
+      extraDrafts = [];
+    }
+    $('lastAuditNote').textContent = 'Last audit: ' + fmtDate(now);
+    render();
+    showToast('Audit saved');
+  } catch (err) {
+    showToast('Save failed: ' + err.message, true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Save Audit';
+  }
+});
+
+$('signoutBtn').addEventListener('click', async () => {
+  await sb.auth.signOut();
+  window.location.href = 'login.html';
+});
+
+init();
+</script>
+</body>
+</html>
