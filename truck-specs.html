@@ -3,131 +3,133 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>window.ALLOWED_ROLES = ['internal', 'dealer'];</script>
+<script type="module" src="auth-guard.js"></script>
+<meta name="theme-color" content="#df0a1e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/favicon.ico" sizes="any">
+<link rel="icon" href="icons/favicon-32.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&family=DM+Sans:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <title>Truck Spec Sheets — Narrow Aisle Service Portal</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-  :root {
-    --bg: #f7f7f8;
-    --card: #ffffff;
-    --border: #e5e5e8;
-    --text: #16161a;
-    --text-muted: #6b6b72;
-    --accent: #df0a1e;
-    --accent-dark: #0a0a0a;
-    --font-display: 'IBM Plex Sans', sans-serif;
-    --font-body: 'DM Sans', sans-serif;
-    --font-mono: 'DM Mono', monospace;
-  }
-
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
+  html, body {
+    width: 100%;
+    background: #ffffff !important;
+  }
+
   body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--font-body);
+    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: #101010;
     min-height: 100vh;
   }
 
   header {
-    background: var(--accent-dark);
-    border-bottom: 3px solid var(--accent);
-    padding: 16px 24px;
+    background: #0a0a0a;
+    border-bottom: 3px solid #df0a1e;
+    padding: 20px 32px;
     display: flex;
     align-items: center;
     gap: 16px;
   }
 
-  header img { height: 28px; }
+  header img { height: 32px; }
 
   header h1 {
-    font-family: var(--font-display);
+    font-family: 'IBM Plex Sans', sans-serif;
     font-size: 18px;
-    font-weight: 600;
+    font-weight: 700;
     color: #fff;
   }
 
   header a.back {
     margin-left: auto;
-    color: #cfcfd4;
+    color: #c0c0c0;
     font-size: 13px;
     text-decoration: none;
-    font-family: var(--font-body);
+    font-family: 'DM Sans', sans-serif;
+    transition: color 0.2s ease;
   }
-  header a.back:hover { color: #fff; }
+  header a.back:hover { color: #df0a1e; }
 
   main {
     max-width: 1000px;
     margin: 0 auto;
-    padding: 32px 20px 80px;
+    padding: 32px 24px 80px;
   }
 
   .search-panel {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 20px;
+    background: #ffffff;
+    border: 1px solid #e8e8e8;
+    border-radius: 16px;
+    padding: 26px;
     margin-bottom: 24px;
   }
 
   .search-panel label {
     display: block;
-    font-family: var(--font-display);
-    font-size: 13px;
-    font-weight: 600;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: var(--text-muted);
-    margin-bottom: 8px;
+    letter-spacing: 0.7px;
+    color: #707070;
+    margin-bottom: 10px;
   }
-
-  .search-row { display: flex; gap: 10px; }
 
   #searchInput {
-    flex: 1;
-    padding: 12px 14px;
-    font-family: var(--font-mono);
+    width: 100%;
+    padding: 14px 16px;
+    font-family: 'DM Mono', monospace;
     font-size: 16px;
-    border: 1.5px solid var(--border);
+    border: 1px solid #ddd;
     border-radius: 8px;
     outline: none;
-    transition: border-color 0.15s;
+    color: #101010;
+    transition: border-color 0.2s ease;
   }
-  #searchInput:focus { border-color: var(--accent); }
+  #searchInput:focus { border-color: #df0a1e; }
 
   .hint {
     font-size: 12.5px;
-    color: var(--text-muted);
-    margin-top: 8px;
+    color: #909090;
+    margin-top: 10px;
   }
 
   #resultsMeta {
-    font-size: 13px;
-    color: var(--text-muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    color: #df0a1e;
+    text-transform: uppercase;
+    letter-spacing: 1px;
     margin-bottom: 12px;
-    min-height: 18px;
+    min-height: 16px;
   }
 
   .result-list { display: flex; flex-direction: column; gap: 8px; }
 
   .result-row {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 14px 16px;
+    background: #ffffff;
+    border: 1px solid #e8e8e8;
+    border-radius: 10px;
+    padding: 16px 18px;
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 16px;
     cursor: pointer;
-    transition: border-color 0.15s, background 0.15s;
+    transition: all 0.2s ease;
   }
-  .result-row:hover { border-color: var(--accent); background: #fffafa; }
-  .result-row.active { border-color: var(--accent); background: #fff5f6; }
+  .result-row:hover { border-color: #df0a1e; transform: translateY(-1px); box-shadow: 0 8px 16px rgba(16,16,16,0.06); }
+  .result-row.active { border-color: #df0a1e; background: rgba(223, 10, 30, 0.03); }
 
   .result-serial {
-    font-family: var(--font-mono);
+    font-family: 'DM Mono', monospace;
     font-weight: 500;
     font-size: 15px;
     min-width: 110px;
@@ -135,24 +137,31 @@
 
   .result-meta {
     font-size: 12.5px;
-    color: var(--text-muted);
+    color: #909090;
     flex: 1;
   }
 
-  .result-arrow { color: var(--accent); font-size: 14px; }
+  .result-arrow { color: #df0a1e; font-size: 15px; }
 
   .empty-state, .loading-state {
     text-align: center;
-    padding: 48px 20px;
-    color: var(--text-muted);
+    padding: 56px 20px;
+    color: #909090;
     font-size: 14px;
   }
-  .empty-state strong { display: block; color: var(--text); font-size: 16px; margin-bottom: 6px; font-family: var(--font-display); }
+  .empty-state strong {
+    display: block;
+    color: #101010;
+    font-size: 17px;
+    margin-bottom: 8px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-weight: 700;
+  }
 
   .viewer-panel {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 10px;
+    background: #ffffff;
+    border: 1px solid #e8e8e8;
+    border-radius: 16px;
     margin-top: 24px;
     overflow: hidden;
   }
@@ -160,28 +169,28 @@
   .viewer-header {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 14px 18px;
-    border-bottom: 1px solid var(--border);
+    gap: 14px;
+    padding: 16px 20px;
+    border-bottom: 1px solid #e8e8e8;
   }
 
   .viewer-header .serial {
-    font-family: var(--font-mono);
-    font-weight: 600;
+    font-family: 'DM Mono', monospace;
+    font-weight: 700;
     font-size: 15px;
   }
 
   .viewer-header .pages {
     font-size: 12.5px;
-    color: var(--text-muted);
+    color: #909090;
   }
 
   .viewer-header a.open-tab {
     margin-left: auto;
     font-size: 13px;
-    color: var(--accent);
+    color: #df0a1e;
     text-decoration: none;
-    font-weight: 500;
+    font-weight: 600;
   }
   .viewer-header a.open-tab:hover { text-decoration: underline; }
 
@@ -193,15 +202,16 @@
   }
 
   @media (max-width: 640px) {
-    .search-row { flex-direction: column; }
+    header { padding: 16px 20px; }
     header h1 { font-size: 15px; }
+    main { padding: 24px 16px 60px; }
   }
 </style>
 </head>
 <body>
 
 <header>
-  <img src="https://narrowaisleservice.github.io/Flexi-Parts-System/flexi-logo-white.svg" alt="Flexi">
+  <img src="flexi-logo-white.svg?v=2" alt="Flexi">
   <h1>Truck Spec Sheets</h1>
   <a class="back" href="portal-hub-professional.html">← Back to portal</a>
 </header>
@@ -209,9 +219,7 @@
 <main>
   <div class="search-panel">
     <label for="searchInput">Search by truck serial number</label>
-    <div class="search-row">
-      <input type="text" id="searchInput" placeholder="e.g. 211025" autocomplete="off" inputmode="numeric">
-    </div>
+    <input type="text" id="searchInput" placeholder="e.g. 211025" autocomplete="off" inputmode="numeric">
     <div class="hint">Matches serials starting with what you type. Not every truck has a digitised spec sheet yet — this is an ongoing rollout.</div>
   </div>
 
@@ -223,8 +231,8 @@
 
 <script>
   const SUPABASE_URL = "https://dontubctlexlvifwhmbj.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRvbnR1YmN0bGV4bHZpZndobWJqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ3OTU3NjMsImV4cCI6MjEwMDM3MTc2M30.v5ZblgN7aw832OdBLNWUHW3A2sK0v3skhNDgUoTIOnk";
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const SUPABASE_KEY = "sb_publishable_99HLzSv4wMwFZHlR81yIsQ_z0A0Jpth";
+  const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
   const searchInput = document.getElementById('searchInput');
   const resultsMeta = document.getElementById('resultsMeta');
@@ -232,17 +240,6 @@
   const viewerPanel = document.getElementById('viewerPanel');
 
   let debounceTimer = null;
-  let activeSerial = null;
-
-  // ---- Auth gate (same pattern as the rest of the portal) ----
-  async function checkAuth() {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      window.location.href = 'login.html';
-      return false;
-    }
-    return true;
-  }
 
   function formatSize(bytes) {
     if (!bytes) return '';
@@ -252,11 +249,20 @@
 
   function formatDate(iso) {
     if (!iso) return '';
-    const d = new Date(iso);
-    return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
   }
 
-  async function runSearch(term) {
+  function addToRecentlyViewed(serial) {
+    let list = [];
+    try { list = JSON.parse(localStorage.getItem('na_recently_viewed') || '[]'); } catch (e) {}
+    const url = `truck-specs.html?serial=${encodeURIComponent(serial)}`;
+    list = list.filter(item => item.url !== url);
+    list.unshift({ type: 'truck', label: `Spec: ${serial}`, url, ts: Date.now() });
+    list = list.slice(0, 8);
+    localStorage.setItem('na_recently_viewed', JSON.stringify(list));
+  }
+
+  async function runSearch(term, autoOpenExact) {
     if (!term) {
       resultList.innerHTML = '';
       resultsMeta.textContent = '';
@@ -266,7 +272,7 @@
     resultsMeta.textContent = 'Searching…';
     resultList.innerHTML = '';
 
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('truck_specs')
       .select('serial_no, file_name, storage_path, page_count, file_size_bytes, uploaded_at')
       .ilike('serial_no', `${term}%`)
@@ -274,7 +280,8 @@
       .limit(50);
 
     if (error) {
-      resultsMeta.textContent = 'Search failed — try again.';
+      resultsMeta.textContent = '';
+      resultList.innerHTML = `<div class="empty-state"><strong>Search failed</strong>Try again in a moment.</div>`;
       console.error(error);
       return;
     }
@@ -301,6 +308,11 @@
     resultList.querySelectorAll('.result-row').forEach(el => {
       el.addEventListener('click', () => openViewer(el.dataset.serial, el.dataset.path, el.dataset.pages));
     });
+
+    if (autoOpenExact) {
+      const exact = data.find(row => row.serial_no === term);
+      if (exact) openViewer(exact.serial_no, exact.storage_path, exact.page_count);
+    }
   }
 
   async function openViewer(serial, storagePath, pages) {
@@ -310,7 +322,7 @@
 
     viewerPanel.innerHTML = `<div class="loading-state">Loading spec sheet…</div>`;
 
-    const { data, error } = await supabase.storage
+    const { data, error } = await db.storage
       .from('truck-specs')
       .createSignedUrl(storagePath, 300); // 5 min, plenty for viewing
 
@@ -319,6 +331,8 @@
       console.error(error);
       return;
     }
+
+    addToRecentlyViewed(serial);
 
     viewerPanel.innerHTML = `
       <div class="viewer-panel">
@@ -335,13 +349,18 @@
   searchInput.addEventListener('input', (e) => {
     clearTimeout(debounceTimer);
     const term = e.target.value.trim();
-    debounceTimer = setTimeout(() => runSearch(term), 250);
+    debounceTimer = setTimeout(() => runSearch(term, false), 250);
   });
 
-  (async () => {
-    const ok = await checkAuth();
-    if (ok) searchInput.focus();
-  })();
+  // Deep-link support: truck-specs.html?serial=211025
+  const params = new URLSearchParams(window.location.search);
+  const initialSerial = params.get('serial');
+  if (initialSerial) {
+    searchInput.value = initialSerial;
+    runSearch(initialSerial, true);
+  } else {
+    searchInput.focus();
+  }
 </script>
 
 </body>
