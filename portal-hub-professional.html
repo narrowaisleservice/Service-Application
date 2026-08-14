@@ -824,6 +824,151 @@
             }
         }
 
+        /* ===== Signature: live ops-center polish ===== */
+        @keyframes fadeSlideUp {
+            from { opacity: 0; transform: translateY(14px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .stagger > * {
+            opacity: 0;
+            animation: fadeSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            animation-delay: calc(var(--i, 0) * 45ms);
+        }
+
+        @keyframes meshDrift {
+            0%   { background-position: 0 0, 0 0; }
+            100% { background-position: 120px 80px, -80px 100px; }
+        }
+
+        @keyframes pulseDot {
+            0%   { box-shadow: 0 0 0 0 rgba(76, 222, 128, 0.55); }
+            70%  { box-shadow: 0 0 0 8px rgba(76, 222, 128, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(76, 222, 128, 0); }
+        }
+
+        .home-hero {
+            background-image:
+                radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px),
+                repeating-linear-gradient(90deg, rgba(223,10,30,0.06) 0px, rgba(223,10,30,0.06) 1px, transparent 1px, transparent 64px);
+            background-size: 28px 28px, 64px 100%;
+            animation: meshDrift 28s linear infinite;
+        }
+
+        .home-hero-glow2 {
+            position: absolute;
+            bottom: -20%;
+            left: -6%;
+            width: 320px;
+            height: 320px;
+            background: radial-gradient(circle, rgba(223, 10, 30, 0.22) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .live-pill {
+            position: relative;
+            z-index: 1;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 18px;
+            padding: 6px 14px 6px 10px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 100px;
+            font-family: 'DM Mono', monospace;
+            font-size: 11px;
+            font-weight: 500;
+            color: #c8c8c8;
+            letter-spacing: 0.5px;
+        }
+
+        .live-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #4cde80;
+            animation: pulseDot 2s ease-out infinite;
+            flex-shrink: 0;
+        }
+
+        .header {
+            transition: box-shadow 0.25s ease;
+        }
+
+        .header.scrolled {
+            box-shadow: 0 6px 20px rgba(16, 16, 16, 0.07);
+        }
+
+        .stat-card {
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, #df0a1e, #ff8a8a);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 24px rgba(16, 16, 16, 0.07);
+            border-color: #f0d0d0;
+        }
+
+        .stat-card:hover::after {
+            transform: scaleX(1);
+        }
+
+        .card:hover {
+            box-shadow: 0 16px 32px rgba(16, 16, 16, 0.08), 0 0 0 1px rgba(223, 10, 30, 0.08);
+        }
+
+        .card:hover .card-icon {
+            box-shadow: 0 0 0 6px rgba(223, 10, 30, 0.08);
+        }
+
+        .nav-item {
+            position: relative;
+        }
+
+        .nav-item.active::after {
+            content: '';
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #df0a1e;
+            box-shadow: 0 0 8px 1px rgba(223, 10, 30, 0.7);
+        }
+
+        .sidebar-logo img {
+            filter: drop-shadow(0 0 14px rgba(223, 10, 30, 0.35));
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .stagger > *,
+            .home-hero,
+            .live-dot {
+                animation: none !important;
+                opacity: 1 !important;
+                transform: none !important;
+            }
+        }
+
         ::-webkit-scrollbar {
             width: 8px;
         }
@@ -1135,11 +1280,13 @@
             const content = document.getElementById('contentArea');
             content.innerHTML = `
                 <div class="home-hero">
+                    <div class="live-pill"><span class="live-dot"></span><span id="liveClock">--:--:--</span> · SYSTEM ONLINE</div>
                     <div class="home-greeting" id="homeGreeting"></div>
                     <div class="home-date" id="homeDate"></div>
                     <div class="home-hero-lines"></div>
+                    <div class="home-hero-glow2"></div>
                 </div>
-                <div class="stats-row" id="homeStatsRow"></div>
+                <div class="stats-row stagger" id="homeStatsRow"></div>
                 <div class="dash-search-panel">
                     <div class="dash-search-eyebrow">Quick search</div>
                     <div class="dash-search-toggle">
@@ -1153,7 +1300,7 @@
                 </div>
                 <div class="quick-access">
                     <div class="dash-search-eyebrow">Quick access</div>
-                    <div class="qa-grid">
+                    <div class="qa-grid stagger">
                         ${QUICK_ACCESS.map(qa => `
                             <div class="qa-tile" onclick="window.location.href='${qa.link}'">
                                 <div class="qa-icon">${ICONS[qa.icon] || ''}</div>
@@ -1165,10 +1312,31 @@
                 ${renderRecentlyViewed()}
             `;
             document.getElementById('dashSearchInput').focus();
+            document.querySelectorAll('#contentArea .qa-grid').forEach(setStagger);
             updateClock();
             if (clockInterval) clearInterval(clockInterval);
             clockInterval = setInterval(updateClock, 1000);
             loadHomeStats();
+        }
+
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        function setStagger(el) {
+            if (!el) return;
+            Array.from(el.children).forEach((child, i) => child.style.setProperty('--i', i));
+        }
+
+        function animateCount(el, target, duration = 700) {
+            if (!el) return;
+            if (prefersReducedMotion) { el.textContent = target; return; }
+            const startTime = performance.now();
+            function tick(now) {
+                const p = Math.min((now - startTime) / duration, 1);
+                const eased = 1 - Math.pow(1 - p, 3);
+                el.textContent = Math.round(target * eased);
+                if (p < 1) requestAnimationFrame(tick);
+            }
+            requestAnimationFrame(tick);
         }
 
         function escHtml(s) {
@@ -1194,7 +1362,7 @@
             return `
                 <div class="quick-access">
                     <div class="dash-search-eyebrow">Recently viewed</div>
-                    <div class="qa-grid">
+                    <div class="qa-grid stagger">
                         ${list.map(item => `
                             <div class="qa-tile" onclick="window.location.href='${item.url}'">
                                 <div class="qa-icon">${item.type === 'truck' ? ICONS.forklift : ICONS.people}</div>
@@ -1225,12 +1393,16 @@
                 const ordersInProgress = (coRes.count || 0) + (fsRes.count || 0);
                 const overdueCount = overdueRes.data ? overdueRes.data.length : null;
                 statsEl.innerHTML = `
-                    <div class="stat-card"><div class="stat-value">${ordersInProgress}</div><div class="stat-label">Orders In Progress</div></div>
-                    <div class="stat-card"><div class="stat-value">${weldRes.count || 0}</div><div class="stat-label">Weld Reports Pending</div></div>
-                    <div class="stat-card"><div class="stat-value">${assetRes.count || 0}</div><div class="stat-label">Tools Checked Out</div></div>
-                    <div class="stat-card" style="cursor:pointer;" onclick="window.location.href='maintenance-contracts.html'"><div class="stat-value">${contractRes.count || 0}</div><div class="stat-label">Contracts Expiring Soon</div></div>
-                    ${overdueCount !== null ? `<div class="stat-card" style="cursor:pointer;" onclick="window.location.href='insights-dashboard.html'"><div class="stat-value">${overdueCount}</div><div class="stat-label">Trucks Overdue Service</div></div>` : ''}
+                    <div class="stat-card"><div class="stat-value" data-target="${ordersInProgress}">0</div><div class="stat-label">Orders In Progress</div></div>
+                    <div class="stat-card"><div class="stat-value" data-target="${weldRes.count || 0}">0</div><div class="stat-label">Weld Reports Pending</div></div>
+                    <div class="stat-card"><div class="stat-value" data-target="${assetRes.count || 0}">0</div><div class="stat-label">Tools Checked Out</div></div>
+                    <div class="stat-card" style="cursor:pointer;" onclick="window.location.href='maintenance-contracts.html'"><div class="stat-value" data-target="${contractRes.count || 0}">0</div><div class="stat-label">Contracts Expiring Soon</div></div>
+                    ${overdueCount !== null ? `<div class="stat-card" style="cursor:pointer;" onclick="window.location.href='insights-dashboard.html'"><div class="stat-value" data-target="${overdueCount}">0</div><div class="stat-label">Trucks Overdue Service</div></div>` : ''}
                 `;
+                setStagger(statsEl);
+                statsEl.querySelectorAll('.stat-value[data-target]').forEach((el, i) => {
+                    setTimeout(() => animateCount(el, parseInt(el.dataset.target, 10)), i * 45);
+                });
             } catch (e) {
                 statsEl.style.display = 'none';
             }
@@ -1270,9 +1442,11 @@
             const name = formatDisplayName((portalName || 'there').split(' ')[0]);
             const greetingEl = document.getElementById('homeGreeting');
             const dateEl = document.getElementById('homeDate');
+            const liveClockEl = document.getElementById('liveClock');
             if (!greetingEl || !dateEl) { clearInterval(clockInterval); return; }
             greetingEl.textContent = `${greetingWord}, ${name}`;
             dateEl.textContent = now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }) + ' · ' + now.toLocaleTimeString('en-GB');
+            if (liveClockEl) liveClockEl.textContent = now.toLocaleTimeString('en-GB');
         }
 
         function loadSection(sectionId) {
@@ -1282,10 +1456,10 @@
             document.getElementById('headerSubtitle').textContent = section.subtitle;
 
             const statsHtml = section.stats ? `
-                <div class="stats-row">
+                <div class="stats-row stagger">
                     ${section.stats.map(stat => `
                         <div class="stat-card">
-                            <div class="stat-value">${stat.value}</div>
+                            <div class="stat-value" data-target="${stat.value}">0</div>
                             <div class="stat-label">${stat.label}</div>
                         </div>
                     `).join('')}
@@ -1299,7 +1473,7 @@
                     <div class="section-subtitle">${section.subtitle}</div>
                 </div>
                 ${statsHtml}
-                <div class="cards-grid">
+                <div class="cards-grid stagger">
                     ${section.cards.map(card => `
                         <div class="card" onclick="if('${card.link}' !== '#') window.location.href = '${card.link}'">
                             <div class="card-inner">
@@ -1313,6 +1487,10 @@
                 </div>
             `;
             document.getElementById('contentArea').innerHTML = html;
+            document.querySelectorAll('#contentArea .stagger').forEach(setStagger);
+            document.querySelectorAll('#contentArea .stat-value[data-target]').forEach((el, i) => {
+                setTimeout(() => animateCount(el, parseInt(el.dataset.target, 10)), i * 45);
+            });
         }
 
         const sidebar = document.getElementById('sidebar');
@@ -1344,6 +1522,14 @@
                 closeSidebar();
             }
         });
+
+        const pageHeader = document.querySelector('.header');
+        const contentAreaEl = document.getElementById('contentArea');
+        if (pageHeader && contentAreaEl) {
+            contentAreaEl.addEventListener('scroll', () => {
+                pageHeader.classList.toggle('scrolled', contentAreaEl.scrollTop > 4);
+            });
+        }
 
         document.querySelectorAll('.nav-item').forEach(item => {
             item.addEventListener('click', function() {
