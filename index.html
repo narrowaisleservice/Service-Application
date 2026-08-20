@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portal — Back Soon</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;900&family=IBM+Plex+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --red:#df0a1e;
+    --black:#0d0d0f;
+    --white:#ffffff;
+    --grey:#6b6b70;
+    --line:#e9e9ec;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:var(--white);
+    color:var(--black);
+    font-family:'IBM Plex Sans', sans-serif;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:100vh;
+    padding:24px;
+    overflow:hidden;
+  }
+
+  .stage{
+    position:relative;
+    max-width:560px;
+    width:100%;
+    text-align:center;
+  }
+
+  .mark{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:64px;
+    height:64px;
+    border-radius:50%;
+    background:var(--black);
+    margin-bottom:32px;
+  }
+  .mark svg{ width:28px; height:28px; animation:spin 3.2s linear infinite; }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+
+  .eyebrow{
+    font-family:'DM Mono', monospace;
+    font-size:12px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--red);
+    margin:0 0 14px;
+  }
+
+  h1{
+    font-family:'DM Sans', sans-serif;
+    font-weight:900;
+    font-size:clamp(32px, 6vw, 48px);
+    line-height:1.08;
+    margin:0 0 16px;
+    letter-spacing:-0.01em;
+  }
+  h1 span{ color:var(--red); }
+
+  p{
+    font-size:16px;
+    line-height:1.6;
+    color:var(--grey);
+    margin:0 auto 32px;
+    max-width:420px;
+  }
+
+  .bar{
+    height:3px;
+    width:120px;
+    margin:0 auto 32px;
+    background:var(--line);
+    border-radius:2px;
+    overflow:hidden;
+    position:relative;
+  }
+  .bar::after{
+    content:'';
+    position:absolute;
+    top:0; left:0;
+    height:100%;
+    width:40%;
+    background:var(--red);
+    border-radius:2px;
+    animation:sweep 1.6s ease-in-out infinite;
+  }
+  @keyframes sweep{
+    0%{ left:-40%; }
+    100%{ left:100%; }
+  }
+
+  .meta{
+    font-family:'DM Mono', monospace;
+    font-size:12px;
+    color:var(--grey);
+    letter-spacing:0.02em;
+  }
+  .meta strong{ color:var(--black); font-weight:500; }
+
+  @media (prefers-reduced-motion: reduce){
+    .mark svg, .bar::after{ animation:none; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="stage">
+    <div class="mark">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M19.14 12.94a7.14 7.14 0 0 0 .06-.94 7.14 7.14 0 0 0-.06-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.03 7.03 0 0 0-1.62-.94l-.36-2.54a.5.5 0 0 0-.5-.42h-3.84a.5.5 0 0 0-.5.42l-.36 2.54c-.59.24-1.13.56-1.62.94l-2.39-.96a.5.5 0 0 0-.6.22L2.71 8.84a.5.5 0 0 0 .12.64l2.03 1.58c-.04.31-.06.62-.06.94s.02.63.06.94l-2.03 1.58a.5.5 0 0 0-.12.64l1.92 3.32c.14.24.42.32.6.22l2.39-.96c.49.38 1.03.7 1.62.94l.36 2.54a.5.5 0 0 0 .5.42h3.84a.5.5 0 0 0 .5-.42l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.24.1.46 0 .6-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58Z" stroke="#ffffff" stroke-width="1.4" stroke-linejoin="round"/>
+        <circle cx="12" cy="12" r="3" stroke="#ffffff" stroke-width="1.4"/>
+      </svg>
+    </div>
+
+    <p class="eyebrow">Scheduled maintenance</p>
+    <h1>The portal is <span>being worked on.</span></h1>
+    <p>We're making some improvements behind the scenes. It'll be back up and running shortly — thanks for your patience.</p>
+
+    <div class="bar"></div>
+    <p class="meta">Status: <strong>In progress</strong></p>
+  </div>
+
+</body>
+</html>
