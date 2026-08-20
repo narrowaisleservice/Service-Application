@@ -382,6 +382,7 @@
      ]);
 
      render(customer, displayName, equipment, contracts, history);
+     if (customer && customer.id) loadCrm(customer, displayName);
    } catch (err) {
      content.innerHTML = `<div class="empty-state">Couldn't load this customer.<br>${esc(err.message || err)}</div>`;
    }
@@ -412,6 +413,8 @@
      </div>
      <div class="contact-line">${contactBits.join(' &middot; ')}</div>
 
+     ${customer && customer.id ? crmCardHtml(customer) : ''}
+
      <div class="stats-row">
        <div class="stat-card"><div class="stat-value neutral">${equipment.length}</div><div class="stat-label">Machines On File</div></div>
        <div class="stat-card"><div class="stat-value">${activeContracts.length}</div><div class="stat-label">Active Contracts</div></div>
@@ -419,6 +422,8 @@
        <div class="stat-card"><div class="stat-value">${breakdownVisits}</div><div class="stat-label">Breakdown Callouts</div></div>
        ${expiringContracts.length ? `<div class="stat-card" style="border-color:rgba(223,10,30,0.3);"><div class="stat-value">${expiringContracts.length}</div><div class="stat-label">Contracts Expiring Soon</div></div>` : ''}
      </div>
+
+     ${customer && customer.id ? crmSectionsHtml() : ''}
    `;
 
    if (history.length) {
@@ -547,4 +552,213 @@
  window.addEventListener('pageshow', (event) => {
    if (event.persisted) loadCustomer();
  });
+
+ /* ============================================================
+    CRM layer: account info, activity notes, follow-up tasks
+    Tables: crm_notes, crm_tasks (RLS: authenticated only)
+    ============================================================ */
+
+ let CRM_USER_EMAIL = '';
+ (async () => {
+   try {
+     const { data } = await db.auth.getUser();
+     CRM_USER_EMAIL = (data && data.user && data.user.email) || '';
+   } catch (e) {}
+ })();
+
+ const STATUS_OPTIONS = ['Prospect', 'Active', 'Lapsed', 'Lost'];
+
+ function crmCardHtml(customer) {
+   const status = customer.account_status || 'Active';
+   const statusColor = status === 'Active' ? '#4caf50' : status === 'Prospect' ? '#f5a623' : status === 'Lapsed' ? '#9ca3af' : '#df0a1e';
+   return `
+     <div class="card" id="crmInfoCard" style="margin-bottom:24px;">
+       <div class="section-head">
+         <div class="section-title">Account</div>
+         <button class="crm-btn-ghost" id="crmEditBtn" onclick="toggleCrmEdit()">Edit</button>
+       </div>
+       <div id="crmInfoView" style="display:flex; flex-wrap:wrap; gap:28px; font-size:13px;">
+         <div><div class="section-note" style="margin-bottom:4px;">Status</div><span class="badge" style="background:${statusColor}1a; color:${statusColor};">${esc(status)}</span></div>
+         <div><div class="section-note" style="margin-bottom:4px;">Primary Contact</div>${esc(customer.primary_contact_name) || '<span class="muted-cell">—</span>'}${customer.primary_contact_email ? ` &middot; <a href="mailto:${esc(customer.primary_contact_email)}">${esc(customer.primary_contact_email)}</a>` : ''}${customer.primary_contact_phone ? ` &middot; <a href="tel:${esc(customer.primary_contact_phone.replace(/\s/g,''))}">${esc(customer.primary_contact_phone)}</a>` : ''}</div>
+         <div><div class="section-note" style="margin-bottom:4px;">Account Owner</div>${esc(customer.account_owner) || '<span class="muted-cell">—</span>'}</div>
+       </div>
+       <div id="crmInfoEdit" style="display:none; margin-top:4px;">
+         <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; margin-bottom:14px;">
+           <div>
+             <div class="section-note" style="margin-bottom:4px;">Status</div>
+             <select id="crmStatusInput" class="crm-input">${STATUS_OPTIONS.map(s => `<option value="${s}" ${s===status?'selected':''}>${s}</option>`).join('')}</select>
+           </div>
+           <div><div class="section-note" style="margin-bottom:4px;">Contact Name</div><input type="text" id="crmContactNameInput" class="crm-input" value="${esc(customer.primary_contact_name||'')}"></div>
+           <div><div class="section-note" style="margin-bottom:4px;">Contact Email</div><input type="text" id="crmContactEmailInput" class="crm-input" value="${esc(customer.primary_contact_email||'')}"></div>
+           <div><div class="section-note" style="margin-bottom:4px;">Contact Phone</div><input type="text" id="crmContactPhoneInput" class="crm-input" value="${esc(customer.primary_contact_phone||'')}"></div>
+           <div><div class="section-note" style="margin-bottom:4px;">Account Owner</div><input type="text" id="crmOwnerInput" class="crm-input" value="${esc(customer.account_owner||'')}"></div>
+         </div>
+         <button class="crm-btn" onclick="saveCrmInfo(${customer.id})">Save</button>
+         <button class="crm-btn-ghost" onclick="toggleCrmEdit()">Cancel</button>
+       </div>
+     </div>
+     <style>
+       .crm-input { width:100%; padding:9px 11px; border:1px solid var(--border); border-radius:8px; font-family:var(--body); font-size:13px; color:var(--text); outline:none; }
+       .crm-input:focus { border-color:var(--red); }
+       .crm-btn { padding:9px 16px; background:var(--red); color:#fff; border:none; border-radius:8px; font-family:var(--body); font-size:13px; font-weight:600; cursor:pointer; }
+       .crm-btn:hover { background:#c00919; }
+       .crm-btn-ghost { padding:9px 16px; background:none; border:1px solid var(--border); border-radius:8px; font-family:var(--body); font-size:12.5px; color:var(--muted); cursor:pointer; }
+       .crm-btn-ghost:hover { color:var(--text); border-color:var(--border-hover, #999); }
+       textarea.crm-input { resize:vertical; min-height:64px; font-family:var(--body); }
+       .crm-item { padding:14px 0; border-bottom:1px solid var(--border); }
+       .crm-item:last-child { border-bottom:none; }
+       .crm-item-top { display:flex; justify-content:space-between; align-items:baseline; gap:10px; margin-bottom:5px; }
+       .crm-type-tag { font-family:var(--mono); font-size:10px; letter-spacing:0.5px; text-transform:uppercase; color:var(--red); background:var(--red-dim); padding:2px 8px; border-radius:5px; }
+       .crm-meta { font-family:var(--mono); font-size:11px; color:var(--muted); }
+       .crm-task-row { display:flex; align-items:flex-start; gap:10px; padding:12px 0; border-bottom:1px solid var(--border); }
+       .crm-task-row:last-child { border-bottom:none; }
+       .crm-task-row input[type=checkbox] { width:18px; height:18px; margin-top:1px; accent-color: var(--red); cursor:pointer; flex-shrink:0; }
+       .crm-task-title { font-size:13.5px; font-weight:600; }
+       .crm-task-title.done { text-decoration:line-through; color:var(--muted); font-weight:400; }
+       .crm-task-due { font-family:var(--mono); font-size:11px; color:var(--muted); margin-top:2px; }
+       .crm-task-due.overdue { color:var(--red); }
+     </style>
+   `;
+ }
+
+ function toggleCrmEdit() {
+   const view = document.getElementById('crmInfoView');
+   const edit = document.getElementById('crmInfoEdit');
+   const isEditing = edit.style.display !== 'none';
+   view.style.display = isEditing ? 'flex' : 'none';
+   edit.style.display = isEditing ? 'none' : 'block';
+ }
+
+ async function saveCrmInfo(customerId) {
+   const patch = {
+     account_status: document.getElementById('crmStatusInput').value,
+     primary_contact_name: document.getElementById('crmContactNameInput').value.trim() || null,
+     primary_contact_email: document.getElementById('crmContactEmailInput').value.trim() || null,
+     primary_contact_phone: document.getElementById('crmContactPhoneInput').value.trim() || null,
+     account_owner: document.getElementById('crmOwnerInput').value.trim() || null,
+   };
+   const { error } = await db.from('customers').update(patch).eq('id', customerId);
+   if (error) { alert('Could not save: ' + error.message); return; }
+   loadCustomer();
+ }
+
+ function crmSectionsHtml() {
+   return `
+     <div class="section">
+       <div class="section-head"><div class="section-title">Open Tasks</div></div>
+       <div class="card">
+         <div id="crmTaskForm" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;">
+           <input type="text" id="crmTaskTitle" class="crm-input" placeholder="Follow up about…" style="flex:2; min-width:180px;">
+           <input type="date" id="crmTaskDue" class="crm-input" style="flex:1; min-width:130px;">
+           <input type="text" id="crmTaskAssignee" class="crm-input" placeholder="Assigned to" style="flex:1; min-width:130px;">
+           <button class="crm-btn" onclick="addCrmTask()">Add Task</button>
+         </div>
+         <div id="crmTaskList"><div class="muted-cell">Loading…</div></div>
+       </div>
+     </div>
+     <div class="section">
+       <div class="section-head"><div class="section-title">Notes & Activity</div></div>
+       <div class="card">
+         <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;">
+           <select id="crmNoteType" class="crm-input" style="flex:0 0 140px;">
+             <option value="note">Note</option>
+             <option value="call">Call</option>
+             <option value="email">Email</option>
+             <option value="site-visit">Site Visit</option>
+           </select>
+           <textarea id="crmNoteBody" class="crm-input" placeholder="What happened…" style="flex:1; min-width:220px;"></textarea>
+         </div>
+         <button class="crm-btn" onclick="addCrmNote()" style="margin-bottom:16px;">Add Note</button>
+         <div id="crmNoteList"><div class="muted-cell">Loading…</div></div>
+       </div>
+     </div>
+   `;
+ }
+
+ let CRM_CUSTOMER = null;
+
+ async function loadCrm(customer, displayName) {
+   CRM_CUSTOMER = customer;
+   const [{ data: tasks, error: taskErr }, { data: notes, error: noteErr }] = await Promise.all([
+     db.from('crm_tasks').select('*').eq('customer_id', customer.id).order('done').order('due_date', { ascending: true, nullsFirst: false }),
+     db.from('crm_notes').select('*').eq('customer_id', customer.id).order('created_at', { ascending: false }),
+   ]);
+   renderCrmTasks(taskErr ? [] : (tasks || []));
+   renderCrmNotes(noteErr ? [] : (notes || []));
+ }
+
+ function renderCrmTasks(tasks) {
+   const el = document.getElementById('crmTaskList');
+   if (!el) return;
+   const open = tasks.filter(t => !t.done);
+   const done = tasks.filter(t => t.done);
+   if (!tasks.length) { el.innerHTML = '<div class="muted-cell">No tasks yet.</div>'; return; }
+   const rowHtml = (t) => {
+     const overdue = !t.done && t.due_date && new Date(t.due_date + 'T00:00:00') < new Date().setHours(0,0,0,0);
+     return `
+       <div class="crm-task-row">
+         <input type="checkbox" ${t.done?'checked':''} onchange="toggleCrmTask(${t.id}, this.checked)">
+         <div>
+           <div class="crm-task-title ${t.done?'done':''}">${esc(t.title)}</div>
+           <div class="crm-task-due ${overdue?'overdue':''}">${t.due_date ? 'Due ' + fmtDate(t.due_date) : 'No due date'}${t.assigned_to ? ' &middot; ' + esc(t.assigned_to) : ''}</div>
+         </div>
+       </div>`;
+   };
+   el.innerHTML = open.map(rowHtml).join('') + (done.length ? `<div class="section-note" style="margin:14px 0 4px;">Completed (${done.length})</div>${done.map(rowHtml).join('')}` : '');
+ }
+
+ function renderCrmNotes(notes) {
+   const el = document.getElementById('crmNoteList');
+   if (!el) return;
+   if (!notes.length) { el.innerHTML = '<div class="muted-cell">No notes yet.</div>'; return; }
+   const typeLabel = { note: 'Note', call: 'Call', email: 'Email', 'site-visit': 'Site Visit' };
+   el.innerHTML = notes.map(n => `
+     <div class="crm-item">
+       <div class="crm-item-top">
+         <span class="crm-type-tag">${esc(typeLabel[n.note_type] || n.note_type)}</span>
+         <span class="crm-meta">${esc(n.created_by||'')}${n.created_by ? ' &middot; ' : ''}${new Date(n.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})}</span>
+       </div>
+       <div>${esc(n.body).replace(/\n/g,'<br>')}</div>
+     </div>
+   `).join('');
+ }
+
+ async function addCrmTask() {
+   const title = document.getElementById('crmTaskTitle').value.trim();
+   if (!title) return;
+   const due_date = document.getElementById('crmTaskDue').value || null;
+   const assigned_to = document.getElementById('crmTaskAssignee').value.trim() || null;
+   const { error } = await db.from('crm_tasks').insert({
+     customer_id: CRM_CUSTOMER.id,
+     customer_name: CRM_CUSTOMER.company_name,
+     title, due_date, assigned_to,
+     created_by: CRM_USER_EMAIL || null,
+   });
+   if (error) { alert('Could not add task: ' + error.message); return; }
+   document.getElementById('crmTaskTitle').value = '';
+   document.getElementById('crmTaskDue').value = '';
+   document.getElementById('crmTaskAssignee').value = '';
+   loadCrm(CRM_CUSTOMER);
+ }
+
+ async function toggleCrmTask(taskId, done) {
+   const { error } = await db.from('crm_tasks').update({ done, completed_at: done ? new Date().toISOString() : null }).eq('id', taskId);
+   if (error) { alert('Could not update task: ' + error.message); return; }
+   loadCrm(CRM_CUSTOMER);
+ }
+
+ async function addCrmNote() {
+   const body = document.getElementById('crmNoteBody').value.trim();
+   if (!body) return;
+   const note_type = document.getElementById('crmNoteType').value;
+   const { error } = await db.from('crm_notes').insert({
+     customer_id: CRM_CUSTOMER.id,
+     customer_name: CRM_CUSTOMER.company_name,
+     note_type, body,
+     created_by: CRM_USER_EMAIL || null,
+   });
+   if (error) { alert('Could not add note: ' + error.message); return; }
+   document.getElementById('crmNoteBody').value = '';
+   loadCrm(CRM_CUSTOMER);
+ }
 </script>
