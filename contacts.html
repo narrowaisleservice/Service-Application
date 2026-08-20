@@ -230,7 +230,7 @@
 
   .grid-header, .grid-row {
     display: grid;
-    grid-template-columns: minmax(0,1.3fr) minmax(0,1.3fr) minmax(0,0.75fr) minmax(0,0.95fr) minmax(0,1fr) minmax(0,1fr);
+    grid-template-columns: minmax(0,1.15fr) minmax(0,1.05fr) minmax(0,0.6fr) minmax(0,0.8fr) minmax(0,0.85fr) minmax(0,0.75fr) minmax(0,0.65fr) minmax(0,0.85fr);
     gap: 10px;
     align-items: center;
     padding: 12px 16px;
@@ -355,6 +355,17 @@
   }
   .website-link:hover { text-decoration: underline; }
   .no-data { color: var(--muted); font-family: var(--mono); font-size: 12px; }
+
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    white-space: nowrap;
+  }
 
   .empty-state { padding: 72px 32px; text-align: center; color: var(--muted); }
   .empty-state .icon { font-size: 36px; margin-bottom: 16px; opacity: 0.4; }
@@ -531,6 +542,9 @@
    <button class="filter-btn" data-filter="active-contract">Active Contract</button>
    <button class="filter-btn" data-filter="contract-expiring">Contract Expiring</button>
    <button class="filter-btn" data-filter="frequent-breakdowns">Frequent Breakdowns</button>
+   <button class="filter-btn" data-filter="status-prospect">Prospects</button>
+   <button class="filter-btn" data-filter="has-tasks">Has Open Tasks</button>
+   <button class="filter-btn" data-filter="overdue-tasks">Overdue Tasks</button>
    <span style="flex:1"></span>
    <div class="view-toggle">
     <button class="view-toggle-btn active" id="tableViewBtn">Table</button>
@@ -563,6 +577,8 @@
     <div class="grid-header-cell" data-col="phone">Phone <span class="arrow"></span></div>
     <div class="grid-header-cell" data-col="website">Website <span class="arrow"></span></div>
     <div class="grid-header-cell" data-col="location">Location <span class="arrow"></span></div>
+    <div class="grid-header-cell" data-col="status">Status <span class="arrow"></span></div>
+    <div class="grid-header-cell" data-col="tasks">Tasks <span class="arrow"></span></div>
    </div>
    <div id="tableBody">
     <div class="grid-empty-msg">Loading contacts…</div>
@@ -758,6 +774,14 @@
     return '#9ca3af';
   }
 
+  function accountStatusColor(status) {
+    if (status === 'Active') return '#4caf50';
+    if (status === 'Prospect') return '#f5a623';
+    if (status === 'Lapsed') return '#9ca3af';
+    if (status === 'Lost') return '#df0a1e';
+    return '#9ca3af';
+  }
+
   function coloredIcon(color) {
     return L.divIcon({
       className: 'status-marker',
@@ -810,6 +834,38 @@
       return data || [];
     } catch (e) {
       return [];
+    }
+  }
+
+  // Open (not done) crm_tasks, grouped by customer_id - powers the Tasks column + filters.
+  async function loadOpenTasks() {
+    try {
+      let all = [];
+      let from = 0;
+      const step = 1000;
+      while (true) {
+        const { data, error } = await db
+          .from('crm_tasks')
+          .select('customer_id, due_date')
+          .eq('done', false)
+          .range(from, from + step - 1);
+        if (error) throw error;
+        all = all.concat(data || []);
+        if (!data || data.length < step) break;
+        from += step;
+      }
+      const map = new Map();
+      const today = new Date(); today.setHours(0,0,0,0);
+      all.forEach(t => {
+        if (!t.customer_id) return;
+        const entry = map.get(t.customer_id) || { count: 0, overdue: 0 };
+        entry.count++;
+        if (t.due_date && new Date(t.due_date + 'T00:00:00') < today) entry.overdue++;
+        map.set(t.customer_id, entry);
+      });
+      return map;
+    } catch (e) {
+      return new Map();
     }
   }
 
@@ -878,7 +934,7 @@
         ${r.postcode ? `<div class="map-popup-line">${esc(r.postcode)}</div>` : ''}
         ${r.phone ? `<div class="map-popup-line">${esc(r.phone)}</div>` : ''}
         ${linkedHtml}
-        <a class="map-popup-link" href="customer-overview.html?company=${encodeURIComponent(r.company_name||'')}">View overview →</a>
+        <a class="map-popup-link" href="customer-overview.html?id=${r.id}">View overview →</a>
         ${r.map_url ? `<br><a class="map-popup-link" href="${esc(r.map_url)}" target="_blank" rel="noopener">Open in Google Maps →</a>` : ''}
       `;
       marker.bindPopup(popupHtml);
@@ -995,6 +1051,13 @@
       } catch (weldErr) {
         weldReportsByName = new Map();
       }
+
+      try {
+        const taskMap = await loadOpenTasks();
+        DATA.forEach(r => { r._tasks = taskMap.get(r.id) || { count: 0, overdue: 0 }; });
+      } catch (taskErr) {
+        DATA.forEach(r => { r._tasks = { count: 0, overdue: 0 }; });
+      }
     } catch (err) {
       tbody.innerHTML = `<div class="grid-empty-msg" style="color:var(--red);">Couldn't load contacts from Supabase.<br>${esc(String(err.message||err))}</div>`;
       return;
@@ -1012,6 +1075,9 @@
     else if (activeFilter === 'active-contract') d = d.filter(r => r._link && r._link.has_active_contract);
     else if (activeFilter === 'contract-expiring') d = d.filter(r => r._link && isExpiringSoon(r._link.soonest_end));
     else if (activeFilter === 'frequent-breakdowns') d = d.filter(r => r._link && r._link.breakdown_visits >= 5);
+    else if (activeFilter === 'status-prospect') d = d.filter(r => (r.account_status || 'Active') === 'Prospect');
+    else if (activeFilter === 'has-tasks') d = d.filter(r => r._tasks && r._tasks.count > 0);
+    else if (activeFilter === 'overdue-tasks') d = d.filter(r => r._tasks && r._tasks.overdue > 0);
     if (searchTerm) {
       const q = searchTerm.toLowerCase();
       d = d.filter(r =>
@@ -1031,6 +1097,8 @@
       else if (sortCol==='postcode'){ av=a.postcode||'zzz'; bv=b.postcode||'zzz'; }
       else if (sortCol==='phone')   { av=a.phone||'zzz'; bv=b.phone||'zzz'; }
       else if (sortCol==='website') { av=a.website||'zzz'; bv=b.website||'zzz'; }
+      else if (sortCol==='status')  { av=a.account_status||'zzz'; bv=b.account_status||'zzz'; }
+      else if (sortCol==='tasks')   { av=(a._tasks&&a._tasks.count)||0; bv=(b._tasks&&b._tasks.count)||0; return (av-bv)*sortDir; }
       return String(av).localeCompare(String(bv))*sortDir;
     });
     filtered = d;
@@ -1069,13 +1137,24 @@
       const tip = [r.region, r.county, r.nearest_town, r.grid_ref ? ('Grid Ref: '+r.grid_ref) : ''].filter(Boolean).join(' · ');
       const location = label ? `<span class="address-text" title="${esc(tip)}">${esc(label)}</span>` : '<span class="no-data">—</span>';
 
+      const status = r.account_status || 'Active';
+      const sColor = accountStatusColor(status);
+      const statusCell = `<span class="badge" style="background:${sColor}1a; color:${sColor};">${esc(status)}</span>`;
+
+      const t = r._tasks || { count: 0, overdue: 0 };
+      const tasksCell = t.count
+        ? `<span class="badge" style="background:${t.overdue ? '#df0a1e1a' : '#7070701a'}; color:${t.overdue ? '#df0a1e' : '#707070'};">${t.count} open${t.overdue ? ' · ' + t.overdue + ' overdue' : ''}</span>`
+        : '<span class="no-data">—</span>';
+
       return `<div class="grid-row">
-        <div class="grid-cell" data-label="Company"><a class="company-cell" href="customer-overview.html?company=${encodeURIComponent(company)}" style="text-decoration:none;color:inherit;"><div class="avatar">${esc(init)}</div><span class="company-text">${highlight(company,q)}</span></a></div>
+        <div class="grid-cell" data-label="Company"><a class="company-cell" href="customer-overview.html?id=${r.id}" style="text-decoration:none;color:inherit;"><div class="avatar">${esc(init)}</div><span class="company-text">${highlight(company,q)}</span></a></div>
         <div class="grid-cell" data-label="Address">${address}</div>
         <div class="grid-cell" data-label="Post Code">${postcode}</div>
         <div class="grid-cell" data-label="Phone">${phone}</div>
         <div class="grid-cell" data-label="Website">${website}</div>
         <div class="grid-cell" data-label="Location">${location}</div>
+        <div class="grid-cell" data-label="Status">${statusCell}</div>
+        <div class="grid-cell" data-label="Tasks">${tasksCell}</div>
       </div>`;
     }).join('');
 
