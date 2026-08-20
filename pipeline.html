@@ -1,0 +1,336 @@
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script type="module" src="auth-guard.js"></script>
+<title>
+ Pipeline — Narrow Aisle
+</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&family=Barlow+Condensed:wght@800&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+ *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+ :root {
+   --red: #df0a1e;
+   --red-dim: rgba(223,10,30,0.08);
+   --red-mid: rgba(223,10,30,0.3);
+   --bg: #FFFFFF;
+   --surface: #FFFFFF;
+   --surface2: #F5F5F5;
+   --border: rgba(0,0,0,0.1);
+   --border-hover: rgba(0,0,0,0.25);
+   --text: #101010;
+   --muted: #707070;
+   --mono: 'DM Mono', monospace;
+   --head: 'Syne', sans-serif;
+   --body: 'DM Sans', sans-serif;
+   --plex: 'IBM Plex Sans', sans-serif;
+ }
+ html { scroll-behavior: smooth; }
+ body { font-family: var(--body); background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+ body::before {
+   content:'';
+   position:fixed;
+   inset:0;
+   background-image:
+     radial-gradient(ellipse 80% 50% at 50% -10%, rgba(223,10,30,0.06) 0%, transparent 60%),
+     repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(0,0,0,0.025) 39px, rgba(0,0,0,0.025) 40px),
+     repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(0,0,0,0.025) 39px, rgba(0,0,0,0.025) 40px);
+   pointer-events:none;
+   z-index:0;
+ }
+ .app { position: relative; z-index: 1; max-width: 1400px; margin: 0 auto; padding: 0 24px 80px; }
+
+ .topbar { display: flex; align-items: center; justify-content: space-between; padding: 28px 0 40px; border-bottom: 1px solid var(--border); margin-bottom: 32px; }
+ .topbar-left { display: flex; align-items: center; gap: 16px; }
+ .back-btn { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 8px; background: none; border: none; color: var(--text); cursor: pointer; transition: color 0.15s, background 0.15s; flex-shrink: 0; }
+ .back-btn:hover { color: var(--red); background: var(--red-dim); }
+ .brand { display: flex; align-items: center; gap: 16px; }
+ .brand svg { height: 28px; width: auto; display: block; }
+ .brand-divider { width: 1px; height: 28px; background: var(--border); }
+ .brand-module { font-family: var(--mono); font-size: 11px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; }
+
+ .page-title { display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:16px; margin-bottom: 28px; }
+ .page-title .eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: 3px; color: var(--red); text-transform: uppercase; margin-bottom: 10px; }
+ .page-title h1 { font-family: 'Barlow Condensed', var(--head); font-size: clamp(40px, 5vw, 60px); font-weight: 800; line-height: 1; letter-spacing: -1px; text-transform: uppercase; color: #101010; }
+ .new-deal-btn { padding: 12px 22px; background: var(--red); color: #fff; border: none; border-radius: 10px; font-family: var(--body); font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+ .new-deal-btn:hover { background: #c00919; }
+
+ .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 24px; }
+ .stat-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
+ .stat-value { font-family: var(--plex); font-size: 26px; font-weight: 700; color: var(--red); line-height: 1; }
+ .stat-value.neutral { color: var(--text); }
+ .stat-label { font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; margin-top: 6px; }
+
+ .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
+ .crm-input {
+   padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px;
+   font-family: var(--body); font-size: 13.5px; color: var(--text); outline: none; width: 100%;
+ }
+ .crm-input:focus { border-color: var(--red); }
+ .crm-btn { padding: 10px 18px; background: var(--red); color: #fff; border: none; border-radius: 8px; font-family: var(--body); font-size: 13.5px; font-weight: 600; cursor: pointer; }
+ .crm-btn:hover { background: #c00919; }
+ .crm-btn-ghost { padding: 10px 18px; background: none; border: 1px solid var(--border); border-radius: 8px; font-family: var(--body); font-size: 13px; color: var(--muted); cursor: pointer; }
+ .crm-btn-ghost:hover { color: var(--text); }
+
+ #newDealPanel { display: none; margin-bottom: 24px; position: relative; }
+ .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 14px; }
+ .field-label { font-family: var(--mono); font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; display: block; }
+ #customerResults {
+   position: absolute; background: #fff; border: 1px solid var(--border); border-radius: 10px;
+   box-shadow: 0 8px 24px rgba(0,0,0,0.12); max-height: 220px; overflow-y: auto; z-index: 20; width: 100%; max-width: 320px; display: none;
+ }
+ .customer-result-row { padding: 9px 12px; font-size: 13px; cursor: pointer; border-bottom: 1px solid var(--border); }
+ .customer-result-row:last-child { border-bottom: none; }
+ .customer-result-row:hover { background: var(--surface2); }
+
+ .board { display: grid; grid-template-columns: repeat(5, minmax(220px, 1fr)); gap: 14px; align-items: start; }
+ @media (max-width: 1100px) { .board { grid-template-columns: 1fr; } }
+
+ .col { background: var(--surface2); border: 1px solid var(--border); border-radius: 14px; padding: 12px; min-height: 80px; }
+ .col-head { display: flex; align-items: center; justify-content: space-between; padding: 4px 4px 12px; }
+ .col-title { font-family: var(--plex); font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+ .col-count { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+ .col-value { font-family: var(--mono); font-size: 11px; color: var(--muted); padding: 0 4px 10px; }
+
+ .deal-card { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+ .deal-card:last-child { margin-bottom: 0; }
+ .deal-title { font-size: 13.5px; font-weight: 600; margin-bottom: 3px; }
+ .deal-company { font-size: 12px; color: var(--red); text-decoration: none; display: block; margin-bottom: 8px; }
+ .deal-company:hover { text-decoration: underline; }
+ .deal-value { font-family: var(--mono); font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
+ .deal-meta { font-family: var(--mono); font-size: 10.5px; color: var(--muted); margin-bottom: 10px; }
+ .deal-meta.overdue { color: var(--red); }
+ .deal-controls { display: flex; gap: 6px; align-items: center; }
+ .deal-controls select { flex: 1; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; font-family: var(--body); font-size: 11.5px; background: #fff; }
+ .deal-del { background: none; border: none; color: var(--muted); cursor: pointer; padding: 4px; line-height: 0; flex-shrink: 0; }
+ .deal-del:hover { color: var(--red); }
+ .col-empty { font-family: var(--mono); font-size: 11px; color: var(--muted); padding: 10px 4px; text-align: center; }
+
+ .loading-state, .empty-state { text-align: center; padding: 60px 20px; color: var(--muted); font-size: 14px; }
+</style>
+<div class="app">
+
+ <div class="topbar">
+  <div class="topbar-left">
+   <button class="back-btn" onclick="goBack()" title="Back" aria-label="Back">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+   </button>
+   <div class="brand">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 841.9 497.3" style="height:28px;width:auto;display:block;">
+     <style>.st0{fill:#101010;}</style>
+     <g><path class="st0" d="M724.9,251.8l9.8-4.4c0.7-0.3,1.5-0.2,2.1,0.2l21.4,13.9c1.4,0.9,1.4,3.1-0.1,3.9l-8.5,4.9c-0.7,0.4-1.6,0.4-2.3-0.1l-22.7-14.4C723.1,254.8,723.2,252.5,724.9,251.8"/><path class="st0" d="M465.5,354.3c-3.9-1.9-6.2-15.3,4.1-34.8c8-15.1,17.6-20.8,22.6-22.6c5.2-1.9,8.9-0.1,10,1c5.6,5.8,0.6,20-6.5,31.4C487.1,343.2,471.1,357,465.5,354.3 M806,352.8c-8.6,14.7-20.3,14-29.1,8.3c-7.7-5-13.3-26-16.2-34.6c-3.1-9-11.7-19.9-21.8-19.9c-13.1,0-30.8,36.5-35.8,42.1c-11.6,12.8-38.3,28-60.3,14.1c-12.1-7.6-28.3-29-28.3-29s49.6-49.4,51.6-52.3l-18.8-19.1c-2.3,3.8-48.6,51.6-50.4,51.6c-1.8,0-22.7-34.8-25.3-38c0,0-31.1-3-32.5-1.6c0,0,40.1,55.2,38.8,57.5c-2,3.3-45.5,34.9-56,40.5c-21.1,11.1-38.5,6.4-38.5,6.4s30.2-25.5,40.3-45.5c5-9.8,23.1-42.2-16.6-60.4c-23.6-10.8-44.4-1.6-63.6,26.8c-21.1,31-4.3,75.7-4.3,75.7s-23.6,16.7-44.6,1.3c-15.4-11.2-26.2-49.6-28.8-85.2c-3.9-52.6,6.8-158.4,6.8-158.4l-47.3-13.9c0,0,6,51.3-5.2,93.9c-26.9,102.3-97,128.4-104.6,129.3c-7.6,0.9-7.6-52.3-59.1-145C122.7,136.8,60,68.7,60.9,65.5c0.9-3.2,81.3-26.5,150.3-28.4c96.8-2.7,185.3,3,191.5,9.3c6.3,6.4-25.5,16.6,6.7,31.4c15.1,6.9,27.3-5.9,32.9-13.5c2.3-3.2,2.1-7.6-0.4-10.5C430.3,40.4,387.4,7.2,249,11.9C76.6,17.8,15.7,44.2,12.1,50.1s107.1,130.9,138,206.3c24.7,60.2,32.3,97.3,31.4,101.4c-0.9,4.1-44.4,1.4-44.4,1.4l13,21.4l35.4-1c0,0,3.9,24.3-1.8,42.7c-7.9,25.4-22.8,37.7-22.8,42.3l30.9,17.7c0,0,19.5-14.3,25.5-54.6c3-20.2,0-47.7,0-47.7s30.1-8.8,60.5-31.4c30.2-22.5,52.4-60,52.4-60s16.5,73.6,37.7,94.9c25.9,25.9,59,26.5,94,11.5c8.1,3.9,15.5,6.6,22.1,8.5c19.5,5.7,40.4,2.5,57.6-8.5c16.4-10.4,41-30.3,55.5-43.4c2.7-2.4,37.2,42.7,83.1,37.6c30.9-3.4,42.8-19,55.6-39c6.6-10.2,13.7,20.7,45.9,32.5c18.4,6.7,37.5,0.2,44.3-11C837,354,814.7,337.9,806,352.8"/></g>
+    </svg>
+    <div class="brand-divider"></div>
+    <div class="brand-module">Pipeline</div>
+   </div>
+  </div>
+ </div>
+
+ <div class="page-title">
+  <div>
+   <div class="eyebrow">Portal CRM</div>
+   <h1>Pipeline</h1>
+  </div>
+  <button class="new-deal-btn" onclick="toggleNewDeal()">+ New Deal</button>
+ </div>
+
+ <div class="stats-row" id="statsRow"></div>
+
+ <div id="newDealPanel" class="card">
+  <div class="section-title" style="font-family:var(--plex); font-size:14px; font-weight:700; margin-bottom:14px;">New Deal</div>
+  <div class="form-grid">
+    <div style="position:relative;">
+      <span class="field-label">Company</span>
+      <input type="text" id="dealCustomerSearch" class="crm-input" placeholder="Start typing…" autocomplete="off">
+      <div id="customerResults"></div>
+    </div>
+    <div><span class="field-label">Deal Title</span><input type="text" id="dealTitle" class="crm-input" placeholder="e.g. New Flexi + service contract"></div>
+    <div><span class="field-label">Value (£)</span><input type="number" id="dealValue" class="crm-input" placeholder="0"></div>
+    <div><span class="field-label">Stage</span>
+      <select id="dealStage" class="crm-input">
+        <option>Lead</option><option>Qualified</option><option>Quoted</option><option>Won</option><option>Lost</option>
+      </select>
+    </div>
+    <div><span class="field-label">Expected Close</span><input type="date" id="dealClose" class="crm-input"></div>
+    <div><span class="field-label">Owner</span><input type="text" id="dealOwner" class="crm-input" placeholder="Who's running this"></div>
+  </div>
+  <button class="crm-btn" onclick="createDeal()">Add Deal</button>
+  <button class="crm-btn-ghost" onclick="toggleNewDeal()">Cancel</button>
+</div>
+
+ <div id="boardWrap"><div class="loading-state">Loading pipeline…</div></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+ function goBack() {
+   try {
+     if (document.referrer && new URL(document.referrer).host === window.location.host) window.history.back();
+     else window.location.href = 'contacts.html';
+   } catch (e) { window.location.href = 'contacts.html'; }
+ }
+
+ const SUPABASE_URL = 'https://dontubctlexlvifwhmbj.supabase.co';
+ const SUPABASE_KEY = 'sb_publishable_99HLzSv4wMwFZHlR81yIsQ_z0A0Jpth';
+ const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+ const STAGES = ['Lead', 'Qualified', 'Quoted', 'Won', 'Lost'];
+ let DEALS = [];
+ let SELECTED_CUSTOMER = null;
+ let CRM_USER_EMAIL = '';
+
+ (async () => {
+   try {
+     const { data } = await db.auth.getUser();
+     CRM_USER_EMAIL = (data && data.user && data.user.email) || '';
+   } catch (e) {}
+ })();
+
+ function esc(s) { return (s||'').toString().replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+ function fmtMoney(v) {
+   const n = Number(v);
+   if (!n) return null;
+   return '£' + n.toLocaleString('en-GB', { maximumFractionDigits: 0 });
+ }
+ function fmtDate(d) {
+   if (!d) return null;
+   return new Date(d + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+ }
+ function isOverdue(d) {
+   if (!d) return false;
+   const today = new Date(); today.setHours(0,0,0,0);
+   return new Date(d + 'T00:00:00') < today;
+ }
+
+ function toggleNewDeal() {
+   const panel = document.getElementById('newDealPanel');
+   panel.style.display = panel.style.display === 'none' || !panel.style.display ? 'block' : 'none';
+ }
+
+ // Customer autocomplete
+ const custSearch = document.getElementById('dealCustomerSearch');
+ const custResults = document.getElementById('customerResults');
+ let custDeb;
+ custSearch.addEventListener('input', () => {
+   SELECTED_CUSTOMER = null;
+   clearTimeout(custDeb);
+   const term = custSearch.value.trim();
+   if (term.length < 2) { custResults.style.display = 'none'; return; }
+   custDeb = setTimeout(async () => {
+     const { data, error } = await db.from('customers').select('id, company_name').ilike('company_name', `%${term}%`).order('company_name').limit(15);
+     if (error || !data || !data.length) { custResults.style.display = 'none'; return; }
+     custResults.innerHTML = data.map(c => `<div class="customer-result-row" onclick="pickCustomer(${c.id}, '${esc(c.company_name).replace(/'/g,"\\'")}')">${esc(c.company_name)}</div>`).join('');
+     custResults.style.display = 'block';
+   }, 200);
+ });
+ function pickCustomer(id, name) {
+   SELECTED_CUSTOMER = { id, company_name: name };
+   custSearch.value = name;
+   custResults.style.display = 'none';
+ }
+
+ async function createDeal() {
+   if (!SELECTED_CUSTOMER) { alert('Pick a company from the dropdown first.'); return; }
+   const title = document.getElementById('dealTitle').value.trim();
+   if (!title) { alert('Give the deal a title.'); return; }
+   const value = document.getElementById('dealValue').value || null;
+   const stage = document.getElementById('dealStage').value;
+   const expected_close = document.getElementById('dealClose').value || null;
+   const owner = document.getElementById('dealOwner').value.trim() || null;
+
+   const { error } = await db.from('crm_deals').insert({
+     customer_id: SELECTED_CUSTOMER.id,
+     customer_name: SELECTED_CUSTOMER.company_name,
+     title, value, stage, expected_close, owner,
+     created_by: CRM_USER_EMAIL || null,
+   });
+   if (error) { alert('Could not create deal: ' + error.message); return; }
+
+   document.getElementById('dealTitle').value = '';
+   document.getElementById('dealValue').value = '';
+   document.getElementById('dealClose').value = '';
+   document.getElementById('dealOwner').value = '';
+   custSearch.value = '';
+   SELECTED_CUSTOMER = null;
+   toggleNewDeal();
+   loadDeals();
+ }
+
+ async function updateStage(dealId, stage) {
+   const { error } = await db.from('crm_deals').update({ stage, updated_at: new Date().toISOString() }).eq('id', dealId);
+   if (error) { alert('Could not update: ' + error.message); return; }
+   loadDeals();
+ }
+
+ async function deleteDeal(dealId) {
+   if (!confirm('Delete this deal?')) return;
+   const { error } = await db.from('crm_deals').delete().eq('id', dealId);
+   if (error) { alert('Could not delete: ' + error.message); return; }
+   loadDeals();
+ }
+
+ function renderStats() {
+   const open = DEALS.filter(d => d.stage !== 'Won' && d.stage !== 'Lost');
+   const won = DEALS.filter(d => d.stage === 'Won');
+   const openValue = open.reduce((s,d) => s + (Number(d.value)||0), 0);
+   const wonValue = won.reduce((s,d) => s + (Number(d.value)||0), 0);
+   document.getElementById('statsRow').innerHTML = `
+     <div class="stat-card"><div class="stat-value neutral">${open.length}</div><div class="stat-label">Open Deals</div></div>
+     <div class="stat-card"><div class="stat-value">${fmtMoney(openValue) || '£0'}</div><div class="stat-label">Open Pipeline Value</div></div>
+     <div class="stat-card"><div class="stat-value neutral">${won.length}</div><div class="stat-label">Won</div></div>
+     <div class="stat-card"><div class="stat-value neutral">${fmtMoney(wonValue) || '£0'}</div><div class="stat-label">Won Value</div></div>
+   `;
+ }
+
+ function renderBoard() {
+   const wrap = document.getElementById('boardWrap');
+   if (!DEALS.length) {
+     wrap.innerHTML = '<div class="empty-state">No deals yet — click "+ New Deal" to add the first one.</div>';
+     return;
+   }
+   let html = '<div class="board">';
+   STAGES.forEach(stage => {
+     const deals = DEALS.filter(d => d.stage === stage).sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+     const value = deals.reduce((s,d) => s + (Number(d.value)||0), 0);
+     html += `
+       <div class="col">
+         <div class="col-head"><span class="col-title">${stage}</span><span class="col-count">${deals.length}</span></div>
+         ${value ? `<div class="col-value">${fmtMoney(value)}</div>` : ''}
+         ${deals.length ? deals.map(d => `
+           <div class="deal-card">
+             <div class="deal-title">${esc(d.title)}</div>
+             <a class="deal-company" href="customer-overview.html?id=${d.customer_id||''}">${esc(d.customer_name)}</a>
+             ${d.value ? `<div class="deal-value">${fmtMoney(d.value)}</div>` : ''}
+             <div class="deal-meta ${isOverdue(d.expected_close) && stage!=='Won' && stage!=='Lost' ? 'overdue' : ''}">
+               ${d.expected_close ? 'Close ' + fmtDate(d.expected_close) : 'No close date'}${d.owner ? ' · ' + esc(d.owner) : ''}
+             </div>
+             <div class="deal-controls">
+               <select onchange="updateStage(${d.id}, this.value)">
+                 ${STAGES.map(s => `<option value="${s}" ${s===d.stage?'selected':''}>${s}</option>`).join('')}
+               </select>
+               <button class="deal-del" onclick="deleteDeal(${d.id})" title="Delete">
+                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+               </button>
+             </div>
+           </div>
+         `).join('') : '<div class="col-empty">Nothing here</div>'}
+       </div>
+     `;
+   });
+   html += '</div>';
+   wrap.innerHTML = html;
+ }
+
+ async function loadDeals() {
+   const { data, error } = await db.from('crm_deals').select('*').order('created_at', { ascending: false });
+   if (error) {
+     document.getElementById('boardWrap').innerHTML = `<div class="empty-state" style="color:var(--red);">Couldn't load pipeline.<br>${esc(error.message)}</div>`;
+     return;
+   }
+   DEALS = data || [];
+   renderStats();
+   renderBoard();
+ }
+
+ loadDeals();
+
+ window.addEventListener('pageshow', (event) => { if (event.persisted) loadDeals(); });
+</script>

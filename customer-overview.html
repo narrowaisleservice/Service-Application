@@ -645,6 +645,21 @@
  function crmSectionsHtml() {
    return `
      <div class="section">
+       <div class="section-head"><div class="section-title">Pipeline</div><a class="section-note" href="pipeline.html" style="color:var(--red); text-decoration:none;">Full pipeline →</a></div>
+       <div class="card">
+         <div id="crmDealForm" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;">
+           <input type="text" id="crmDealTitle" class="crm-input" placeholder="Deal title" style="flex:2; min-width:160px;">
+           <input type="number" id="crmDealValue" class="crm-input" placeholder="Value £" style="flex:1; min-width:100px;">
+           <select id="crmDealStage" class="crm-input" style="flex:1; min-width:110px;">
+             <option>Lead</option><option>Qualified</option><option>Quoted</option><option>Won</option><option>Lost</option>
+           </select>
+           <input type="date" id="crmDealClose" class="crm-input" style="flex:1; min-width:130px;">
+           <button class="crm-btn" onclick="addCrmDeal()">Add Deal</button>
+         </div>
+         <div id="crmDealList"><div class="muted-cell">Loading…</div></div>
+       </div>
+     </div>
+     <div class="section">
        <div class="section-head"><div class="section-title">Open Tasks</div></div>
        <div class="card">
          <div id="crmTaskForm" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;">
@@ -679,12 +694,66 @@
 
  async function loadCrm(customer, displayName) {
    CRM_CUSTOMER = customer;
-   const [{ data: tasks, error: taskErr }, { data: notes, error: noteErr }] = await Promise.all([
+   const [{ data: tasks, error: taskErr }, { data: notes, error: noteErr }, { data: deals, error: dealErr }] = await Promise.all([
      db.from('crm_tasks').select('*').eq('customer_id', customer.id).order('done').order('due_date', { ascending: true, nullsFirst: false }),
      db.from('crm_notes').select('*').eq('customer_id', customer.id).order('created_at', { ascending: false }),
+     db.from('crm_deals').select('*').eq('customer_id', customer.id).order('created_at', { ascending: false }),
    ]);
    renderCrmTasks(taskErr ? [] : (tasks || []));
    renderCrmNotes(noteErr ? [] : (notes || []));
+   renderCrmDeals(dealErr ? [] : (deals || []));
+ }
+
+ const DEAL_STAGES = ['Lead', 'Qualified', 'Quoted', 'Won', 'Lost'];
+ function stageColor(stage) {
+   if (stage === 'Won') return '#4caf50';
+   if (stage === 'Lost') return '#df0a1e';
+   if (stage === 'Quoted') return '#f5a623';
+   return '#707070';
+ }
+
+ function renderCrmDeals(deals) {
+   const el = document.getElementById('crmDealList');
+   if (!el) return;
+   if (!deals.length) { el.innerHTML = '<div class="muted-cell">No deals yet.</div>'; return; }
+   el.innerHTML = deals.map(d => {
+     const color = stageColor(d.stage);
+     return `
+       <div class="crm-item" style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+         <div>
+           <div style="font-weight:600; font-size:13.5px; margin-bottom:3px;">${esc(d.title)}</div>
+           <div class="crm-meta">${d.value ? '£' + Number(d.value).toLocaleString('en-GB') + ' · ' : ''}${d.expected_close ? 'Close ' + fmtDate(d.expected_close) : 'No close date'}</div>
+         </div>
+         <select class="crm-input" style="width:auto; padding:6px 8px; font-size:11.5px; background:${color}1a; color:${color}; border-color:${color}55;" onchange="updateDealStage(${d.id}, this.value)">
+           ${DEAL_STAGES.map(s => `<option value="${s}" ${s===d.stage?'selected':''}>${s}</option>`).join('')}
+         </select>
+       </div>`;
+   }).join('');
+ }
+
+ async function addCrmDeal() {
+   const title = document.getElementById('crmDealTitle').value.trim();
+   if (!title) return;
+   const value = document.getElementById('crmDealValue').value || null;
+   const stage = document.getElementById('crmDealStage').value;
+   const expected_close = document.getElementById('crmDealClose').value || null;
+   const { error } = await db.from('crm_deals').insert({
+     customer_id: CRM_CUSTOMER.id,
+     customer_name: CRM_CUSTOMER.company_name,
+     title, value, stage, expected_close,
+     created_by: CRM_USER_EMAIL || null,
+   });
+   if (error) { alert('Could not add deal: ' + error.message); return; }
+   document.getElementById('crmDealTitle').value = '';
+   document.getElementById('crmDealValue').value = '';
+   document.getElementById('crmDealClose').value = '';
+   loadCrm(CRM_CUSTOMER);
+ }
+
+ async function updateDealStage(dealId, stage) {
+   const { error } = await db.from('crm_deals').update({ stage, updated_at: new Date().toISOString() }).eq('id', dealId);
+   if (error) { alert('Could not update: ' + error.message); return; }
+   loadCrm(CRM_CUSTOMER);
  }
 
  function renderCrmTasks(tasks) {
