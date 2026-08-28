@@ -190,6 +190,13 @@
 
     if (hErr){ $results.innerHTML = errHtml('service history search', hErr); return; }
     if (!hist || !hist.length){
+      // Some serials only exist in the spec index — no equipment record, no jobs.
+      const { data: specs } = await db.rpc('truck_spec_files', { p_serial: term });
+      if (specs && specs.length){
+        openRecord({ customer_name: '', site_name: '', make: '', model: '',
+                     serial_no: term, equip_code: term, depot: '', specOnly: true });
+        return;
+      }
       $results.innerHTML = '<div class="empty">No truck found for that serial or equip code.</div>';
       return;
     }
@@ -294,7 +301,9 @@
       if (error){ el.innerHTML = errHtml('spec sheets', error); return; }
       if (!data || !data.length){ el.innerHTML = '<div class="empty">No spec sheet uploaded for this serial.</div>'; return; }
 
-      const names = data.map(f => f.file_name);
+      const names = data.map(f => f.storage_path || f.file_name);
+      const meta = {};
+      data.forEach(f => { meta[f.storage_path || f.file_name] = f; });
       let links = [];
 
       const signedRes = await db.storage.from(SPEC_BUCKET).createSignedUrls(names, 3600);
@@ -310,11 +319,13 @@
 
       if (!links.length){ el.innerHTML = errHtml('spec sheet links', signedRes.error || { message: 'no signed URLs returned' }); return; }
 
-      el.innerHTML = `<div class="spec-list">` + links.map(s => `
-        <a class="spec-link" href="${escHtml(s.signedUrl)}" target="_blank" rel="noopener">
-          <span class="ic">PDF</span>${escHtml((s.path || '').replace(/\.pdf$/i, ''))}
-        </a>
-      `).join('') + `</div>`;
+      el.innerHTML = `<div class="spec-list">` + links.map(s => {
+        const m = meta[s.path] || {};
+        const pages = m.page_count ? ` · ${m.page_count}pp` : '';
+        return `<a class="spec-link" href="${escHtml(s.signedUrl)}" target="_blank" rel="noopener">
+          <span class="ic">PDF</span>${escHtml(m.label || (s.path || '').replace(/\.pdf$/i, ''))}${pages}
+        </a>`;
+      }).join('') + `</div>`;
     } catch (e){
       el.innerHTML = errHtml('spec sheets', e);
     }
