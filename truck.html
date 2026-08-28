@@ -286,29 +286,38 @@
 
   async function loadSpecs(serial){
     const el = document.getElementById('secSpecs');
-    // Files are named by serial, sometimes with a suffix (001948_7892.pdf, 001964a.pdf),
-    // and the stored serial isn't always zero-padded the same way — try a few keys.
-    const bare = String(serial).replace(/^0+/, '');
-    const keys = [...new Set([String(serial), bare, bare.padStart(6, '0')])].filter(Boolean);
-
-    const found = new Map();
-    for (const key of keys){
-      const { data, error } = await db.storage.from(SPEC_BUCKET).list('', { limit: 100, search: key });
+    try {
+      // Filename matching is done in Postgres (truck_spec_files) rather than with
+      // storage.list({search}) — the serials in customer_equipment aren't padded
+      // the same way as the filenames, and the RPC handles the variants.
+      const { data, error } = await db.rpc('truck_spec_files', { p_serial: String(serial) });
       if (error){ el.innerHTML = errHtml('spec sheets', error); return; }
-      (data || []).forEach(f => { if (f.name && !f.name.endsWith('/')) found.set(f.name, f); });
+      if (!data || !data.length){ el.innerHTML = '<div class="empty">No spec sheet uploaded for this serial.</div>'; return; }
+
+      const names = data.map(f => f.file_name);
+      let links = [];
+
+      const signedRes = await db.storage.from(SPEC_BUCKET).createSignedUrls(names, 3600);
+      if (signedRes.error || !Array.isArray(signedRes.data)){
+        // Fall back to signing one at a time if the batch call isn't available.
+        for (const name of names){
+          const one = await db.storage.from(SPEC_BUCKET).createSignedUrl(name, 3600);
+          if (one.data && one.data.signedUrl) links.push({ path: name, signedUrl: one.data.signedUrl });
+        }
+      } else {
+        links = signedRes.data.filter(s => s && s.signedUrl);
+      }
+
+      if (!links.length){ el.innerHTML = errHtml('spec sheet links', signedRes.error || { message: 'no signed URLs returned' }); return; }
+
+      el.innerHTML = `<div class="spec-list">` + links.map(s => `
+        <a class="spec-link" href="${escHtml(s.signedUrl)}" target="_blank" rel="noopener">
+          <span class="ic">PDF</span>${escHtml((s.path || '').replace(/\.pdf$/i, ''))}
+        </a>
+      `).join('') + `</div>`;
+    } catch (e){
+      el.innerHTML = errHtml('spec sheets', e);
     }
-
-    if (!found.size){ el.innerHTML = '<div class="empty">No spec sheet uploaded for this serial.</div>'; return; }
-
-    const names = [...found.keys()].sort();
-    const { data: signed, error: sErr } = await db.storage.from(SPEC_BUCKET).createSignedUrls(names, 3600);
-    if (sErr){ el.innerHTML = errHtml('spec sheet links', sErr); return; }
-
-    el.innerHTML = `<div class="spec-list">` + signed.map(s => `
-      <a class="spec-link" href="${escHtml(s.signedUrl)}" target="_blank" rel="noopener">
-        <span class="ic">PDF</span>${escHtml((s.path || '').replace(/\.pdf$/i, ''))}
-      </a>
-    `).join('') + `</div>`;
   }
 
   async function loadWeld(serial, code){
