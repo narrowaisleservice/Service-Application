@@ -70,10 +70,34 @@
   .loading{padding:40px;text-align:center;color:var(--grey-500);font-size:14px;}
   .err{padding:24px;text-align:center;color:#7a1520;font-size:13px;line-height:1.5;}
   .err code{font-family:'DM Mono',monospace;font-size:12px;background:#fff4f4;padding:1px 5px;border-radius:3px;}
-  .overdue-controls{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
-  select{padding:8px 10px;border:1.5px solid var(--grey-200);border-radius:6px;font-family:'IBM Plex Sans',sans-serif;font-size:13px;}
-  .flag-never{color:var(--red);font-weight:600;}
+  .overdue-controls{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+  select,input[type=search]{padding:8px 10px;border:1.5px solid var(--grey-200);border-radius:6px;font-family:'IBM Plex Sans',sans-serif;font-size:13px;}
+  input[type=search]{min-width:260px;}
+  input[type=search]:focus,select:focus{outline:none;border-color:var(--red);}
   .flag-old{color:#f57f17;font-weight:600;}
+
+  /* sub-tabs */
+  .subtabs{display:flex;gap:8px;margin-bottom:18px;}
+  .subtab{
+    background:#fff;border:1.5px solid var(--grey-200);border-radius:20px;
+    padding:7px 16px;font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:600;
+    color:var(--grey-700);cursor:pointer;display:flex;align-items:center;gap:8px;
+  }
+  .subtab:hover{border-color:var(--grey-500);}
+  .subtab.active{border-color:var(--red);color:var(--red);background:#fff4f4;}
+  .subtab .count{
+    font-family:'DM Mono',monospace;font-size:11px;background:var(--grey-100);
+    color:var(--grey-700);border-radius:10px;padding:1px 7px;
+  }
+  .subtab.active .count{background:var(--red);color:#fff;}
+  .subpanel{display:none;}
+  .subpanel.active{display:block;}
+  .rowcount{font-size:12px;color:var(--grey-500);margin-bottom:10px;}
+  .note{
+    background:#fff;border:1px solid var(--grey-200);border-left:4px solid #f57f17;
+    border-radius:6px;padding:12px 16px;margin-bottom:16px;font-size:12.5px;
+    color:var(--grey-700);line-height:1.5;
+  }
 </style>
 </head>
 <body>
@@ -112,16 +136,38 @@
   </div>
 
   <div class="panel" id="panel-overdue">
-    <div class="overdue-controls">
-      <label style="font-size:13px;color:var(--grey-700);">Flag equipment not seen in:</label>
-      <select id="overdueThreshold">
-        <option value="6">6 months</option>
-        <option value="12" selected>12 months</option>
-        <option value="18">18 months</option>
-        <option value="24">24 months</option>
-      </select>
+    <div class="subtabs">
+      <button class="subtab active" data-sub="due">Overdue <span class="count" id="cntOverdue">–</span></button>
+      <button class="subtab" data-sub="never">Never visited <span class="count" id="cntNever">–</span></button>
     </div>
-    <div id="overdueBody" class="loading">Loading...</div>
+
+    <div class="subpanel active" id="sub-due">
+      <div class="overdue-controls">
+        <label style="font-size:13px;color:var(--grey-700);">Flag equipment not seen in:</label>
+        <select id="overdueThreshold">
+          <option value="6">6 months</option>
+          <option value="12" selected>12 months</option>
+          <option value="18">18 months</option>
+          <option value="24">24 months</option>
+        </select>
+        <input type="search" id="overdueFilter" placeholder="Filter customer, site, serial, model...">
+      </div>
+      <div class="rowcount" id="overdueCount"></div>
+      <div id="overdueBody" class="loading">Loading...</div>
+    </div>
+
+    <div class="subpanel" id="sub-never">
+      <div class="note">
+        Equipment on the customer list whose equip code has never appeared on a service job.
+        Much of this is likely historic or mis-keyed data rather than a genuine service backlog —
+        worth using as a data-quality worklist as much as a sales one.
+      </div>
+      <div class="overdue-controls">
+        <input type="search" id="neverFilter" placeholder="Filter customer, site, serial, model...">
+      </div>
+      <div class="rowcount" id="neverCount"></div>
+      <div id="neverBody" class="loading">Loading...</div>
+    </div>
   </div>
 
   <div class="panel" id="panel-weld">
@@ -135,6 +181,13 @@
   const SUPABASE_KEY = 'sb_publishable_99HLzSv4wMwFZHlR81yIsQ_z0A0Jpth';
   const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   // ===================================================================================
+
+  // Both lists run to thousands of rows — render a slice, filter over the whole set.
+  const MAX_ROWS = 500;
+
+  let overdueRows = [];
+  let neverRows = null;      // null = not fetched yet
+  let neverLoading = false;
 
   async function logout(){
     await db.auth.signOut();
@@ -167,6 +220,16 @@
     });
   });
 
+  document.querySelectorAll('.subtab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.subtab').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.subpanel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('sub-' + btn.dataset.sub).classList.add('active');
+      if (btn.dataset.sub === 'never' && neverRows === null && !neverLoading) loadNeverVisited();
+    });
+  });
+
   function barChart(containerId, rows, labelKey, valueKey, formatLabel){
     const el = document.getElementById(containerId);
     if (!el) return;
@@ -189,30 +252,104 @@
     return d.toLocaleDateString('en-GB', { month: 'short', year: '2-digit' });
   }
 
-  async function loadOverdue(months){
+  function matches(row, term){
+    if (!term) return true;
+    const t = term.toLowerCase();
+    return [row.customer_name, row.site_name, row.make, row.model, row.serial_no, row.equip_code, row.depot]
+      .some(v => v && String(v).toLowerCase().includes(t));
+  }
+
+  function renderCount(id, shown, total, term){
+    const el = document.getElementById(id);
+    if (!total){ el.textContent = ''; return; }
+    const suffix = term ? ` matching “${escHtml(term)}”` : '';
+    el.innerHTML = shown < total
+      ? `Showing first <strong>${shown.toLocaleString()}</strong> of <strong>${total.toLocaleString()}</strong>${suffix} — narrow it with the filter box.`
+      : `<strong>${total.toLocaleString()}</strong> item${total === 1 ? '' : 's'}${suffix}.`;
+  }
+
+  // ---------- Overdue (has a last visit, but too long ago) ----------
+
+  function renderOverdue(){
     const body = document.getElementById('overdueBody');
-    body.innerHTML = '<div class="loading">Loading...</div>';
-    const { data, error } = await db.rpc('overdue_equipment', { months_threshold: Number(months) });
-    if (error){ errBlock('overdueBody', 'overdue equipment', error); return; }
-    if (!data || !data.length){ body.innerHTML = '<div class="empty">Nothing overdue at this threshold.</div>'; return; }
+    const term = document.getElementById('overdueFilter').value.trim();
+    const filtered = overdueRows.filter(r => matches(r, term));
+    renderCount('overdueCount', Math.min(filtered.length, MAX_ROWS), filtered.length, term);
+
+    if (!filtered.length){
+      body.innerHTML = term
+        ? '<div class="empty">No matches.</div>'
+        : '<div class="empty">Nothing overdue at this threshold.</div>';
+      return;
+    }
     body.innerHTML = `<table><thead><tr>
       <th>Customer</th><th>Site</th><th>Truck</th><th>Serial</th><th>Depot</th><th>Last visit</th>
-    </tr></thead><tbody>` + data.map(r => {
-      const flag = r.last_visit_date === null
-        ? '<span class="flag-never">Never recorded</span>'
-        : `<span class="flag-old">${escHtml(r.months_since_visit)} mo ago</span>`;
-      return `<tr>
+    </tr></thead><tbody>` + filtered.slice(0, MAX_ROWS).map(r => `
+      <tr>
         <td>${escHtml(r.customer_name)}</td>
         <td>${escHtml(r.site_name)}</td>
         <td>${escHtml(r.make)} ${escHtml(r.model)}</td>
         <td>${escHtml(r.serial_no)}</td>
         <td>${escHtml(r.depot)}</td>
-        <td>${flag}</td>
-      </tr>`;
-    }).join('') + '</tbody></table>';
+        <td><span class="flag-old">${escHtml(r.months_since_visit)} mo ago</span></td>
+      </tr>
+    `).join('') + '</tbody></table>';
+  }
+
+  async function loadOverdue(months){
+    const body = document.getElementById('overdueBody');
+    body.innerHTML = '<div class="loading">Loading...</div>';
+    document.getElementById('overdueCount').textContent = '';
+    const { data, error } = await db.rpc('overdue_equipment', { months_threshold: Number(months) });
+    if (error){ errBlock('overdueBody', 'overdue equipment', error); return; }
+    overdueRows = data || [];
+    document.getElementById('cntOverdue').textContent = overdueRows.length.toLocaleString();
+    renderOverdue();
+  }
+
+  // ---------- Never visited (equip code absent from Service History) ----------
+
+  function renderNever(){
+    const body = document.getElementById('neverBody');
+    const term = document.getElementById('neverFilter').value.trim();
+    const filtered = (neverRows || []).filter(r => matches(r, term));
+    renderCount('neverCount', Math.min(filtered.length, MAX_ROWS), filtered.length, term);
+
+    if (!filtered.length){
+      body.innerHTML = term
+        ? '<div class="empty">No matches.</div>'
+        : '<div class="empty">Every item on the customer equipment list has a service record.</div>';
+      return;
+    }
+    body.innerHTML = `<table><thead><tr>
+      <th>Customer</th><th>Site</th><th>Truck</th><th>Serial</th><th>Equip Code</th><th>Depot</th>
+    </tr></thead><tbody>` + filtered.slice(0, MAX_ROWS).map(r => `
+      <tr>
+        <td>${escHtml(r.customer_name)}</td>
+        <td>${escHtml(r.site_name)}</td>
+        <td>${escHtml(r.make)} ${escHtml(r.model)}</td>
+        <td>${escHtml(r.serial_no)}</td>
+        <td>${escHtml(r.equip_code)}</td>
+        <td>${escHtml(r.depot)}</td>
+      </tr>
+    `).join('') + '</tbody></table>';
+  }
+
+  async function loadNeverVisited(){
+    neverLoading = true;
+    const body = document.getElementById('neverBody');
+    body.innerHTML = '<div class="loading">Loading — this list is large, give it a moment...</div>';
+    const { data, error } = await db.rpc('never_visited_equipment');
+    neverLoading = false;
+    if (error){ errBlock('neverBody', 'never-visited equipment', error); return; }
+    neverRows = data || [];
+    document.getElementById('cntNever').textContent = neverRows.length.toLocaleString();
+    renderNever();
   }
 
   document.getElementById('overdueThreshold').addEventListener('change', e => loadOverdue(e.target.value));
+  document.getElementById('overdueFilter').addEventListener('input', renderOverdue);
+  document.getElementById('neverFilter').addEventListener('input', renderNever);
 
   async function loadWeldPatterns(){
     const body = document.getElementById('weldBody');
@@ -233,6 +370,12 @@
         <td>${escHtml((r.verdicts || []).join(', '))}</td>
       </tr>
     `).join('') + '</tbody></table>';
+  }
+
+  // Cheap head-only count so the Never visited badge has a number before the tab is opened.
+  async function primeNeverCount(){
+    const { count, error } = await db.rpc('never_visited_equipment', {}, { count: 'exact', head: true });
+    if (!error && count != null) document.getElementById('cntNever').textContent = count.toLocaleString();
   }
 
   (async () => {
@@ -279,6 +422,7 @@
 
       loadOverdue(12);
       loadWeldPatterns();
+      primeNeverCount();
     } catch (e) {
       console.error('Insights page crashed:', e);
       showBanner('The page hit a JavaScript error before it could load.', e && e.message);
