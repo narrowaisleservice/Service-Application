@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Truck Record | Narrow Aisle Service Portal</title>
+<script>window.ALLOWED_ROLES = ['internal', 'dealer'];</script>
+<script type="module" src="auth-guard.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --red:#df0a1e;
+    --black:#0a0a0a;
+    --grey-50:#f7f7f7;
+    --grey-100:#f0f0f0;
+    --grey-200:#e4e4e4;
+    --grey-500:#8a8a8a;
+    --grey-700:#4a4a4a;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'IBM Plex Sans',sans-serif;background:var(--grey-50);color:var(--black);}
+  header{background:var(--black);color:#fff;padding:18px 28px;display:flex;align-items:center;justify-content:space-between;}
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand .mark{width:10px;height:10px;background:var(--red);border-radius:2px;}
+  .brand span{font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#ccc;}
+  .header-actions{display:flex;gap:8px;}
+  .ghost-btn{background:none;border:1px solid #444;color:#ccc;padding:7px 14px;border-radius:6px;font-size:12px;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;}
+  .ghost-btn:hover{border-color:var(--red);color:#fff;}
+  main{max-width:1180px;margin:0 auto;padding:28px;}
+  h1{font-size:22px;margin:0 0 6px;}
+  .sub{font-size:13px;color:var(--grey-700);margin:0 0 22px;}
+
+  .searchbar{display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap;}
+  input[type=search]{
+    flex:1;min-width:260px;padding:12px 14px;border:1.5px solid var(--grey-200);border-radius:8px;
+    font-family:'DM Mono',monospace;font-size:14px;background:#fff;
+  }
+  input[type=search]:focus{outline:none;border-color:var(--red);}
+  .btn{
+    background:var(--red);color:#fff;border:none;border-radius:8px;padding:12px 22px;
+    font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;
+  }
+  .btn:hover{background:#c00819;}
+  .btn.secondary{background:#fff;color:var(--grey-700);border:1.5px solid var(--grey-200);}
+  .btn.secondary:hover{background:var(--grey-100);border-color:var(--grey-500);}
+
+  .card{background:#fff;border:1px solid var(--grey-200);border-radius:8px;padding:20px 22px;margin-bottom:18px;}
+  .card h2{margin:0 0 14px;font-size:15px;font-weight:700;display:flex;align-items:center;gap:10px;}
+  .card h2 .pill{
+    font-family:'DM Mono',monospace;font-size:11px;font-weight:500;background:var(--grey-100);
+    color:var(--grey-700);border-radius:10px;padding:2px 8px;
+  }
+
+  .idcard{background:#fff;border:1px solid var(--grey-200);border-left:4px solid var(--red);border-radius:8px;padding:22px;margin-bottom:18px;}
+  .idcard .model{font-size:20px;font-weight:700;margin-bottom:2px;}
+  .idcard .serial{font-family:'DM Mono',monospace;font-size:13px;color:var(--red);margin-bottom:16px;}
+  .facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px 22px;}
+  .fact .k{font-size:11px;text-transform:uppercase;letter-spacing:.03em;color:var(--grey-500);margin-bottom:2px;}
+  .fact .v{font-size:13.5px;}
+  .fact .v a{color:var(--red);text-decoration:none;}
+  .fact .v a:hover{text-decoration:underline;}
+
+  table{width:100%;border-collapse:collapse;}
+  th,td{text-align:left;padding:9px 12px;font-size:13px;border-bottom:1px solid var(--grey-200);vertical-align:top;}
+  th{background:var(--grey-100);font-weight:600;color:var(--grey-700);text-transform:uppercase;font-size:11px;letter-spacing:.03em;}
+  tr:last-child td{border-bottom:none;}
+  td.mono{font-family:'DM Mono',monospace;font-size:12px;white-space:nowrap;}
+
+  .results-list{background:#fff;border:1px solid var(--grey-200);border-radius:8px;overflow:hidden;}
+  .result-row{padding:12px 16px;border-bottom:1px solid var(--grey-200);cursor:pointer;display:flex;justify-content:space-between;gap:16px;align-items:center;}
+  .result-row:last-child{border-bottom:none;}
+  .result-row:hover{background:var(--grey-50);}
+  .result-row .l{font-size:13.5px;font-weight:600;}
+  .result-row .l small{display:block;font-weight:400;color:var(--grey-700);font-size:12px;margin-top:2px;}
+  .result-row .r{font-family:'DM Mono',monospace;font-size:12px;color:var(--red);white-space:nowrap;}
+
+  .job{border-bottom:1px solid var(--grey-200);padding:14px 0;}
+  .job:first-of-type{padding-top:0;}
+  .job:last-of-type{border-bottom:none;padding-bottom:0;}
+  .job-head{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;margin-bottom:6px;}
+  .job-date{font-family:'DM Mono',monospace;font-size:12px;color:var(--red);font-weight:500;}
+  .job-title{font-size:13.5px;font-weight:600;}
+  .job-meta{font-size:12px;color:var(--grey-500);}
+  .job-body{font-size:13px;color:var(--grey-700);line-height:1.55;white-space:pre-wrap;}
+
+  .spec-list{display:flex;flex-wrap:wrap;gap:10px;}
+  .spec-link{
+    display:flex;align-items:center;gap:8px;background:var(--grey-50);border:1px solid var(--grey-200);
+    border-radius:6px;padding:10px 14px;font-size:13px;color:var(--black);text-decoration:none;
+  }
+  .spec-link:hover{border-color:var(--red);color:var(--red);}
+  .spec-link .ic{color:var(--red);font-family:'DM Mono',monospace;font-size:11px;}
+
+  .verdict{display:inline-block;font-size:11px;font-weight:600;border-radius:10px;padding:2px 9px;background:var(--grey-100);color:var(--grey-700);}
+  .verdict.crack{background:#fff4f4;color:#7a1520;}
+
+  .empty{padding:26px;text-align:center;color:var(--grey-500);font-size:13.5px;}
+  .loading{padding:26px;text-align:center;color:var(--grey-500);font-size:13.5px;}
+  .err{padding:20px;text-align:center;color:#7a1520;font-size:13px;line-height:1.5;}
+  .err code{font-family:'DM Mono',monospace;font-size:12px;background:#fff4f4;padding:1px 5px;border-radius:3px;}
+  .hidden{display:none;}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><div class="mark"></div><span>Narrow Aisle · Truck Record</span></div>
+  <div class="header-actions">
+    <button class="ghost-btn" onclick="window.location.href='portal-hub-professional.html'">Back to portal</button>
+    <button class="ghost-btn" onclick="logout()">Sign out</button>
+  </div>
+</header>
+
+<main>
+  <h1>Truck Record</h1>
+  <p class="sub">One serial number — spec sheets, service history, maintenance contract, owner and weld reports.</p>
+
+  <div class="searchbar">
+    <input type="search" id="q" placeholder="Serial number or equip code — e.g. 178479" autocomplete="off">
+    <button class="btn" id="goBtn">Search</button>
+    <button class="btn secondary hidden" id="backBtn">New search</button>
+  </div>
+
+  <div id="results"></div>
+  <div id="record"></div>
+</main>
+
+<script>
+  // ===== Supabase project config (same publishable key as the rest of the portal) =====
+  const SUPABASE_URL = 'https://dontubctlexlvifwhmbj.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_99HLzSv4wMwFZHlR81yIsQ_z0A0Jpth';
+  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const SPEC_BUCKET = 'truck-specs';
+  // ===================================================================================
+
+  async function logout(){
+    await db.auth.signOut();
+    localStorage.clear();
+    window.location.href = 'login.html';
+  }
+
+  function escHtml(s){
+    return (s == null ? '' : String(s)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function fmtDate(d){
+    if (!d) return '—';
+    return new Date(d).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+  }
+  function fmtMoney(n){
+    if (n == null) return '—';
+    return '£' + Number(n).toLocaleString('en-GB', { minimumFractionDigits:2, maximumFractionDigits:2 });
+  }
+  function errHtml(label, error){
+    console.error(label + ' failed:', error);
+    return `<div class="err">Couldn't load ${escHtml(label)}.<br><code>${escHtml((error && (error.message || error.hint || error.code)) || 'unknown error')}</code></div>`;
+  }
+
+  const $results = document.getElementById('results');
+  const $record  = document.getElementById('record');
+  const $q       = document.getElementById('q');
+  const $back    = document.getElementById('backBtn');
+
+  // ---------- search ----------
+
+  async function search(term){
+    term = (term || '').trim();
+    if (!term) return;
+    $record.innerHTML = '';
+    $back.classList.add('hidden');
+    $results.innerHTML = '<div class="loading">Searching...</div>';
+
+    const { data, error } = await db
+      .from('customer_equipment')
+      .select('customer_name,site_name,site_address,make,model,serial_no,equip_code,depot')
+      .or(`serial_no.ilike.%${term}%,equip_code.ilike.%${term}%`)
+      .limit(60);
+
+    if (error){ $results.innerHTML = errHtml('equipment search', error); return; }
+
+    if (data && data.length === 1){ openRecord(data[0]); return; }
+    if (data && data.length > 1){ renderResults(data); return; }
+
+    // Not on the customer equipment list — it may still have service history.
+    const { data: hist, error: hErr } = await db
+      .from('Service History')
+      .select('serial_no,equip_code,make_model,customer_name,depot')
+      .or(`serial_no.ilike.%${term}%,equip_code.ilike.%${term}%`)
+      .limit(300);
+
+    if (hErr){ $results.innerHTML = errHtml('service history search', hErr); return; }
+    if (!hist || !hist.length){
+      $results.innerHTML = '<div class="empty">No truck found for that serial or equip code.</div>';
+      return;
+    }
+    const seen = new Map();
+    hist.forEach(r => {
+      const key = r.serial_no || r.equip_code;
+      if (key && !seen.has(key)) seen.set(key, {
+        customer_name: r.customer_name, site_name: '', make: '', model: r.make_model,
+        serial_no: r.serial_no, equip_code: r.equip_code, depot: r.depot, historyOnly: true
+      });
+    });
+    const rows = [...seen.values()];
+    if (rows.length === 1) openRecord(rows[0]); else renderResults(rows);
+  }
+
+  function renderResults(rows){
+    $results.innerHTML = `<div class="results-list">` + rows.map((r, i) => `
+      <div class="result-row" data-i="${i}">
+        <div class="l">${escHtml([r.make, r.model].filter(Boolean).join(' ')) || '(no model)'}
+          <small>${escHtml(r.customer_name || '')}${r.site_name ? ' · ' + escHtml(r.site_name) : ''}</small>
+        </div>
+        <div class="r">${escHtml(r.serial_no || r.equip_code)}</div>
+      </div>
+    `).join('') + `</div>`;
+    $results.querySelectorAll('.result-row').forEach(el => {
+      el.addEventListener('click', () => openRecord(rows[Number(el.dataset.i)]));
+    });
+  }
+
+  // ---------- record ----------
+
+  async function openRecord(eq){
+    const serial = eq.serial_no || eq.equip_code;
+    const code   = eq.equip_code || eq.serial_no;
+    $results.innerHTML = '';
+    $back.classList.remove('hidden');
+    history.replaceState(null, '', '?serial=' + encodeURIComponent(serial));
+
+    $record.innerHTML = `
+      <div class="idcard">
+        <div class="model">${escHtml([eq.make, eq.model].filter(Boolean).join(' ')) || 'Unknown model'}</div>
+        <div class="serial">${escHtml(serial)}</div>
+        <div class="facts">
+          <div class="fact"><div class="k">Customer</div><div class="v">${
+            eq.customer_name
+              ? `<a href="customer-overview.html?customer=${encodeURIComponent(eq.customer_name)}">${escHtml(eq.customer_name)}</a>`
+              : '—'}</div></div>
+          <div class="fact"><div class="k">Site</div><div class="v">${escHtml(eq.site_name || '—')}</div></div>
+          <div class="fact"><div class="k">Site address</div><div class="v">${escHtml(eq.site_address || '—')}</div></div>
+          <div class="fact"><div class="k">Depot</div><div class="v">${escHtml(eq.depot || '—')}</div></div>
+          <div class="fact"><div class="k">Equip code</div><div class="v">${escHtml(code || '—')}</div></div>
+        </div>
+      </div>
+
+      <div class="card"><h2>Maintenance contract</h2><div id="secContract" class="loading">Loading...</div></div>
+      <div class="card"><h2>Spec sheets</h2><div id="secSpecs" class="loading">Loading...</div></div>
+      <div class="card"><h2>Weld reports</h2><div id="secWeld" class="loading">Loading...</div></div>
+      <div class="card"><h2>Service history <span class="pill" id="histCount"></span></h2><div id="secHistory" class="loading">Loading...</div></div>
+    `;
+
+    loadContract(serial, code);
+    loadSpecs(serial);
+    loadWeld(serial, code);
+    loadHistory(serial, code);
+  }
+
+  async function loadContract(serial, code){
+    const el = document.getElementById('secContract');
+    const { data, error } = await db
+      .from('maintenance_contracts')
+      .select('contract_id,contract_type,cust_name,site_name,annual_charge,start_date,end_date,depot')
+      .or(`serial_no.eq.${serial},equip_code.eq.${code}`)
+      .order('end_date', { ascending: false });
+
+    if (error){ el.innerHTML = errHtml('contract', error); return; }
+    if (!data || !data.length){ el.innerHTML = '<div class="empty">No maintenance contract on file for this truck.</div>'; return; }
+
+    const today = new Date().toISOString().slice(0,10);
+    el.innerHTML = `<table><thead><tr>
+      <th>Contract</th><th>Type</th><th>Site</th><th>Start</th><th>End</th><th>Annual charge</th><th>Status</th>
+    </tr></thead><tbody>` + data.map(c => {
+      const live = c.end_date && c.end_date >= today;
+      return `<tr>
+        <td class="mono">${escHtml(c.contract_id)}</td>
+        <td>${escHtml(c.contract_type || '—')}</td>
+        <td>${escHtml(c.site_name || '—')}</td>
+        <td class="mono">${fmtDate(c.start_date)}</td>
+        <td class="mono">${fmtDate(c.end_date)}</td>
+        <td class="mono">${fmtMoney(c.annual_charge)}</td>
+        <td><span class="verdict${live ? '' : ' crack'}">${live ? 'Active' : 'Expired'}</span></td>
+      </tr>`;
+    }).join('') + '</tbody></table>';
+  }
+
+  async function loadSpecs(serial){
+    const el = document.getElementById('secSpecs');
+    // Files are named by serial, sometimes with a suffix (001948_7892.pdf, 001964a.pdf),
+    // and the stored serial isn't always zero-padded the same way — try a few keys.
+    const bare = String(serial).replace(/^0+/, '');
+    const keys = [...new Set([String(serial), bare, bare.padStart(6, '0')])].filter(Boolean);
+
+    const found = new Map();
+    for (const key of keys){
+      const { data, error } = await db.storage.from(SPEC_BUCKET).list('', { limit: 100, search: key });
+      if (error){ el.innerHTML = errHtml('spec sheets', error); return; }
+      (data || []).forEach(f => { if (f.name && !f.name.endsWith('/')) found.set(f.name, f); });
+    }
+
+    if (!found.size){ el.innerHTML = '<div class="empty">No spec sheet uploaded for this serial.</div>'; return; }
+
+    const names = [...found.keys()].sort();
+    const { data: signed, error: sErr } = await db.storage.from(SPEC_BUCKET).createSignedUrls(names, 3600);
+    if (sErr){ el.innerHTML = errHtml('spec sheet links', sErr); return; }
+
+    el.innerHTML = `<div class="spec-list">` + signed.map(s => `
+      <a class="spec-link" href="${escHtml(s.signedUrl)}" target="_blank" rel="noopener">
+        <span class="ic">PDF</span>${escHtml((s.path || '').replace(/\.pdf$/i, ''))}
+      </a>
+    `).join('') + `</div>`;
+  }
+
+  async function loadWeld(serial, code){
+    const el = document.getElementById('secWeld');
+    const { data, error } = await db
+      .from('weld_reports')
+      .select('created_at,engineer_name,description,status,verdict,mike_notes,truck_movable,photo_urls')
+      .or(`serial_no.eq.${serial},equip_code.eq.${code}`)
+      .order('created_at', { ascending: false });
+
+    if (error){ el.innerHTML = errHtml('weld reports', error); return; }
+    if (!data || !data.length){ el.innerHTML = '<div class="empty">No weld damage reports for this truck.</div>'; return; }
+
+    el.innerHTML = `<table><thead><tr>
+      <th>Reported</th><th>Engineer</th><th>Description</th><th>Verdict</th><th>Photos</th>
+    </tr></thead><tbody>` + data.map(w => `
+      <tr>
+        <td class="mono">${fmtDate(w.created_at)}</td>
+        <td>${escHtml(w.engineer_name || '—')}</td>
+        <td>${escHtml(w.description || '—')}${w.mike_notes ? `<br><span class="job-meta">${escHtml(w.mike_notes)}</span>` : ''}</td>
+        <td><span class="verdict${/crack/i.test(w.verdict || '') ? ' crack' : ''}">${escHtml(w.verdict || w.status || 'Pending')}</span></td>
+        <td class="mono">${(w.photo_urls || []).length}</td>
+      </tr>
+    `).join('') + '</tbody></table>';
+  }
+
+  async function loadHistory(serial, code){
+    const el = document.getElementById('secHistory');
+    const { data, error } = await db
+      .from('Service History')
+      .select('job_id,session_id,visit_date,job_type_name,short_desc,employee,work_report,depot')
+      .or(`serial_no.eq.${serial},equip_code.eq.${code}`)
+      .order('visit_date', { ascending: false })
+      .limit(600);
+
+    if (error){ el.innerHTML = errHtml('service history', error); return; }
+    if (!data || !data.length){ el.innerHTML = '<div class="empty">No service history recorded against this truck.</div>'; return; }
+
+    // Roll the visit lines up into jobs — a job can span several sessions.
+    const jobs = new Map();
+    data.forEach(r => {
+      const key = r.job_id ?? ('x' + r.visit_date + r.short_desc);
+      if (!jobs.has(key)) jobs.set(key, { job_id: r.job_id, date: r.visit_date, type: r.job_type_name, desc: r.short_desc, depot: r.depot, visits: [] });
+      const j = jobs.get(key);
+      if (r.visit_date && (!j.date || r.visit_date > j.date)) j.date = r.visit_date;
+      j.visits.push(r);
+    });
+
+    const list = [...jobs.values()].sort((a,b) => (b.date || '').localeCompare(a.date || ''));
+    document.getElementById('histCount').textContent = `${list.length} job${list.length === 1 ? '' : 's'} · ${data.length} visits`;
+
+    el.innerHTML = list.map(j => {
+      const engineers = [...new Set(j.visits.map(v => v.employee).filter(Boolean))].join(', ');
+      const reports = j.visits
+        .filter(v => v.work_report && v.work_report.trim())
+        .map(v => `${fmtDate(v.visit_date)} — ${escHtml(v.work_report.trim())}`)
+        .join('\n\n');
+      return `<div class="job">
+        <div class="job-head">
+          <span class="job-date">${fmtDate(j.date)}</span>
+          <span class="job-title">${escHtml(j.desc || j.type || 'Service visit')}</span>
+          <span class="job-meta">${escHtml(j.type || '')}${j.job_id ? ' · job ' + escHtml(j.job_id) : ''}${j.visits.length > 1 ? ' · ' + j.visits.length + ' visits' : ''}${engineers ? ' · ' + escHtml(engineers) : ''}</span>
+        </div>
+        ${reports ? `<div class="job-body">${reports}</div>` : ''}
+      </div>`;
+    }).join('');
+  }
+
+  // ---------- wiring ----------
+
+  document.getElementById('goBtn').addEventListener('click', () => search($q.value));
+  $q.addEventListener('keydown', e => { if (e.key === 'Enter') search($q.value); });
+  $back.addEventListener('click', () => {
+    $record.innerHTML = '';
+    $results.innerHTML = '';
+    $back.classList.add('hidden');
+    history.replaceState(null, '', location.pathname);
+    $q.value = '';
+    $q.focus();
+  });
+
+  (async () => {
+    const { data: { session } } = await db.auth.getSession();
+    if (!session){
+      $results.innerHTML = '<div class="err">Not signed in — <a href="login.html">sign in</a> to search truck records.</div>';
+      return;
+    }
+    const param = new URLSearchParams(location.search).get('serial');
+    if (param){ $q.value = param; search(param); } else { $q.focus(); }
+  })();
+</script>
+</body>
+</html>
