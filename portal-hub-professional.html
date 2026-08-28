@@ -1011,6 +1011,7 @@
         <div class="nav-section">
             <div class="nav-section-title">Field Service</div>
             <div class="nav-item" data-section="field-service">📦 Field Service</div>
+            <div class="nav-item" onclick="window.location.href='truck.html'">🚜 Truck Record</div>
             <div class="nav-item" onclick="window.location.href='weld-report.html'">📸 Report Weld Damage</div>
             <div class="nav-item" onclick="window.location.href='weld-review.html'">🔥 Weld Review</div>
             <div class="nav-item" data-section="instructions">📖 Instructions</div>
@@ -1079,7 +1080,7 @@
             </div>
             <div class="profile-info">
                 <span class="profile-label">Portal Version</span>
-                <div class="profile-value">2.1.0</div>
+                <div class="profile-value">2.2.0</div>
             </div>
         </div>
     </div>
@@ -1140,6 +1141,7 @@
         };
 
         const QUICK_ACCESS = [
+            { label: 'Truck Record', icon: 'forklift', link: 'truck.html' },
             { label: 'Order Parts', icon: 'send', link: 'field-parts-request.html' },
             { label: 'Fault Tracker', icon: 'chart', link: 'fault-tracker.html' },
             { label: 'Weld Review', icon: 'wrench', link: 'weld-review.html' },
@@ -1222,15 +1224,11 @@
             },
             'customer-info': {
                 title: 'Customer Information',
-                subtitle: 'Access customer details and site info',
+                subtitle: 'Look it up by customer, or by truck',
                 cards: [
                     { title: 'Customer Overview', desc: 'One customer — contacts, contracts, equipment & history in one place', icon: 'people', link: 'customer-overview.html', badge: 'Featured' },
-                    { title: 'Customer Database', desc: 'Find customer contact info', icon: 'people', link: 'contacts.html', badge: 'Essential' },
-                    { title: 'Service Records', desc: 'Customer truck service history', icon: 'clipboard', link: 'service-history.html', badge: '' },
-                    { title: 'Truck Spec Sheets', desc: 'Search by serial to view manufacturer spec sheets', icon: 'book', link: 'truck-specs.html', badge: 'New' },
-                    { title: 'Customer Equipment', desc: 'Browse equipment owned by each customer', icon: 'forklift', link: 'customer-equipment.html', badge: 'New' },
-                    { title: 'Maintenance Contracts', desc: 'Active contracts by customer and site', icon: 'currency', link: 'maintenance-contracts.html', badge: 'New' },
-                    { title: 'Customer Portal', desc: 'Preview the client-facing self-service portal', icon: 'portal', link: 'customer-portal-login.html', badge: 'New' }
+                    { title: 'Truck Record', desc: 'One serial — spec sheets, service history, contract, owner & weld reports', icon: 'forklift', link: 'truck.html', badge: 'New' },
+                    { title: 'Customer Portal', desc: 'Preview the client-facing self-service portal', icon: 'portal', link: 'customer-portal-login.html', badge: '' }
                 ]
             },
             'troubleshooting': {
@@ -1382,11 +1380,11 @@
                     db.from('field_service_orders').select('id', { count: 'exact', head: true }).neq('status', 'Sent'),
                     db.from('weld_reports').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
                     db.from('maintenance_contracts').select('id', { count: 'exact', head: true }).gte('end_date', today).lte('end_date', in90),
-                    db.rpc('overdue_equipment', { months_threshold: 12 })
+                    db.rpc('overdue_equipment', { months_threshold: 12 }, { count: 'exact', head: true })
                 ]);
                 if (!document.getElementById('homeStatsRow')) return; // user navigated away
                 const ordersInProgress = (coRes.count || 0) + (fsRes.count || 0);
-                const overdueCount = overdueRes.data ? overdueRes.data.length : null;
+                const overdueCount = overdueRes.error ? null : (overdueRes.count ?? null);
                 statsEl.innerHTML = `
                     <div class="stat-card"><div class="stat-value" data-target="${ordersInProgress}">0</div><div class="stat-label">Orders In Progress</div></div>
                     <div class="stat-card"><div class="stat-value" data-target="${weldRes.count || 0}">0</div><div class="stat-label">Weld Reports Pending</div></div>
@@ -1418,9 +1416,9 @@
             const val = document.getElementById('dashSearchInput').value.trim();
             if (!val) return;
             if (dashMode === 'serial') {
-                window.location.href = 'service-history.html?serial=' + encodeURIComponent(val);
+                window.location.href = 'truck.html?serial=' + encodeURIComponent(val);
             } else {
-                window.location.href = 'customer-equipment.html?customer=' + encodeURIComponent(val);
+                window.location.href = 'customer-overview.html?customer=' + encodeURIComponent(val);
             }
         }
 
