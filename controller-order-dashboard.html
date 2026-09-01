@@ -71,13 +71,22 @@
     font-weight:600; font-size:15px; border-radius:8px; cursor:pointer; color:var(--gray-text);
   }
   .tab.active{ background:var(--red); color:var(--white); }
+  .filter-bar{ background:var(--white); padding:10px 16px; border-bottom:1px solid var(--gray-line); }
+  #filterInput{
+    width:100%; border:1px solid var(--gray-line); border-radius:8px;
+    padding:10px 12px; font-family:var(--font-body); font-size:14px;
+    background:var(--white); color:var(--black);
+  }
+  #filterInput:focus{ outline:none; border-color:var(--red); box-shadow:0 0 0 3px rgba(223,10,30,0.08); }
   main{ max-width:820px; margin:0 auto; padding:20px 16px 60px; }
   #empty{ text-align:center; color:var(--gray-text); padding:60px 20px; font-size:14px; }
 
   .card{ background:var(--white); border-radius:12px; border:1px solid var(--gray-line); margin-bottom:16px; overflow:hidden; }
+  .card.stale{ border-left:4px solid var(--amber); }
   .card-head{ padding:14px 16px 10px; display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
   .card-head h3{ font-family:var(--font-display); font-size:20px; margin:0 0 2px; }
   .meta{ font-family:var(--font-mono); font-size:12px; color:var(--gray-text); line-height:1.6; }
+  .stale-badge{ color:var(--amber); font-weight:600; }
 
   .timeline{ display:flex; align-items:center; padding:4px 16px 16px; }
   .tl-step{ display:flex; flex-direction:column; align-items:center; flex:1; position:relative; }
@@ -131,6 +140,9 @@
   <div class="tab" data-filter="Sent">Sent</div>
   <div class="tab" data-filter="all">All</div>
 </div>
+<div class="filter-bar">
+  <input type="text" id="filterInput" placeholder="Search by truck, controller, or engineer...">
+</div>
 
 <main>
   <div id="list"></div>
@@ -146,6 +158,7 @@ const STAGES = ['Ordered', 'Picked', 'Sent'];
 let orders = [];
 let itemsByOrder = {};
 let currentFilter = 'active';
+let currentSearch = '';
 
 document.getElementById('backBtn').addEventListener('click', () => {
   if (document.referrer && new URL(document.referrer).host === location.host) {
@@ -178,13 +191,18 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
 });
 
 async function loadOrders() {
+  const emptyEl = document.getElementById('empty');
+  emptyEl.textContent = 'Loading orders…';
+  emptyEl.style.display = 'block';
+  document.getElementById('list').innerHTML = '';
+
   const { data: orderData, error: orderErr } = await sb
     .from('controller_orders')
     .select('*')
     .order('created_at', { ascending: false });
 
   if (orderErr) {
-    document.getElementById('list').innerHTML = '<div id="empty">Couldn\'t load orders — check your connection.</div>';
+    emptyEl.textContent = "Couldn't load orders — check your connection.";
     console.error(orderErr);
     return;
   }
@@ -207,25 +225,54 @@ async function loadOrders() {
   render();
 }
 
+// Human-friendly "how long has this been sitting here" for the current stage.
+function timeAgo(dateStr) {
+  if (!dateStr) return '';
+  const hours = (Date.now() - new Date(dateStr).getTime()) / 3600000;
+  if (hours < 1) return 'just now';
+  if (hours < 24) return `${Math.floor(hours)}h ago`;
+  return `${Math.floor(hours / 24)}d ago`;
+}
+
+function updateTabCounts() {
+  const activeCount = orders.filter(o => o.status !== 'Sent').length;
+  const sentCount = orders.filter(o => o.status === 'Sent').length;
+  document.querySelector('.tab[data-filter="active"]').textContent = `Active (${activeCount})`;
+  document.querySelector('.tab[data-filter="Sent"]').textContent = `Sent (${sentCount})`;
+  document.querySelector('.tab[data-filter="all"]').textContent = `All (${orders.length})`;
+}
+
 function render() {
+  updateTabCounts();
+
   const listEl = document.getElementById('list');
   const emptyEl = document.getElementById('empty');
 
+  const search = currentSearch.toLowerCase();
   const filtered = orders.filter(o => {
-    if (currentFilter === 'all') return true;
-    if (currentFilter === 'active') return o.status !== 'Sent';
-    return o.status === currentFilter;
+    if (currentFilter === 'active' && o.status === 'Sent') return false;
+    if (currentFilter !== 'all' && currentFilter !== 'active' && o.status !== currentFilter) return false;
+    if (search) {
+      const hay = `${o.truck_serial || ''} ${o.controller_name || ''} ${o.engineer_name || ''}`.toLowerCase();
+      if (!hay.includes(search)) return false;
+    }
+    return true;
   });
 
+  emptyEl.textContent = 'Nothing here.';
   emptyEl.style.display = filtered.length === 0 ? 'block' : 'none';
   listEl.innerHTML = '';
 
   filtered.forEach(o => {
     const card = document.createElement('div');
-    card.className = 'card';
+
+    const stageIdx = STAGES.indexOf(o.status);
+    const stageStart = o.status === 'Picked' ? o.picked_at : o.created_at;
+    const hoursInStage = stageStart ? (Date.now() - new Date(stageStart).getTime()) / 3600000 : 0;
+    const isStale = o.status !== 'Sent' && hoursInStage > 24;
+    card.className = 'card' + (isStale ? ' stale' : '');
 
     const date = new Date(o.created_at).toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
-    const stageIdx = STAGES.indexOf(o.status);
     const items = itemsByOrder[o.id] || [];
 
     const timelineHtml = STAGES.map((stage, i) => {
@@ -250,6 +297,7 @@ function render() {
     ` : '<div class="items"><em style="color:var(--gray-text); font-size:13px;">No line items recorded.</em></div>';
 
     const nextStage = STAGES[stageIdx + 1];
+    const stageAgo = timeAgo(stageStart);
 
     card.innerHTML = `
       <div class="card-head">
@@ -257,7 +305,7 @@ function render() {
           <h3>${escapeHtml(o.truck_serial || 'Unknown truck')}</h3>
           <div class="meta">
             Ordered by ${escapeHtml(o.controller_name || '—')} for ${escapeHtml(o.engineer_name || '—')}<br>
-            ${date}
+            ${date}${stageAgo && o.status !== 'Sent' ? `<br><span class="${isStale ? 'stale-badge' : ''}">${escapeHtml(o.status)} ${stageAgo}</span>` : ''}
           </div>
         </div>
       </div>
@@ -277,6 +325,11 @@ function render() {
 }
 
 async function advanceStatus(id, nextStage, btn) {
+  // "Sent" is the final stage — confirm so a stray tap can't skip an order past Picked.
+  if (nextStage === 'Sent' && !confirm('Mark this order as Sent? This is the final status.')) {
+    return;
+  }
+
   btn.disabled = true;
   btn.textContent = 'Saving...';
 
@@ -304,6 +357,11 @@ document.querySelectorAll('.tab').forEach(tab => {
     currentFilter = tab.dataset.filter;
     render();
   });
+});
+
+document.getElementById('filterInput').addEventListener('input', (e) => {
+  currentSearch = e.target.value.trim();
+  render();
 });
 
 function escapeHtml(str) {
