@@ -110,6 +110,19 @@
   .row2{ display:flex; gap:12px; }
   .row2 .field{ flex:1; }
 
+  .reorder-card{
+    background:var(--gray-fill); border:1px solid var(--gray-line); border-left:4px solid var(--red);
+    border-radius:8px; padding:12px 14px; margin-top:-6px;
+  }
+  .reorder-text{ font-size:13px; color:var(--black); margin-bottom:10px; line-height:1.5; }
+  .reorder-actions{ display:flex; gap:10px; }
+  .reorder-actions button{
+    font-family:var(--font-display); font-weight:600; font-size:13px; border-radius:6px;
+    padding:8px 14px; cursor:pointer;
+  }
+  #reorderAddBtn{ background:var(--red); color:var(--white); border:none; }
+  #reorderDismissBtn{ background:none; border:1px solid var(--gray-line); color:var(--gray-text); }
+
   .parts-section{
     border-top:1px solid var(--gray-line);
     margin-top:24px;
@@ -135,6 +148,9 @@
   }
   #searchResults.open{ display:block; }
   .result-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
     padding:10px 12px;
     border-bottom:1px solid var(--gray-line);
     cursor:pointer;
@@ -142,6 +158,11 @@
   }
   .result-row:last-child{ border-bottom:none; }
   .result-row:hover, .result-row:active{ background:var(--gray-fill); }
+  .result-row .thumb{
+    width:40px; height:40px; object-fit:cover; border-radius:6px;
+    border:1px solid var(--gray-line); flex-shrink:0; background:var(--white);
+  }
+  .result-row .text{ flex:1; min-width:0; }
   .result-row .pn{
     font-family:var(--font-mono);
     font-weight:500;
@@ -154,7 +175,8 @@
   .result-row .meta .low-stock{ color:var(--red); font-weight:600; }
   #searchStatus{ font-size:13px; color:var(--gray-text); margin-top:6px; font-family:var(--font-mono); }
 
-  .cart{ margin-top:16px; }
+  .cart-summary{ font-family:var(--font-mono); font-size:12px; color:var(--gray-text); margin:14px 0 8px; }
+  .cart{ margin-top:0; }
   .cart-empty{ color:var(--gray-text); font-size:14px; padding:16px 0; text-align:center; }
   .cart-item{
     display:flex;
@@ -235,7 +257,18 @@
 
     <div class="field">
       <label>Truck serial no. <span class="req">*</span></label>
-      <input type="text" id="truck_serial" required placeholder="e.g. FX12345">
+      <input type="text" id="truck_serial" required placeholder="e.g. FX12345" list="truckList" autocomplete="off">
+      <datalist id="truckList"></datalist>
+    </div>
+
+    <div class="field" id="reorderBox" style="display:none;">
+      <div class="reorder-card">
+        <div class="reorder-text" id="reorderText"></div>
+        <div class="reorder-actions">
+          <button type="button" id="reorderAddBtn">Add these parts</button>
+          <button type="button" id="reorderDismissBtn">Dismiss</button>
+        </div>
+      </div>
     </div>
 
     <div class="field">
@@ -249,6 +282,7 @@
       <div id="searchResults"></div>
       <div id="searchStatus"></div>
 
+      <div class="cart-summary" id="cartSummary"></div>
       <div class="cart" id="cart">
         <div class="cart-empty" id="cartEmpty">No parts added yet</div>
       </div>
@@ -273,6 +307,9 @@ const SUPABASE_URL = 'https://dontubctlexlvifwhmbj.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_99HLzSv4wMwFZHlR81yIsQ_z0A0Jpth';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+const NAME_KEY = 'na_field_service_name_v1';
+let submitted = false;
+
 document.getElementById('backBtn').addEventListener('click', () => {
   if (document.referrer && new URL(document.referrer).host === location.host) {
     history.back();
@@ -289,6 +326,12 @@ document.getElementById('backBtn').addEventListener('click', () => {
   }
   document.getElementById('userEmail').textContent = 'Logged in as ' + session.user.email;
   document.body.style.visibility = 'visible';
+
+  // Prefill their own name from last time they used this form.
+  const savedName = localStorage.getItem(NAME_KEY);
+  if (savedName) document.getElementById('controller_name').value = savedName;
+
+  loadTruckList();
 })();
 
 sb.auth.onAuthStateChange((event, session) => {
@@ -301,6 +344,107 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
   await sb.auth.signOut();
   window.location.href = 'login.html';
 });
+
+// ---- Truck serial autocomplete ----
+async function loadTruckList() {
+  const { data, error } = await sb
+    .from('field_service_orders')
+    .select('truck_serial')
+    .order('created_at', { ascending: false })
+    .limit(300);
+  if (error || !data) return;
+
+  const seen = new Set();
+  const datalist = document.getElementById('truckList');
+  data.forEach(r => {
+    if (r.truck_serial && !seen.has(r.truck_serial)) {
+      seen.add(r.truck_serial);
+      const opt = document.createElement('option');
+      opt.value = r.truck_serial;
+      datalist.appendChild(opt);
+    }
+  });
+}
+
+// ---- Quick reorder: if this truck has a previous order, offer to re-add its parts ----
+let pendingReorderItems = null;
+const truckInput = document.getElementById('truck_serial');
+const reorderBox = document.getElementById('reorderBox');
+const reorderText = document.getElementById('reorderText');
+
+// Keep truck serials consistently uppercase — avoids "fx12345" vs "FX12345"
+// being treated as different trucks by the reorder lookup and dashboard search.
+truckInput.addEventListener('input', () => {
+  const start = truckInput.selectionStart;
+  const end = truckInput.selectionEnd;
+  truckInput.value = truckInput.value.toUpperCase();
+  truckInput.setSelectionRange(start, end);
+});
+
+truckInput.addEventListener('blur', () => {
+  const val = truckInput.value.trim();
+  if (val.length >= 2) {
+    checkLastOrder(val);
+  } else {
+    hideReorderSuggestion();
+  }
+});
+
+async function checkLastOrder(truck) {
+  const { data, error } = await sb
+    .from('field_service_orders')
+    .select('id, created_at')
+    .eq('truck_serial', truck)
+    .order('created_at', { ascending: false })
+    .limit(1);
+
+  if (error || !data || data.length === 0) {
+    hideReorderSuggestion();
+    return;
+  }
+
+  const lastOrder = data[0];
+  const { data: items, error: itemsErr } = await sb
+    .from('field_service_order_items')
+    .select('part_number, description, quantity')
+    .eq('order_id', lastOrder.id);
+
+  if (itemsErr || !items || items.length === 0) {
+    hideReorderSuggestion();
+    return;
+  }
+
+  showReorderSuggestion(lastOrder, items);
+}
+
+function showReorderSuggestion(order, items) {
+  pendingReorderItems = items;
+  const date = new Date(order.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+  const partsList = items.map(i => `${i.part_number} ×${i.quantity}`).join(', ');
+  reorderText.textContent = `Last order for this truck (${date}) had ${items.length} part${items.length === 1 ? '' : 's'}: ${partsList}`;
+  reorderBox.style.display = 'block';
+}
+
+function hideReorderSuggestion() {
+  reorderBox.style.display = 'none';
+  pendingReorderItems = null;
+}
+
+document.getElementById('reorderAddBtn').addEventListener('click', () => {
+  if (!pendingReorderItems) return;
+  pendingReorderItems.forEach(i => {
+    const existing = cart.find(c => c.part_number === i.part_number);
+    if (existing) {
+      existing.qty += i.quantity;
+    } else {
+      cart.push({ part_number: i.part_number, description: i.description, location: '', qty: i.quantity });
+    }
+  });
+  renderCart();
+  hideReorderSuggestion();
+});
+
+document.getElementById('reorderDismissBtn').addEventListener('click', hideReorderSuggestion);
 
 // ---- Parts search ----
 let cart = []; // { part_number, description, location, qty }
@@ -337,7 +481,7 @@ async function runSearch(q) {
 
   const { data, error } = await sb
     .from('parts')
-    .select('part_number, description, location, stock_level, system, models')
+    .select('part_number, description, location, stock_level, image_url, system, models')
     .or(`part_number.ilike.${pattern},description.ilike.${pattern}`)
     .limit(25);
 
@@ -365,16 +509,22 @@ async function runSearch(q) {
     const stockHtml = p.stock_level !== null && p.stock_level !== undefined && p.stock_level !== ''
       ? ` · Stock: <span class="${lowStock ? 'low-stock' : ''}">${escapeHtml(p.stock_level)}${lowStock ? ' (out)' : ''}</span>`
       : '';
+    const thumbHtml = p.image_url
+      ? `<img src="${escapeAttr(p.image_url)}" alt="" class="thumb" onerror="this.style.display='none'">`
+      : '';
     const fitsBits = [];
     if (p.system) fitsBits.push(escapeHtml(p.system));
     if (p.models) fitsBits.push(escapeHtml(p.models));
     const fitsHtml = fitsBits.length ? `<div class="fits">Fits: ${fitsBits.join(' · ')}</div>` : '';
     return `
     <div class="result-row" data-pn="${escapeAttr(p.part_number || '')}" data-desc="${escapeAttr(p.description || '')}" data-loc="${escapeAttr(p.location || '')}" data-fits="${escapeAttr(fitsBits.join(' · '))}">
-      <div class="pn">${escapeHtml(p.part_number || '—')}</div>
-      <div class="desc">${escapeHtml(p.description || '(no description)')}</div>
-      ${fitsHtml}
-      <div class="meta">${p.location ? 'Location: ' + escapeHtml(p.location) : ''}${stockHtml}</div>
+      ${thumbHtml}
+      <div class="text">
+        <div class="pn">${escapeHtml(p.part_number || '—')}</div>
+        <div class="desc">${escapeHtml(p.description || '(no description)')}</div>
+        ${fitsHtml}
+        <div class="meta">${p.location ? 'Location: ' + escapeHtml(p.location) : ''}${stockHtml}</div>
+      </div>
     </div>
   `;
   }).join('');
@@ -391,6 +541,13 @@ async function runSearch(q) {
   });
 }
 
+document.addEventListener('click', (e) => {
+  if (resultsEl.classList.contains('open') && !resultsEl.contains(e.target) && e.target !== searchInput) {
+    resultsEl.classList.remove('open');
+    resultsEl.innerHTML = '';
+  }
+});
+
 function addToCart(pn, desc, loc, fits) {
   const existing = cart.find(c => c.part_number === pn);
   if (existing) {
@@ -403,10 +560,17 @@ function addToCart(pn, desc, loc, fits) {
 
 function renderCart() {
   const cartEl = document.getElementById('cart');
+  const summaryEl = document.getElementById('cartSummary');
+
   if (cart.length === 0) {
     cartEl.innerHTML = '<div class="cart-empty" id="cartEmpty">No parts added yet</div>';
+    summaryEl.textContent = '';
     return;
   }
+
+  const totalQty = cart.reduce((sum, c) => sum + c.qty, 0);
+  summaryEl.textContent = `${cart.length} part${cart.length === 1 ? '' : 's'} · ${totalQty} total qty`;
+
   cartEl.innerHTML = cart.map((item, idx) => `
     <div class="cart-item">
       <div class="info">
@@ -421,6 +585,9 @@ function renderCart() {
   `).join('');
 
   cartEl.querySelectorAll('input.qty').forEach(inp => {
+    inp.addEventListener('input', () => {
+      inp.value = inp.value.replace(/[^0-9]/g, '');
+    });
     inp.addEventListener('change', () => {
       const idx = parseInt(inp.dataset.idx, 10);
       const val = parseInt(inp.value, 10);
@@ -435,6 +602,14 @@ function renderCart() {
     });
   });
 }
+
+// ---- Warn before leaving with an unsaved cart ----
+window.addEventListener('beforeunload', (e) => {
+  if (cart.length > 0 && !submitted) {
+    e.preventDefault();
+    e.returnValue = '';
+  }
+});
 
 // ---- Submit ----
 const submitBtn = document.getElementById('submitBtn');
@@ -459,6 +634,10 @@ submitBtn.addEventListener('click', async () => {
     setStatus('Please add at least one part.', true);
     return;
   }
+  if (!navigator.onLine) {
+    setStatus('You appear to be offline — reconnect and try again.', true);
+    return;
+  }
 
   submitBtn.disabled = true;
   setStatus('Saving order...');
@@ -481,6 +660,9 @@ submitBtn.addEventListener('click', async () => {
 
     const { error: itemsErr } = await sb.from('field_service_order_items').insert(items);
     if (itemsErr) throw itemsErr;
+
+    submitted = true;
+    localStorage.setItem(NAME_KEY, controller_name);
 
     document.getElementById('form').style.display = 'none';
     document.querySelector('.submit-bar').style.display = 'none';

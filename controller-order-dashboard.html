@@ -71,13 +71,19 @@
     font-weight:600; font-size:15px; border-radius:8px; cursor:pointer; color:var(--gray-text);
   }
   .tab.active{ background:var(--red); color:var(--white); }
-  .filter-bar{ background:var(--white); padding:10px 16px; border-bottom:1px solid var(--gray-line); }
+  .filter-bar{ background:var(--white); padding:10px 16px; border-bottom:1px solid var(--gray-line); display:flex; gap:8px; }
   #filterInput{
-    width:100%; border:1px solid var(--gray-line); border-radius:8px;
+    flex:1; border:1px solid var(--gray-line); border-radius:8px;
     padding:10px 12px; font-family:var(--font-body); font-size:14px;
     background:var(--white); color:var(--black);
   }
   #filterInput:focus{ outline:none; border-color:var(--red); box-shadow:0 0 0 3px rgba(223,10,30,0.08); }
+  #refreshBtn{
+    flex-shrink:0; width:40px; border:1px solid var(--gray-line); border-radius:8px;
+    background:var(--white); color:var(--gray-text); font-size:16px; cursor:pointer;
+  }
+  #refreshBtn:hover{ color:var(--red); border-color:var(--red); }
+  #refreshBtn:disabled{ opacity:0.5; cursor:not-allowed; }
   main{ max-width:820px; margin:0 auto; padding:20px 16px 60px; }
   #empty{ text-align:center; color:var(--gray-text); padding:60px 20px; font-size:14px; }
 
@@ -142,6 +148,7 @@
 </div>
 <div class="filter-bar">
   <input type="text" id="filterInput" placeholder="Search by truck, controller, or engineer...">
+  <button type="button" id="refreshBtn" aria-label="Refresh">↻</button>
 </div>
 
 <main>
@@ -362,6 +369,13 @@ document.querySelectorAll('.tab').forEach(tab => {
 document.getElementById('filterInput').addEventListener('input', (e) => {
   currentSearch = e.target.value.trim();
   render();
+});
+
+document.getElementById('refreshBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('refreshBtn');
+  btn.disabled = true;
+  await loadOrders();
+  btn.disabled = false;
 });
 
 function escapeHtml(str) {
