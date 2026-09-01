@@ -170,6 +170,7 @@
     font-size:12px;
   }
   .result-row .desc{ font-weight:500; }
+  .result-row .fits{ color:var(--black); font-size:12px; margin-top:2px; opacity:0.75; }
   .result-row .meta{ color:var(--gray-text); font-size:12px; margin-top:2px; }
   .result-row .meta .low-stock{ color:var(--red); font-weight:600; }
   #searchStatus{ font-size:13px; color:var(--gray-text); margin-top:6px; font-family:var(--font-mono); }
@@ -471,7 +472,7 @@ async function runSearch(q) {
 
   const { data, error } = await sb
     .from('parts')
-    .select('part_number, description, location, stock_level, image_url')
+    .select('part_number, description, location, stock_level, image_url, system, models')
     .or(`part_number.ilike.${pattern},description.ilike.${pattern}`)
     .limit(25);
 
@@ -502,12 +503,17 @@ async function runSearch(q) {
     const thumbHtml = p.image_url
       ? `<img src="${escapeAttr(p.image_url)}" alt="" class="thumb" onerror="this.style.display='none'">`
       : '';
+    const fitsBits = [];
+    if (p.system) fitsBits.push(escapeHtml(p.system));
+    if (p.models) fitsBits.push(escapeHtml(p.models));
+    const fitsHtml = fitsBits.length ? `<div class="fits">Fits: ${fitsBits.join(' · ')}</div>` : '';
     return `
-    <div class="result-row" data-pn="${escapeAttr(p.part_number || '')}" data-desc="${escapeAttr(p.description || '')}" data-loc="${escapeAttr(p.location || '')}">
+    <div class="result-row" data-pn="${escapeAttr(p.part_number || '')}" data-desc="${escapeAttr(p.description || '')}" data-loc="${escapeAttr(p.location || '')}" data-fits="${escapeAttr(fitsBits.join(' · '))}">
       ${thumbHtml}
       <div class="text">
         <div class="pn">${escapeHtml(p.part_number || '—')}</div>
         <div class="desc">${escapeHtml(p.description || '(no description)')}</div>
+        ${fitsHtml}
         <div class="meta">${p.location ? 'Location: ' + escapeHtml(p.location) : ''}${stockHtml}</div>
       </div>
     </div>
@@ -517,7 +523,7 @@ async function runSearch(q) {
 
   resultsEl.querySelectorAll('.result-row').forEach(row => {
     row.addEventListener('click', () => {
-      addToCart(row.dataset.pn, row.dataset.desc, row.dataset.loc);
+      addToCart(row.dataset.pn, row.dataset.desc, row.dataset.loc, row.dataset.fits);
       searchInput.value = '';
       resultsEl.classList.remove('open');
       resultsEl.innerHTML = '';
@@ -526,12 +532,12 @@ async function runSearch(q) {
   });
 }
 
-function addToCart(pn, desc, loc) {
+function addToCart(pn, desc, loc, fits) {
   const existing = cart.find(c => c.part_number === pn);
   if (existing) {
     existing.qty += 1;
   } else {
-    cart.push({ part_number: pn, description: desc, location: loc, qty: 1 });
+    cart.push({ part_number: pn, description: desc, location: loc, fits: fits || '', qty: 1 });
   }
   renderCart();
 }
@@ -554,6 +560,7 @@ function renderCart() {
       <div class="info">
         <div class="pn">${escapeHtml(item.part_number || '—')}</div>
         <div class="desc">${escapeHtml(item.description || '(no description)')}</div>
+        ${item.fits ? `<div class="loc">Fits: ${escapeHtml(item.fits)}</div>` : ''}
         ${item.location ? `<div class="loc">Location: ${escapeHtml(item.location)}</div>` : ''}
       </div>
       <input type="text" inputmode="numeric" class="qty" data-idx="${idx}" value="${item.qty}">
