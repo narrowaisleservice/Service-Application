@@ -150,6 +150,7 @@
   }
   .result-row .desc{ font-weight:500; }
   .result-row .meta{ color:var(--gray-text); font-size:12px; margin-top:2px; }
+  .result-row .meta .low-stock{ color:var(--red); font-weight:600; }
   #searchStatus{ font-size:13px; color:var(--gray-text); margin-top:6px; font-family:var(--font-mono); }
 
   .cart{ margin-top:16px; }
@@ -303,6 +304,7 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
 // ---- Parts search ----
 let cart = []; // { part_number, description, location, qty }
 let searchTimer = null;
+let searchSeq = 0; // guards against a slow earlier search overwriting a faster later one
 
 const searchInput = document.getElementById('partSearch');
 const resultsEl = document.getElementById('searchResults');
@@ -321,12 +323,26 @@ searchInput.addEventListener('input', () => {
   searchTimer = setTimeout(() => runSearch(q), 250);
 });
 
+// Wraps a search term for safe use inside a Supabase .or() filter string.
+// Without this, a term containing a comma or parenthesis (e.g. "bearing, 25mm")
+// breaks the PostgREST filter syntax and the search errors out.
+function escapeForOrFilter(value) {
+  return '"' + value.replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"';
+}
+
 async function runSearch(q) {
+  const mySeq = ++searchSeq;
+  const pattern = escapeForOrFilter(`%${q}%`);
+
   const { data, error } = await sb
     .from('parts')
     .select('part_number, description, location, stock_level')
-    .or(`part_number.ilike.%${q}%,description.ilike.%${q}%`)
+    .or(`part_number.ilike.${pattern},description.ilike.${pattern}`)
     .limit(25);
+
+  // If the user kept typing, a newer search is already in flight (or has
+  // already landed) — discard this stale result rather than overwrite it.
+  if (mySeq !== searchSeq) return;
 
   if (error) {
     searchStatusEl.textContent = 'Search failed — check connection.';
@@ -342,13 +358,20 @@ async function runSearch(q) {
   }
 
   searchStatusEl.textContent = `${data.length} result${data.length === 1 ? '' : 's'}${data.length === 25 ? ' (showing first 25 — refine search)' : ''}`;
-  resultsEl.innerHTML = data.map(p => `
+  resultsEl.innerHTML = data.map(p => {
+    const stockNum = Number(p.stock_level);
+    const lowStock = p.stock_level !== null && p.stock_level !== undefined && p.stock_level !== '' && !isNaN(stockNum) && stockNum <= 0;
+    const stockHtml = p.stock_level !== null && p.stock_level !== undefined && p.stock_level !== ''
+      ? ` · Stock: <span class="${lowStock ? 'low-stock' : ''}">${escapeHtml(p.stock_level)}${lowStock ? ' (out)' : ''}</span>`
+      : '';
+    return `
     <div class="result-row" data-pn="${escapeAttr(p.part_number || '')}" data-desc="${escapeAttr(p.description || '')}" data-loc="${escapeAttr(p.location || '')}">
       <div class="pn">${escapeHtml(p.part_number || '—')}</div>
       <div class="desc">${escapeHtml(p.description || '(no description)')}</div>
-      <div class="meta">${p.location ? 'Location: ' + escapeHtml(p.location) : ''}${p.stock_level ? ' · Stock: ' + escapeHtml(p.stock_level) : ''}</div>
+      <div class="meta">${p.location ? 'Location: ' + escapeHtml(p.location) : ''}${stockHtml}</div>
     </div>
-  `).join('');
+  `;
+  }).join('');
   resultsEl.classList.add('open');
 
   resultsEl.querySelectorAll('.result-row').forEach(row => {

@@ -71,6 +71,13 @@
     font-weight:600; font-size:15px; border-radius:8px; cursor:pointer; color:var(--gray-text);
   }
   .tab.active{ background:var(--red); color:var(--white); }
+  .filter-bar{ background:var(--white); padding:10px 16px; border-bottom:1px solid var(--gray-line); }
+  #filterInput{
+    width:100%; border:1px solid var(--gray-line); border-radius:8px;
+    padding:10px 12px; font-family:var(--font-body); font-size:14px;
+    background:var(--white); color:var(--black);
+  }
+  #filterInput:focus{ outline:none; border-color:var(--red); box-shadow:0 0 0 3px rgba(223,10,30,0.08); }
   main{ max-width:820px; margin:0 auto; padding:20px 16px 60px; }
   #empty{ text-align:center; color:var(--gray-text); padding:60px 20px; font-size:14px; }
 
@@ -131,6 +138,9 @@
   <div class="tab" data-filter="Sent">Sent</div>
   <div class="tab" data-filter="all">All</div>
 </div>
+<div class="filter-bar">
+  <input type="text" id="filterInput" placeholder="Search by truck, controller, or engineer...">
+</div>
 
 <main>
   <div id="list"></div>
@@ -146,6 +156,7 @@ const STAGES = ['Ordered', 'Picked', 'Sent'];
 let orders = [];
 let itemsByOrder = {};
 let currentFilter = 'active';
+let currentSearch = '';
 
 document.getElementById('backBtn').addEventListener('click', () => {
   if (document.referrer && new URL(document.referrer).host === location.host) {
@@ -178,13 +189,18 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
 });
 
 async function loadOrders() {
+  const emptyEl = document.getElementById('empty');
+  emptyEl.textContent = 'Loading orders…';
+  emptyEl.style.display = 'block';
+  document.getElementById('list').innerHTML = '';
+
   const { data: orderData, error: orderErr } = await sb
     .from('field_service_orders')
     .select('*')
     .order('created_at', { ascending: false });
 
   if (orderErr) {
-    document.getElementById('list').innerHTML = '<div id="empty">Couldn\'t load orders — check your connection.</div>';
+    emptyEl.textContent = "Couldn't load orders — check your connection.";
     console.error(orderErr);
     return;
   }
@@ -211,12 +227,18 @@ function render() {
   const listEl = document.getElementById('list');
   const emptyEl = document.getElementById('empty');
 
+  const search = currentSearch.toLowerCase();
   const filtered = orders.filter(o => {
-    if (currentFilter === 'all') return true;
-    if (currentFilter === 'active') return o.status !== 'Sent';
-    return o.status === currentFilter;
+    if (currentFilter === 'active' && o.status === 'Sent') return false;
+    if (currentFilter !== 'all' && currentFilter !== 'active' && o.status !== currentFilter) return false;
+    if (search) {
+      const hay = `${o.truck_serial || ''} ${o.controller_name || ''} ${o.engineer_name || ''}`.toLowerCase();
+      if (!hay.includes(search)) return false;
+    }
+    return true;
   });
 
+  emptyEl.textContent = 'Nothing here.';
   emptyEl.style.display = filtered.length === 0 ? 'block' : 'none';
   listEl.innerHTML = '';
 
@@ -277,6 +299,11 @@ function render() {
 }
 
 async function advanceStatus(id, nextStage, btn) {
+  // "Sent" is the final stage — confirm so a stray tap can't skip an order past Picked.
+  if (nextStage === 'Sent' && !confirm('Mark this order as Sent? This is the final status.')) {
+    return;
+  }
+
   btn.disabled = true;
   btn.textContent = 'Saving...';
 
@@ -304,6 +331,11 @@ document.querySelectorAll('.tab').forEach(tab => {
     currentFilter = tab.dataset.filter;
     render();
   });
+});
+
+document.getElementById('filterInput').addEventListener('input', (e) => {
+  currentSearch = e.target.value.trim();
+  render();
 });
 
 function escapeHtml(str) {
