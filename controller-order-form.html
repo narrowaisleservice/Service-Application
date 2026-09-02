@@ -362,6 +362,10 @@ const urlParams = new URLSearchParams(location.search);
 const editOrderId = urlParams.get('edit') ? parseInt(urlParams.get('edit'), 10) : null;
 let originalPhotoUrl = null;
 
+// The logged-in controller's email, captured from the Supabase Auth session below.
+// Stored against the order so the dashboard can email them when it's marked Sent.
+let currentUserEmail = null;
+
 document.getElementById('backBtn').addEventListener('click', () => {
   if (document.referrer && new URL(document.referrer).host === location.host) {
     history.back();
@@ -377,6 +381,7 @@ document.getElementById('backBtn').addEventListener('click', () => {
     return;
   }
   document.getElementById('userEmail').textContent = 'Logged in as ' + session.user.email;
+  currentUserEmail = session.user.email;
 
   if (editOrderId) {
     await loadForEdit(editOrderId);
@@ -807,7 +812,7 @@ submitBtn.addEventListener('click', async () => {
     if (editOrderId) {
       const { error: updateErr } = await sb
         .from('controller_orders')
-        .update({ controller_name, engineer_name, truck_serial, notes, priority: selectedPriority, photo_url: photoUrl })
+        .update({ controller_name, engineer_name, truck_serial, notes, priority: selectedPriority, photo_url: photoUrl, controller_email: currentUserEmail })
         .eq('id', editOrderId);
       if (updateErr) throw updateErr;
       orderId = editOrderId;
@@ -817,7 +822,7 @@ submitBtn.addEventListener('click', async () => {
     } else {
       const { data: orderRow, error: orderErr } = await sb
         .from('controller_orders')
-        .insert({ controller_name, engineer_name, truck_serial, notes, status: 'Ordered', priority: selectedPriority, photo_url: photoUrl })
+        .insert({ controller_name, engineer_name, truck_serial, notes, status: 'Ordered', priority: selectedPriority, photo_url: photoUrl, controller_email: currentUserEmail })
         .select()
         .single();
       if (orderErr) throw orderErr;

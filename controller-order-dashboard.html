@@ -204,6 +204,11 @@ const SUPABASE_URL = 'https://dontubctlexlvifwhmbj.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_99HLzSv4wMwFZHlR81yIsQ_z0A0Jpth';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+// GAS Web App that sends the "order sent" email via MailApp — see Code.gs.
+// Paste in your deployment URL and the same secret you set in the script.
+const GAS_URL = 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE';
+const GAS_SECRET = 'REPLACE_WITH_YOUR_OWN_SECRET';
+
 const STAGES = ['Ordered', 'Picked', 'Sent'];
 let orders = [];
 let itemsByOrder = {};
@@ -283,6 +288,34 @@ function timeAgo(dateStr) {
   if (hours < 1) return 'just now';
   if (hours < 24) return `${Math.floor(hours)}h ago`;
   return `${Math.floor(hours / 24)}d ago`;
+}
+
+// Fires an email to the controller who placed the order once it's marked Sent.
+// Fire-and-forget: the status change has already been saved, so a failed or
+// slow email shouldn't hold up the UI or get treated as a failed status update.
+async function sendSentEmail(order, items) {
+  if (!order.controller_email) return; // orders placed before this feature won't have one on file
+  if (!GAS_URL || GAS_URL.indexOf('PASTE_') === 0) return; // not configured yet
+
+  try {
+    await fetch(GAS_URL, {
+      method: 'POST',
+      // text/plain avoids a CORS preflight that Apps Script web apps don't handle;
+      // the body is still valid JSON and is parsed as such server-side.
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        secret: GAS_SECRET,
+        to: order.controller_email,
+        orderId: order.id,
+        truckSerial: order.truck_serial,
+        engineerName: order.engineer_name,
+        notes: order.notes,
+        items: (items || []).map(it => ({ part_number: it.part_number, description: it.description, quantity: it.quantity }))
+      })
+    });
+  } catch (err) {
+    console.error('Sent-email failed:', err);
+  }
 }
 
 function updateTabCounts() {
@@ -460,6 +493,11 @@ async function advanceStatus(id, nextStage, btn) {
     return;
   }
 
+  if (nextStage === 'Sent') {
+    const order = orders.find(o => o.id === id);
+    if (order) sendSentEmail(order, itemsByOrder[id]);
+  }
+
   await loadOrders();
 }
 
@@ -534,13 +572,21 @@ document.getElementById('bulkActionBtn').addEventListener('click', async () => {
   if (stage === 'Picked') update.picked_at = new Date().toISOString();
   if (stage === 'Sent') update.sent_at = new Date().toISOString();
 
-  const { error } = await sb.from('controller_orders').update(update).in('id', [...selectedIds]);
+  const idsToUpdate = [...selectedIds];
+  const { error } = await sb.from('controller_orders').update(update).in('id', idsToUpdate);
 
   if (error) {
     console.error(error);
     alert('Something went wrong saving — try again.');
     btn.disabled = false;
     return;
+  }
+
+  if (stage === 'Sent') {
+    idsToUpdate.forEach(id => {
+      const order = orders.find(o => o.id === id);
+      if (order) sendSentEmail(order, itemsByOrder[id]);
+    });
   }
 
   selectedIds.clear();
