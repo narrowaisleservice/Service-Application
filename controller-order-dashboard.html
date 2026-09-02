@@ -233,6 +233,7 @@ document.getElementById('backBtn').addEventListener('click', () => {
   document.getElementById('userEmail').textContent = 'Logged in as ' + session.user.email;
   document.body.style.visibility = 'visible';
   loadOrders();
+  startAutoRefresh();
 })();
 
 sb.auth.onAuthStateChange((event, session) => {
@@ -241,44 +242,80 @@ sb.auth.onAuthStateChange((event, session) => {
   }
 });
 
+// ---- Auto-refresh ----
+// Polls quietly in the background so the board stays current without a manual refresh.
+// Paused while the tab is hidden (saves requests/battery), and catches up immediately
+// when the tab becomes visible again.
+const AUTO_REFRESH_MS = 30000;
+let refreshTimer = null;
+
+function startAutoRefresh() {
+  stopAutoRefresh();
+  refreshTimer = setInterval(() => loadOrders({ silent: true }), AUTO_REFRESH_MS);
+}
+function stopAutoRefresh() {
+  if (refreshTimer) clearInterval(refreshTimer);
+  refreshTimer = null;
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    stopAutoRefresh();
+  } else {
+    loadOrders({ silent: true });
+    startAutoRefresh();
+  }
+});
+
 document.getElementById('logoutBtn').addEventListener('click', async () => {
   await sb.auth.signOut();
   window.location.href = 'login.html';
 });
 
-async function loadOrders() {
+let refreshInFlight = false;
+
+async function loadOrders(opts) {
+  if (refreshInFlight) return; // an auto-refresh tick and a manual/action reload can otherwise overlap
+  refreshInFlight = true;
+  const silent = !!(opts && opts.silent);
+
   const emptyEl = document.getElementById('empty');
-  emptyEl.textContent = 'Loading orders…';
-  emptyEl.style.display = 'block';
-  document.getElementById('list').innerHTML = '';
-
-  const { data: orderData, error: orderErr } = await sb
-    .from('controller_orders')
-    .select('*')
-    .order('created_at', { ascending: false });
-
-  if (orderErr) {
-    emptyEl.textContent = "Couldn't load orders — check your connection.";
-    console.error(orderErr);
-    return;
-  }
-  orders = orderData;
-
-  const { data: itemData, error: itemErr } = await sb
-    .from('controller_order_items')
-    .select('*');
-
-  if (itemErr) {
-    console.error(itemErr);
-  } else {
-    itemsByOrder = {};
-    (itemData || []).forEach(it => {
-      if (!itemsByOrder[it.order_id]) itemsByOrder[it.order_id] = [];
-      itemsByOrder[it.order_id].push(it);
-    });
+  if (!silent) {
+    emptyEl.textContent = 'Loading orders…';
+    emptyEl.style.display = 'block';
+    document.getElementById('list').innerHTML = '';
   }
 
-  render();
+  try {
+    const { data: orderData, error: orderErr } = await sb
+      .from('controller_orders')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (orderErr) {
+      if (!silent) emptyEl.textContent = "Couldn't load orders — check your connection.";
+      console.error(orderErr);
+      return;
+    }
+    orders = orderData;
+
+    const { data: itemData, error: itemErr } = await sb
+      .from('controller_order_items')
+      .select('*');
+
+    if (itemErr) {
+      console.error(itemErr);
+    } else {
+      itemsByOrder = {};
+      (itemData || []).forEach(it => {
+        if (!itemsByOrder[it.order_id]) itemsByOrder[it.order_id] = [];
+        itemsByOrder[it.order_id].push(it);
+      });
+    }
+
+    render();
+  } finally {
+    refreshInFlight = false;
+  }
 }
 
 // Human-friendly "how long has this been sitting here" for the current stage.
