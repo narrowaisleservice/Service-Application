@@ -110,6 +110,15 @@
   .row2{ display:flex; gap:12px; }
   .row2 .field{ flex:1; }
 
+  .priority-toggle{ display:flex; border:1px solid var(--gray-line); border-radius:8px; overflow:hidden; height:47px; }
+  .priority-btn{
+    flex:1; border:none; background:var(--white); font-family:var(--font-display);
+    font-weight:600; font-size:14px; color:var(--gray-text); cursor:pointer;
+  }
+  .priority-btn + .priority-btn{ border-left:1px solid var(--gray-line); }
+  .priority-btn.active{ background:var(--black); color:var(--white); }
+  .priority-btn.active[data-priority="Urgent"]{ background:var(--red); }
+
   .reorder-card{
     background:var(--gray-fill); border:1px solid var(--gray-line); border-left:4px solid var(--red);
     border-radius:8px; padding:12px 14px; margin-top:-6px;
@@ -123,6 +132,17 @@
   #reorderAddBtn{ background:var(--red); color:var(--white); border:none; }
   #reorderDismissBtn{ background:none; border:1px solid var(--gray-line); color:var(--gray-text); }
 
+  #photoInput{
+    width:100%; border:1px solid var(--gray-line); border-radius:8px;
+    padding:10px; font-family:var(--font-body); font-size:14px; background:var(--white);
+  }
+  #photoPreview{ margin-top:10px; position:relative; display:inline-block; }
+  #photoPreview img{ max-width:100%; max-height:220px; border-radius:8px; border:1px solid var(--gray-line); display:block; }
+  #photoRemoveBtn{
+    position:absolute; top:6px; right:6px; background:rgba(10,10,10,0.7); color:var(--white);
+    border:none; border-radius:50%; width:26px; height:26px; font-size:14px; cursor:pointer; line-height:1;
+  }
+
   .parts-section{
     border-top:1px solid var(--gray-line);
     margin-top:24px;
@@ -133,11 +153,17 @@
     font-size:20px;
     margin:0 0 12px;
   }
+  .search-row{ display:flex; gap:8px; }
+  .search-row input{ flex:1; }
   #partSearch{
     width:100%; border:1px solid var(--gray-line); border-radius:8px;
     padding:12px 14px; font-family:var(--font-body); font-size:15px;
   }
   #partSearch:focus{ outline:none; border-color:var(--red); box-shadow:0 0 0 3px rgba(223,10,30,0.08); }
+  #systemFilter{
+    flex-shrink:0; width:130px; border:1px solid var(--gray-line); border-radius:8px;
+    padding:0 8px; font-family:var(--font-body); font-size:13px; background:var(--white); color:var(--black);
+  }
   #searchResults{
     border:1px solid var(--gray-line);
     border-radius:8px;
@@ -233,7 +259,7 @@
     <button type="button" class="back-btn" id="backBtn" aria-label="Go back">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
     </button>
-    <div class="title">Controller Order Form<small>NARROW AISLE SERVICE PORTAL</small></div>
+    <div class="title" id="pageTitle">Controller Order Form<small>NARROW AISLE SERVICE PORTAL</small></div>
   </div>
   <div class="mark"></div>
 </header>
@@ -255,10 +281,19 @@
       </div>
     </div>
 
-    <div class="field">
-      <label>Truck serial no. <span class="req">*</span></label>
-      <input type="text" id="truck_serial" required placeholder="e.g. FX12345" list="truckList" autocomplete="off">
-      <datalist id="truckList"></datalist>
+    <div class="row2">
+      <div class="field">
+        <label>Truck serial no. <span class="req">*</span></label>
+        <input type="text" id="truck_serial" required placeholder="e.g. FX12345" list="truckList" autocomplete="off">
+        <datalist id="truckList"></datalist>
+      </div>
+      <div class="field">
+        <label>Priority</label>
+        <div class="priority-toggle" id="priorityToggle">
+          <button type="button" class="priority-btn active" data-priority="Standard">Standard</button>
+          <button type="button" class="priority-btn" data-priority="Urgent">Urgent</button>
+        </div>
+      </div>
     </div>
 
     <div class="field" id="reorderBox" style="display:none;">
@@ -276,9 +311,21 @@
       <textarea id="notes" placeholder="Anything the stores team should know — urgency, job number, etc."></textarea>
     </div>
 
+    <div class="field">
+      <label>Photo (optional)</label>
+      <input type="file" id="photoInput" accept="image/*" capture="environment">
+      <div id="photoPreview" style="display:none;">
+        <img id="photoPreviewImg" alt="Photo preview">
+        <button type="button" id="photoRemoveBtn" aria-label="Remove photo">✕</button>
+      </div>
+    </div>
+
     <div class="parts-section">
       <h2>Parts</h2>
-      <input type="text" id="partSearch" placeholder="Search by part number or description...">
+      <div class="search-row">
+        <input type="text" id="partSearch" placeholder="Search by part number or description...">
+        <select id="systemFilter"><option value="">All systems</option></select>
+      </div>
       <div id="searchResults"></div>
       <div id="searchStatus"></div>
 
@@ -296,8 +343,8 @@
 
   <div id="success">
     <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#df0a1e" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><path d="M8 12.5l2.5 2.5 5-5"/></svg>
-    <h2>Order sent</h2>
-    <p>It's now showing as Ordered on the dashboard.</p>
+    <h2 id="successTitle">Order sent</h2>
+    <p id="successText">It's now showing as Ordered on the dashboard.</p>
     <button type="button" id="newOrderBtn">Submit another order</button>
   </div>
 </main>
@@ -310,6 +357,11 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const NAME_KEY = 'na_controller_name_v1';
 let submitted = false;
 
+// ---- Edit mode ----
+const urlParams = new URLSearchParams(location.search);
+const editOrderId = urlParams.get('edit') ? parseInt(urlParams.get('edit'), 10) : null;
+let originalPhotoUrl = null;
+
 document.getElementById('backBtn').addEventListener('click', () => {
   if (document.referrer && new URL(document.referrer).host === location.host) {
     history.back();
@@ -321,18 +373,57 @@ document.getElementById('backBtn').addEventListener('click', () => {
 (async () => {
   const { data: { session } } = await sb.auth.getSession();
   if (!session) {
-    window.location.href = 'login.html?redirect=' + encodeURIComponent(location.pathname.split('/').pop());
+    window.location.href = 'login.html?redirect=' + encodeURIComponent(location.pathname.split('/').pop() + location.search);
     return;
   }
   document.getElementById('userEmail').textContent = 'Logged in as ' + session.user.email;
+
+  if (editOrderId) {
+    await loadForEdit(editOrderId);
+  } else {
+    const savedName = localStorage.getItem(NAME_KEY);
+    if (savedName) document.getElementById('controller_name').value = savedName;
+  }
+
   document.body.style.visibility = 'visible';
-
-  // Prefill the controller's own name from last time they used this form.
-  const savedName = localStorage.getItem(NAME_KEY);
-  if (savedName) document.getElementById('controller_name').value = savedName;
-
   loadTruckList();
+  loadSystemList();
 })();
+
+async function loadForEdit(id) {
+  document.getElementById('pageTitle').innerHTML = 'Edit Order<small>NARROW AISLE SERVICE PORTAL</small>';
+  document.getElementById('submitBtn').textContent = 'Save Changes';
+
+  const { data: order, error } = await sb.from('controller_orders').select('*').eq('id', id).single();
+  if (error || !order) {
+    document.getElementById('status').textContent = "Couldn't load that order.";
+    return;
+  }
+  if (order.status !== 'Ordered' || order.cancelled_at) {
+    document.getElementById('form').innerHTML =
+      `<p style="text-align:center;color:var(--gray-text);padding:40px 0;">This order can no longer be edited (${order.cancelled_at ? 'cancelled' : order.status}).<br><a href="controller-order-dashboard.html">Back to dashboard</a></p>`;
+    document.querySelector('.submit-bar').style.display = 'none';
+    return;
+  }
+
+  document.getElementById('controller_name').value = order.controller_name || '';
+  document.getElementById('engineer_name').value = order.engineer_name || '';
+  document.getElementById('truck_serial').value = order.truck_serial || '';
+  document.getElementById('notes').value = order.notes || '';
+
+  originalPhotoUrl = order.photo_url || null;
+  if (originalPhotoUrl) {
+    document.getElementById('photoPreviewImg').src = originalPhotoUrl;
+    document.getElementById('photoPreview').style.display = 'inline-block';
+  }
+
+  selectedPriority = order.priority || 'Standard';
+  document.querySelectorAll('.priority-btn').forEach(b => b.classList.toggle('active', b.dataset.priority === selectedPriority));
+
+  const { data: items } = await sb.from('controller_order_items').select('*').eq('order_id', id);
+  cart = (items || []).map(it => ({ part_number: it.part_number, description: it.description, location: '', fits: '', qty: it.quantity }));
+  renderCart();
+}
 
 sb.auth.onAuthStateChange((event, session) => {
   if (event === 'SIGNED_OUT' || !session) {
@@ -343,6 +434,34 @@ sb.auth.onAuthStateChange((event, session) => {
 document.getElementById('logoutBtn').addEventListener('click', async () => {
   await sb.auth.signOut();
   window.location.href = 'login.html';
+});
+
+// ---- Priority ----
+let selectedPriority = 'Standard';
+document.querySelectorAll('.priority-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.priority-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedPriority = btn.dataset.priority;
+  });
+});
+
+// ---- Photo attachment ----
+let photoFile = null;
+const photoInput = document.getElementById('photoInput');
+photoInput.addEventListener('change', () => {
+  const file = photoInput.files[0];
+  photoFile = file || null;
+  if (file) {
+    document.getElementById('photoPreviewImg').src = URL.createObjectURL(file);
+    document.getElementById('photoPreview').style.display = 'inline-block';
+  }
+});
+document.getElementById('photoRemoveBtn').addEventListener('click', () => {
+  photoFile = null;
+  originalPhotoUrl = null;
+  photoInput.value = '';
+  document.getElementById('photoPreview').style.display = 'none';
 });
 
 // ---- Truck serial autocomplete ----
@@ -366,6 +485,24 @@ async function loadTruckList() {
   });
 }
 
+// ---- System filter ----
+async function loadSystemList() {
+  const { data, error } = await sb.from('parts').select('system').limit(7000);
+  if (error || !data) return;
+
+  const seen = new Set();
+  const sel = document.getElementById('systemFilter');
+  data.forEach(r => {
+    if (r.system && !seen.has(r.system)) {
+      seen.add(r.system);
+      const opt = document.createElement('option');
+      opt.value = r.system;
+      opt.textContent = r.system;
+      sel.appendChild(opt);
+    }
+  });
+}
+
 // ---- Quick reorder: if this truck has a previous order, offer to re-add its parts ----
 let pendingReorderItems = null;
 const truckInput = document.getElementById('truck_serial');
@@ -382,6 +519,7 @@ truckInput.addEventListener('input', () => {
 });
 
 truckInput.addEventListener('blur', () => {
+  if (editOrderId) return; // don't suggest a reorder while editing an existing order
   const val = truckInput.value.trim();
   if (val.length >= 2) {
     checkLastOrder(val);
@@ -447,26 +585,31 @@ document.getElementById('reorderAddBtn').addEventListener('click', () => {
 document.getElementById('reorderDismissBtn').addEventListener('click', hideReorderSuggestion);
 
 // ---- Parts search ----
-let cart = []; // { part_number, description, location, qty }
+let cart = []; // { part_number, description, location, fits, qty }
 let searchTimer = null;
 let searchSeq = 0; // guards against a slow earlier search overwriting a faster later one
 
 const searchInput = document.getElementById('partSearch');
+const systemFilterEl = document.getElementById('systemFilter');
 const resultsEl = document.getElementById('searchResults');
 const searchStatusEl = document.getElementById('searchStatus');
 
-searchInput.addEventListener('input', () => {
+function maybeSearch() {
   clearTimeout(searchTimer);
   const q = searchInput.value.trim();
-  if (q.length < 2) {
+  const sys = systemFilterEl.value;
+  if (q.length < 2 && !sys) {
     resultsEl.classList.remove('open');
     resultsEl.innerHTML = '';
     searchStatusEl.textContent = '';
     return;
   }
   searchStatusEl.textContent = 'Searching...';
-  searchTimer = setTimeout(() => runSearch(q), 250);
-});
+  searchTimer = setTimeout(() => runSearch(q, sys), 250);
+}
+
+searchInput.addEventListener('input', maybeSearch);
+systemFilterEl.addEventListener('change', maybeSearch);
 
 // Wraps a search term for safe use inside a Supabase .or() filter string.
 // Without this, a term containing a comma or parenthesis (e.g. "bearing, 25mm")
@@ -475,15 +618,19 @@ function escapeForOrFilter(value) {
   return '"' + value.replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"';
 }
 
-async function runSearch(q) {
+async function runSearch(q, sys) {
   const mySeq = ++searchSeq;
   const pattern = escapeForOrFilter(`%${q}%`);
 
-  const { data, error } = await sb
+  let query = sb
     .from('parts')
     .select('part_number, description, location, stock_level, image_url, system, models')
     .or(`part_number.ilike.${pattern},description.ilike.${pattern}`)
     .limit(25);
+
+  if (sys) query = query.eq('system', sys);
+
+  const { data, error } = await query;
 
   // If the user kept typing, a newer search is already in flight (or has
   // already landed) — discard this stale result rather than overwrite it.
@@ -640,19 +787,45 @@ submitBtn.addEventListener('click', async () => {
   }
 
   submitBtn.disabled = true;
-  setStatus('Saving order...');
+  setStatus(editOrderId ? 'Saving changes...' : 'Saving order...');
 
   try {
-    const { data: orderRow, error: orderErr } = await sb
-      .from('controller_orders')
-      .insert({ controller_name, engineer_name, truck_serial, notes, status: 'Ordered' })
-      .select()
-      .single();
+    let photoUrl = originalPhotoUrl;
+    if (photoFile) {
+      setStatus('Uploading photo...');
+      const ext = (photoFile.name.split('.').pop() || 'jpg').toLowerCase();
+      const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const { error: uploadErr } = await sb.storage.from('controller-order-photos').upload(path, photoFile);
+      if (uploadErr) throw uploadErr;
+      const { data: urlData } = sb.storage.from('controller-order-photos').getPublicUrl(path);
+      photoUrl = urlData.publicUrl;
+    }
 
-    if (orderErr) throw orderErr;
+    setStatus(editOrderId ? 'Saving changes...' : 'Saving order...');
+
+    let orderId;
+    if (editOrderId) {
+      const { error: updateErr } = await sb
+        .from('controller_orders')
+        .update({ controller_name, engineer_name, truck_serial, notes, priority: selectedPriority, photo_url: photoUrl })
+        .eq('id', editOrderId);
+      if (updateErr) throw updateErr;
+      orderId = editOrderId;
+
+      const { error: deleteErr } = await sb.from('controller_order_items').delete().eq('order_id', orderId);
+      if (deleteErr) throw deleteErr;
+    } else {
+      const { data: orderRow, error: orderErr } = await sb
+        .from('controller_orders')
+        .insert({ controller_name, engineer_name, truck_serial, notes, status: 'Ordered', priority: selectedPriority, photo_url: photoUrl })
+        .select()
+        .single();
+      if (orderErr) throw orderErr;
+      orderId = orderRow.id;
+    }
 
     const items = cart.map(c => ({
-      order_id: orderRow.id,
+      order_id: orderId,
       part_number: c.part_number,
       description: c.description,
       quantity: c.qty
@@ -663,6 +836,12 @@ submitBtn.addEventListener('click', async () => {
 
     submitted = true;
     localStorage.setItem(NAME_KEY, controller_name);
+
+    if (editOrderId) {
+      document.getElementById('successTitle').textContent = 'Changes saved';
+      document.getElementById('successText').textContent = "The order's been updated.";
+      document.getElementById('newOrderBtn').textContent = 'Back to dashboard';
+    }
 
     document.getElementById('form').style.display = 'none';
     document.querySelector('.submit-bar').style.display = 'none';
@@ -675,7 +854,13 @@ submitBtn.addEventListener('click', async () => {
   }
 });
 
-document.getElementById('newOrderBtn').addEventListener('click', () => location.reload());
+document.getElementById('newOrderBtn').addEventListener('click', () => {
+  if (editOrderId) {
+    window.location.href = 'controller-order-dashboard.html';
+  } else {
+    location.reload();
+  }
+});
 
 function escapeHtml(str) {
   if (str === null || str === undefined) return '';
