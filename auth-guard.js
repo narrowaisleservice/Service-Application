@@ -16,6 +16,9 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const ALLOWED_ROLES = window.ALLOWED_ROLES || ['internal'];
 
+// Hide the page immediately so nothing flashes before the check resolves
+document.documentElement.style.visibility = 'hidden';
+
 function showGuardMessage(text, redirectTo) {
   const overlay = document.createElement('div');
   overlay.style.cssText = `
@@ -23,6 +26,7 @@ function showGuardMessage(text, redirectTo) {
     background: #ffffff;
     display: flex; align-items: center; justify-content: center;
     font-family: 'IBM Plex Sans', 'DM Sans', sans-serif;
+    visibility: visible;
   `;
   overlay.innerHTML = `
     <div style="text-align:center; padding: 24px;">
@@ -34,16 +38,25 @@ function showGuardMessage(text, redirectTo) {
     </div>
   `;
   document.documentElement.appendChild(overlay);
+  document.documentElement.style.visibility = 'visible';
   setTimeout(() => { window.location.href = redirectTo; }, 1100);
 }
 
-const { data: { session } } = await supabase.auth.getSession();
+try {
+  const { data: { session }, error } = await supabase.auth.getSession();
+  if (error) throw error;
 
-if (!session) {
-  showGuardMessage('Please log in to view this page', 'login.html');
-} else {
-  const role = session.user.app_metadata?.role || 'internal';
-  if (!ALLOWED_ROLES.includes(role)) {
-    showGuardMessage("You don't have access to this page", 'portal-hub-professional.html');
+  if (!session) {
+    showGuardMessage('Please log in to view this page', 'login.html');
+  } else {
+    const role = session.user.app_metadata?.role || 'internal';
+    if (!ALLOWED_ROLES.includes(role)) {
+      showGuardMessage("You don't have access to this page", 'portal-hub-professional.html');
+    } else {
+      document.documentElement.style.visibility = 'visible';
+    }
   }
+} catch (err) {
+  console.error('Auth guard error:', err);
+  showGuardMessage('Something went wrong checking access', 'login.html');
 }
