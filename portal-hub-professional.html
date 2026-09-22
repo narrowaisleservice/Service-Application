@@ -692,6 +692,44 @@
             z-index: 0;
         }
 
+        .home-hero-truck {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            right: 0;
+            width: 380px;
+            max-width: 46%;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .home-hero-truck-glow {
+            position: absolute;
+            right: 6%;
+            bottom: 4%;
+            width: 220px;
+            height: 220px;
+            background: radial-gradient(circle, rgba(223, 10, 30, 0.45) 0%, transparent 72%);
+            z-index: 0;
+        }
+
+        .home-hero-truck img {
+            position: relative;
+            z-index: 1;
+            height: 94%;
+            width: auto;
+            max-width: none;
+            object-fit: contain;
+            filter: drop-shadow(0 18px 22px rgba(0, 0, 0, 0.55));
+        }
+
+        @media (max-width: 900px) {
+            .home-hero-truck { display: none; }
+        }
+
         .live-pill {
             position: relative;
             z-index: 1;
@@ -1984,6 +2022,10 @@
                     <div class="home-date" id="homeDate"></div>
                     <div class="home-hero-lines"></div>
                     <div class="home-hero-glow2"></div>
+                    <div class="home-hero-truck" aria-hidden="true">
+                        <div class="home-hero-truck-glow"></div>
+                        <img src="flexi-truck.png" alt="" loading="eager" decoding="async">
+                    </div>
                 </div>
                 <div class="stats-row stagger" id="homeStatsRow"></div>
                 <div class="dash-search-panel">
