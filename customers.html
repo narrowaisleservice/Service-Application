@@ -204,8 +204,15 @@ async function loadAll() {
       }
     });
     render();
-    const ref = new URLSearchParams(location.search).get('acc');
+    const params = new URLSearchParams(location.search);
+    const ref = params.get('acc'), q = params.get('q');
     if (ref && byRef.has(ref)) open(ref, false);
+    else if (q) {
+      $('q').value = q;
+      render();
+      const m = matches();
+      if (m.length === 1) open(m[0].account_ref, false);
+    }
   } catch (e) {
     $('results').innerHTML = `<div class="state">Couldn't load customers.<br><span class="dim">${esc(e.message)}</span></div>`;
   }

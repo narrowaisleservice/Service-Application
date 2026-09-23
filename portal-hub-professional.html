@@ -1849,7 +1849,7 @@
             { label: 'Order Parts', icon: 'send', link: 'field-parts-request.html' },
             { label: 'Fault Tracker', icon: 'chart', link: 'fault-tracker.html' },
             { label: 'Weld Review', icon: 'wrench', link: 'weld-review.html' },
-            { label: 'Customers', icon: 'people', link: 'contacts.html' },
+            { label: 'Customers', icon: 'people', link: 'customers.html' },
             { label: 'Transport Quote', icon: 'van', link: 'transport-quote-calculator.html' },
             { label: 'Insights', icon: 'trend', link: 'insights-dashboard.html' }
         ];
@@ -1930,7 +1930,7 @@
                 title: 'Customer Information',
                 subtitle: 'Look it up by customer, or by truck',
                 cards: [
-                    { title: 'Customer Overview', desc: 'One customer — contacts, contracts, equipment & history in one place', icon: 'people', link: 'customer-overview.html', badge: 'Featured' },
+                    { title: 'Customers', desc: 'Every account and site — contacts, service details and accounts in one place', icon: 'people', link: 'customers.html', badge: 'Featured' },
                     { title: 'Truck Record', desc: 'One serial — spec sheets, service history, contract, owner & weld reports', icon: 'forklift', link: 'truck.html', badge: 'New' }
                 ]
             },
@@ -2125,7 +2125,9 @@
 
         function getRecentLookups(limit = 4) {
             try {
-                return JSON.parse(localStorage.getItem('na_recently_viewed') || '[]').slice(0, limit);
+                return JSON.parse(localStorage.getItem('na_recently_viewed') || '[]')
+                    .map(r => ({ ...r, url: String(r.url || '').replace('customer-overview.html?customer=', 'customers.html?q=') }))
+                    .slice(0, limit);
             } catch (e) {
                 return [];
             }
@@ -2272,7 +2274,7 @@
                 recordRecentLookup('truck', val, url);
                 window.location.href = url;
             } else {
-                const url = 'customer-overview.html?customer=' + encodeURIComponent(val);
+                const url = 'customers.html?q=' + encodeURIComponent(val);
                 recordRecentLookup('customer', val, url);
                 window.location.href = url;
             }
@@ -2579,8 +2581,8 @@
                         recordRecentLookup('truck', term, url);
                         window.location.href = url;
                     } });
-                    actions.push({ title: `Search customer "${term}"`, sub: 'Customer overview', icon: 'people', action: () => {
-                        const url = 'customer-overview.html?customer=' + encodeURIComponent(term);
+                    actions.push({ title: `Search customer "${term}"`, sub: 'Customers', icon: 'people', action: () => {
+                        const url = 'customers.html?q=' + encodeURIComponent(term);
                         recordRecentLookup('customer', term, url);
                         window.location.href = url;
                     } });
@@ -2592,7 +2594,7 @@
                 if (!q) {
                     const recents = getRecentLookups(4).map(r => ({
                         title: r.label,
-                        sub: r.type === 'truck' ? 'Recent · Truck record' : 'Recent · Customer overview',
+                        sub: r.type === 'truck' ? 'Recent · Truck record' : 'Recent · Customers',
                         icon: r.type === 'truck' ? 'forklift' : 'people',
                         link: r.url
                     }));
