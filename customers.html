@@ -94,6 +94,10 @@ h1 b{font-weight:500;color:var(--red)}
 .map-card{grid-column:1/-1;padding-bottom:18px}
 .map{display:block;width:100%;height:340px;border:0;border-radius:8px;background:var(--panel-2)}
 @media (max-width:820px){.map{height:260px}}
+.stat-tile{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px;box-shadow:var(--shadow)}
+.stat-label{font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:400;text-transform:uppercase;letter-spacing:.12em;font-size:11px;color:var(--muted);margin-bottom:8px}
+.stat-value{font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:300;font-size:26px}
+.stat-value.neg{color:var(--red)}
 .notes{white-space:pre-wrap;line-height:1.55;font-size:13px}
 .dim{color:var(--faint)}
 
@@ -262,11 +266,24 @@ async function open(ref, push = true) {
   const { data, error } = await db.from('customers').select('*').eq('account_ref', ref).single();
   if (current !== ref) return;
   if (error) { $('detailPane').innerHTML = `<div class="state">Couldn't load this record.<br><span class="dim">${esc(error.message)}</span></div>`; return; }
-  drawDetail(data);
+  let spend = null;
+  if (data.record_type === 'customer') {
+    const { data: sp } = await db.from('customer_spend').select('*').eq('account_ref', ref).maybeSingle();
+    if (current !== ref) return;
+    spend = sp || undefined; // undefined = no row for this account
+  }
+  drawDetail(data, spend);
   $('detailPane').scrollTop = 0;
 }
 
-function drawDetail(c) {
+function fmtMoney(n) {
+  return '£' + Number(n).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function fmtDate(d) {
+  return d ? new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+}
+
+function drawDetail(c, spend) {
   const isCust = c.record_type === 'customer';
   const sites = isCust ? (sitesByParent.get(c.account_ref) || []) : [];
   const parent = !isCust && c.parent_account ? byRef.get(c.parent_account) : null;
@@ -280,6 +297,7 @@ function drawDetail(c) {
 
   const tabs = [['details', 'Details']];
   if (isCust) tabs.push(['sites', 'Sites', sites.length]);
+  if (isCust) tabs.push(['spend', 'Spend']);
   if (c.notes) tabs.push(['notes', 'Notes']);
 
   $('detailPane').innerHTML = `<div class="detail">
@@ -334,7 +352,18 @@ function drawDetail(c) {
       <thead><tr><th>Site</th><th>Ref</th><th>Town</th><th>Postcode</th><th>Route</th></tr></thead>
       <tbody>${sites.map(s => `<tr class="click" data-open="${esc(s.account_ref)}"><td>${esc(s.name)}</td><td>${esc(s.account_ref)}</td><td>${val(s.town)}</td><td>${val(s.postcode)}</td><td>${val(s.site_route)}</td></tr>`).join('')}</tbody>
     </table></div>` : '<div class="state">No sites linked to this account.</div>',
-    notes: () => `<div class="card"><h3>Notes</h3><div class="notes">${esc(c.notes)}</div></div>`
+    notes: () => `<div class="card"><h3>Notes</h3><div class="notes">${esc(c.notes)}</div></div>`,
+    spend: () => {
+      if (spend === undefined) return '<div class="state">No spend data for this account yet.</div>';
+      const profitClass = spend.profit < 0 ? ' neg' : '';
+      return `<div class="grid">
+        <div class="stat-tile"><div class="stat-label">Spend</div><div class="stat-value">${fmtMoney(spend.spend)}</div></div>
+        <div class="stat-tile"><div class="stat-label">Cost</div><div class="stat-value">${fmtMoney(spend.cost)}</div></div>
+        <div class="stat-tile"><div class="stat-label">Profit</div><div class="stat-value${profitClass}">${fmtMoney(spend.profit)}</div></div>
+        <div class="stat-tile"><div class="stat-label">Margin</div><div class="stat-value">${spend.margin_pct === null ? '—' : spend.margin_pct.toFixed(2) + '%'}</div></div>
+      </div>
+      <div class="dim" style="margin-top:14px;font-size:12px">Invoices raised ${fmtDate(spend.period_from)} – ${fmtDate(spend.period_to)}, from Protean. Updated ${fmtDate(spend.updated_at)}.</div>`;
+    }
   };
 
   const show = k => {
