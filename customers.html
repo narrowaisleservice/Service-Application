@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>(function(){try{var t=localStorage.getItem('portalTheme');if(!t){t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Customers</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="auth-guard.js"></script>
+<style>
+:root{
+  --red:#E30613; --red-soft:rgba(227,6,19,.10);
+  --bg:#f4f5f7; --panel:#ffffff; --panel-2:#f8f9fb; --line:#e3e6eb;
+  --text:#14171c; --muted:#646b76; --faint:#9aa1ab;
+  --shadow:0 1px 2px rgba(0,0,0,.04),0 4px 16px rgba(0,0,0,.05);
+}
+[data-theme="dark"]{
+  --bg:#0e1013; --panel:#16191e; --panel-2:#1b1f25; --line:#262b33;
+  --text:#e9ecf1; --muted:#99a1ad; --faint:#666e7a; --red-soft:rgba(227,6,19,.18);
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 16px rgba(0,0,0,.25);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:'IBM Plex Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:14px;-webkit-font-smoothing:antialiased}
+.caps{font-family:'IBM Plex Sans Condensed',sans-serif;text-transform:uppercase;letter-spacing:.1em}
+
+/* Header */
+header{display:flex;align-items:center;gap:14px;padding:14px 20px;background:var(--panel);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+.back{display:inline-flex;align-items:center;gap:6px;color:var(--muted);text-decoration:none;font-size:12px}
+.back:hover{color:var(--red)}
+.crumb-sep{color:var(--faint)}
+h1{font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:300;text-transform:uppercase;letter-spacing:.14em;font-size:18px}
+h1 b{font-weight:500;color:var(--red)}
+.spacer{flex:1}
+.icon-btn{background:var(--panel-2);border:1px solid var(--line);color:var(--text);border-radius:8px;width:34px;height:34px;display:grid;place-items:center;cursor:pointer}
+.icon-btn:hover{border-color:var(--red)}
+
+/* Layout */
+.wrap{display:grid;grid-template-columns:380px 1fr;height:calc(100vh - 63px)}
+.list-pane{border-right:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;min-height:0}
+.detail-pane{overflow:auto;min-height:0}
+
+/* Search */
+.search-box{padding:14px 14px 10px;border-bottom:1px solid var(--line)}
+.search{position:relative}
+.search input{width:100%;padding:10px 12px 10px 36px;border:1px solid var(--line);border-radius:8px;background:var(--panel-2);color:var(--text);font:inherit;outline:none}
+.search input:focus{border-color:var(--red);box-shadow:0 0 0 3px var(--red-soft)}
+.search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--faint)}
+.chips{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:transparent;color:var(--muted);padding:5px 11px;border-radius:999px;cursor:pointer;font-size:11px}
+.chip.on{background:var(--red);border-color:var(--red);color:#fff}
+.count{font-size:11px;color:var(--faint);margin-top:8px}
+
+.results{overflow:auto;flex:1}
+.row{display:block;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--line);padding:11px 14px;cursor:pointer;color:inherit;font:inherit}
+.row:hover{background:var(--panel-2)}
+.row.active{background:var(--red-soft);box-shadow:inset 3px 0 0 var(--red)}
+.row-top{display:flex;align-items:center;gap:8px}
+.row-name{font-weight:500;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row-sub{color:var(--muted);font-size:12px;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tag{font-family:'IBM Plex Sans Condensed',sans-serif;text-transform:uppercase;letter-spacing:.08em;font-size:10px;padding:2px 7px;border-radius:4px;border:1px solid var(--line);color:var(--muted);flex-shrink:0}
+.tag.cust{border-color:var(--red);color:var(--red)}
+.more{padding:12px;text-align:center;color:var(--faint);font-size:12px}
+
+/* Detail */
+.empty{height:100%;display:grid;place-items:center;text-align:center;color:var(--faint);padding:40px}
+.empty h2{font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:300;text-transform:uppercase;letter-spacing:.14em;color:var(--muted);font-size:16px;margin-bottom:6px}
+.detail{padding:24px 28px 40px;max-width:1100px}
+.d-head{display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap}
+.d-title{flex:1;min-width:240px}
+.d-title h2{font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:300;text-transform:uppercase;letter-spacing:.08em;font-size:26px;line-height:1.15}
+.d-meta{color:var(--muted);margin-top:6px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;font-size:13px}
+.d-actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--text);text-decoration:none;font-size:12px;cursor:pointer}
+.btn:hover{border-color:var(--red);color:var(--red)}
+.parent-link{color:var(--red);cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin:22px 0 18px;overflow-x:auto}
+.tab{background:none;border:0;padding:10px 14px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;font-family:'IBM Plex Sans Condensed',sans-serif;text-transform:uppercase;letter-spacing:.1em;font-size:12px}
+.tab.on{color:var(--text);border-bottom-color:var(--red)}
+.tab .n{color:var(--faint);margin-left:4px}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px;box-shadow:var(--shadow)}
+.card h3{font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:400;text-transform:uppercase;letter-spacing:.12em;font-size:11px;color:var(--muted);margin-bottom:12px}
+.kv{display:grid;grid-template-columns:130px 1fr;gap:7px 12px;font-size:13px}
+.kv dt{color:var(--muted)}
+.kv dd{word-break:break-word}
+.kv a{color:var(--text)}
+.kv a:hover{color:var(--red)}
+.addr{line-height:1.55}
+.notes{white-space:pre-wrap;line-height:1.55;font-size:13px}
+.dim{color:var(--faint)}
+
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:400;text-transform:uppercase;letter-spacing:.1em;font-size:11px;color:var(--muted);padding:9px 10px;border-bottom:1px solid var(--line);background:var(--panel-2)}
+td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+tr.click{cursor:pointer}
+tr.click:hover td{background:var(--panel-2)}
+.table-card{padding:0;overflow:auto}
+
+.state{padding:30px;text-align:center;color:var(--muted)}
+.spinner{width:22px;height:22px;border:2px solid var(--line);border-top-color:var(--red);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 10px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.mobile-back{display:none}
+@media (max-width:820px){
+  .wrap{grid-template-columns:1fr;height:auto}
+  .list-pane{height:calc(100vh - 63px)}
+  .wrap.show-detail .list-pane{display:none}
+  .wrap:not(.show-detail) .detail-pane{display:none}
+  .mobile-back{display:inline-flex;margin-bottom:14px}
+  .detail{padding:18px 16px 40px}
+  .kv{grid-template-columns:110px 1fr}
+  header{padding:12px 16px}
+}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="portal-hub-professional.html">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+    <span class="caps">Portal</span>
+  </a>
+  <span class="crumb-sep">/</span>
+  <h1><b>Customers</b></h1>
+  <div class="spacer"></div>
+  <button class="icon-btn" id="themeBtn" title="Toggle theme">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg>
+  </button>
+</header>
+
+<div class="wrap" id="wrap">
+  <aside class="list-pane">
+    <div class="search-box">
+      <div class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <input id="q" type="search" placeholder="Name, account, postcode, town…" autocomplete="off">
+      </div>
+      <div class="chips" id="chips">
+        <button class="chip on" data-f="all">All</button>
+        <button class="chip" data-f="customer">Accounts</button>
+        <button class="chip" data-f="site">Sites</button>
+      </div>
+      <div class="count" id="count">Loading…</div>
+    </div>
+    <div class="results" id="results"><div class="state"><div class="spinner"></div>Loading customers…</div></div>
+  </aside>
+
+  <main class="detail-pane" id="detailPane">
+    <div class="empty"><div><h2>Select a customer</h2><p>Search by name, account number, postcode or town.</p></div></div>
+  </main>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://hkwcdpqpduptjwroawrw.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_ym0_ostk5WkdHGhGEGSkXw_d1sHadPY';
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const LIST_COLS = 'account_ref,name,record_type,parent_account,town,county,postcode,site_route';
+const PAGE = 1000, SHOW = 200;
+
+let all = [], byRef = new Map(), sitesByParent = new Map();
+let filter = 'all', current = null, currentTab = 'details';
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const val = s => (s === null || s === undefined || s === '') ? '<span class="dim">—</span>' : esc(s);
+const cleanEng = s => s ? s.replace(/^z+/i, '') : s;
+
+/* Theme */
+$('themeBtn').onclick = () => {
+  const t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', t);
+  try { localStorage.setItem('portalTheme', t); } catch (e) {}
+};
+
+/* Load */
+async function loadAll() {
+  const { data: { session } } = await db.auth.getSession();
+  if (!session) {
+    $('results').innerHTML = '<div class="state">Please sign in to the portal to view customers.</div>';
+    $('count').textContent = '';
+    return;
+  }
+  try {
+    let from = 0, rows = [];
+    while (true) {
+      const { data, error } = await db.from('customers').select(LIST_COLS).order('name').range(from, from + PAGE - 1);
+      if (error) throw error;
+      rows = rows.concat(data);
+      if (data.length < PAGE) break;
+      from += PAGE;
+    }
+    all = rows;
+    all.forEach(r => {
+      r._s = [r.name, r.account_ref, r.postcode, (r.postcode || '').replace(/\s/g, ''), r.town, r.county].join(' ').toLowerCase();
+      byRef.set(r.account_ref, r);
+      if (r.record_type === 'site' && r.parent_account) {
+        if (!sitesByParent.has(r.parent_account)) sitesByParent.set(r.parent_account, []);
+        sitesByParent.get(r.parent_account).push(r);
+      }
+    });
+    render();
+    const ref = new URLSearchParams(location.search).get('acc');
+    if (ref && byRef.has(ref)) open(ref, false);
+  } catch (e) {
+    $('results').innerHTML = `<div class="state">Couldn't load customers.<br><span class="dim">${esc(e.message)}</span></div>`;
+  }
+}
+
+/* List */
+function matches() {
+  const terms = $('q').value.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  return all.filter(r => (filter === 'all' || r.record_type === filter) && terms.every(t => r._s.includes(t)));
+}
+function render() {
+  const m = matches();
+  $('count').textContent = `${m.length.toLocaleString('en-GB')} of ${all.length.toLocaleString('en-GB')}`;
+  if (!m.length) { $('results').innerHTML = '<div class="state">No matches.</div>'; return; }
+  $('results').innerHTML = m.slice(0, SHOW).map(r => {
+    const where = [r.town, r.postcode].filter(Boolean).join(' · ');
+    const nSites = r.record_type === 'customer' ? (sitesByParent.get(r.account_ref) || []).length : 0;
+    const sub = r.record_type === 'customer'
+      ? `${esc(r.account_ref)}${nSites ? ` · ${nSites} site${nSites > 1 ? 's' : ''}` : ''}${where ? ' · ' + esc(where) : ''}`
+      : `${esc(r.account_ref)}${where ? ' · ' + esc(where) : ''}`;
+    return `<button class="row${current === r.account_ref ? ' active' : ''}" data-ref="${esc(r.account_ref)}">
+      <div class="row-top"><span class="row-name">${esc(r.name || '(no name)')}</span>
+      <span class="tag ${r.record_type === 'customer' ? 'cust' : ''}">${r.record_type === 'customer' ? 'Account' : 'Site'}</span></div>
+      <div class="row-sub">${sub}</div></button>`;
+  }).join('') + (m.length > SHOW ? `<div class="more">Showing first ${SHOW} — refine your search</div>` : '');
+}
+let t;
+$('q').addEventListener('input', () => { clearTimeout(t); t = setTimeout(render, 120); });
+$('chips').onclick = e => {
+  const b = e.target.closest('.chip'); if (!b) return;
+  filter = b.dataset.f;
+  document.querySelectorAll('.chip').forEach(c => c.classList.toggle('on', c === b));
+  render();
+};
+$('results').onclick = e => { const b = e.target.closest('.row'); if (b) open(b.dataset.ref); };
+
+/* Detail */
+async function open(ref, push = true) {
+  current = ref; currentTab = 'details';
+  document.querySelectorAll('.row').forEach(r => r.classList.toggle('active', r.dataset.ref === ref));
+  $('wrap').classList.add('show-detail');
+  if (push) history.replaceState(null, '', '?acc=' + encodeURIComponent(ref));
+  $('detailPane').innerHTML = '<div class="state"><div class="spinner"></div>Loading…</div>';
+  const { data, error } = await db.from('customers').select('*').eq('account_ref', ref).single();
+  if (current !== ref) return;
+  if (error) { $('detailPane').innerHTML = `<div class="state">Couldn't load this record.<br><span class="dim">${esc(error.message)}</span></div>`; return; }
+  drawDetail(data);
+  $('detailPane').scrollTop = 0;
+}
+
+function drawDetail(c) {
+  const isCust = c.record_type === 'customer';
+  const sites = isCust ? (sitesByParent.get(c.account_ref) || []) : [];
+  const parent = !isCust && c.parent_account ? byRef.get(c.parent_account) : null;
+  const addrParts = [c.address_line1, c.address_line2, c.town, c.county, c.postcode].filter(Boolean);
+  const mapQ = encodeURIComponent([c.name, ...addrParts].join(', '));
+
+  const parentHtml = !isCust
+    ? (parent ? `<span>Account: <span class="parent-link" data-open="${esc(parent.account_ref)}">${esc(parent.name)} (${esc(parent.account_ref)})</span></span>`
+              : (c.parent_account ? `<span>Account: ${esc(c.parent_account)} <span class="dim">(not in list)</span></span>` : ''))
+    : '';
+
+  const tabs = [['details', 'Details']];
+  if (isCust) tabs.push(['sites', 'Sites', sites.length]);
+  if (c.notes) tabs.push(['notes', 'Notes']);
+
+  $('detailPane').innerHTML = `<div class="detail">
+    <button class="btn mobile-back" id="mBack">← Back to list</button>
+    <div class="d-head">
+      <div class="d-title">
+        <h2>${esc(c.name || '(no name)')}</h2>
+        <div class="d-meta">
+          <span class="tag ${isCust ? 'cust' : ''}">${isCust ? 'Account' : 'Site'}</span>
+          <span>${esc(c.account_ref)}</span>
+          ${parentHtml}
+        </div>
+      </div>
+      <div class="d-actions">
+        ${c.phone ? `<a class="btn" href="tel:${esc(c.phone.replace(/\s/g, ''))}">Call</a>` : ''}
+        ${c.email ? `<a class="btn" href="mailto:${esc(c.email)}">Email</a>` : ''}
+        ${addrParts.length ? `<a class="btn" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${mapQ}">Map</a>` : ''}
+      </div>
+    </div>
+    <div class="tabs" id="tabs">${tabs.map(([k, l, n]) => `<button class="tab${k === currentTab ? ' on' : ''}" data-tab="${k}">${l}${n !== undefined ? `<span class="n">${n}</span>` : ''}</button>`).join('')}</div>
+    <div id="tabBody"></div>
+  </div>`;
+
+  const body = {
+    details: () => `<div class="grid">
+      <div class="card"><h3>Contact</h3><dl class="kv">
+        <dt>Address</dt><dd class="addr">${addrParts.length ? addrParts.map(esc).join('<br>') : val()}</dd>
+        <dt>Phone</dt><dd>${c.phone ? `<a href="tel:${esc(c.phone.replace(/\s/g, ''))}">${esc(c.phone)}</a>` : val()}</dd>
+        <dt>Email</dt><dd>${c.email ? `<a href="mailto:${esc(c.email)}">${esc(c.email)}</a>` : val()}</dd>
+        <dt>Fax</dt><dd>${val(c.fax)}</dd>
+        <dt>Website</dt><dd>${c.website ? `<a target="_blank" rel="noopener" href="${esc(/^https?:/i.test(c.website) ? c.website : 'https://' + c.website)}">${esc(c.website)}</a>` : val()}</dd>
+      </dl></div>
+      <div class="card"><h3>Service</h3><dl class="kv">
+        <dt>Route</dt><dd>${val(c.site_route)}</dd>
+        <dt>Engineer</dt><dd>${val(cleanEng(c.engineer))}</dd>
+        <dt>Area</dt><dd>${val(c.area)}</dd>
+        <dt>Labour rate</dt><dd>${val(c.labour_rate)}</dd>
+        <dt>Industry</dt><dd>${val(c.industry)}</dd>
+      </dl></div>
+      <div class="card"><h3>Accounts</h3><dl class="kv">
+        <dt>Invoice cycle</dt><dd>${val(c.invoice_cycle)}</dd>
+        <dt>Payment terms</dt><dd>${val(c.due_date_rule)}${c.settle_days ? ` (${c.settle_days} days)` : ''}</dd>
+        <dt>Tax code</dt><dd>${val(c.tax_code)}</dd>
+        <dt>VAT reg</dt><dd>${val(c.vat_reg_no)}</dd>
+        ${c.discount_group ? `<dt>Discount</dt><dd>${esc(c.discount_group)}</dd>` : ''}
+        ${c.lease_company ? `<dt>Lease co.</dt><dd>Yes</dd>` : ''}
+      </dl></div>
+    </div>`,
+    sites: () => sites.length ? `<div class="card table-card"><table>
+      <thead><tr><th>Site</th><th>Ref</th><th>Town</th><th>Postcode</th><th>Route</th></tr></thead>
+      <tbody>${sites.map(s => `<tr class="click" data-open="${esc(s.account_ref)}"><td>${esc(s.name)}</td><td>${esc(s.account_ref)}</td><td>${val(s.town)}</td><td>${val(s.postcode)}</td><td>${val(s.site_route)}</td></tr>`).join('')}</tbody>
+    </table></div>` : '<div class="state">No sites linked to this account.</div>',
+    notes: () => `<div class="card"><h3>Notes</h3><div class="notes">${esc(c.notes)}</div></div>`
+  };
+
+  const show = k => {
+    currentTab = k;
+    document.querySelectorAll('.tab').forEach(b => b.classList.toggle('on', b.dataset.tab === k));
+    $('tabBody').innerHTML = body[k]();
+  };
+  show(currentTab);
+  $('tabs').onclick = e => { const b = e.target.closest('.tab'); if (b) show(b.dataset.tab); };
+  $('detailPane').querySelector('.detail').addEventListener('click', e => {
+    const o = e.target.closest('[data-open]'); if (o) { open(o.dataset.open); scrollListTo(o.dataset.open); }
+  });
+  const mb = $('mBack'); if (mb) mb.onclick = () => $('wrap').classList.remove('show-detail');
+}
+
+function scrollListTo(ref) {
+  const el = document.querySelector(`.row[data-ref="${CSS.escape(ref)}"]`);
+  if (el) el.scrollIntoView({ block: 'nearest' });
+}
+
+loadAll();
+</script>
+</body>
+</html>
