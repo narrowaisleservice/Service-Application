@@ -62,6 +62,8 @@ h1 b{font-weight:500;color:var(--red)}
 .row-sub{color:var(--muted);font-size:12px;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tag{font-family:'IBM Plex Sans Condensed',sans-serif;text-transform:uppercase;letter-spacing:.08em;font-size:10px;padding:2px 7px;border-radius:4px;border:1px solid var(--line);color:var(--muted);flex-shrink:0}
 .tag.cust{border-color:var(--red);color:var(--red)}
+.tag.stop{background:var(--red);border-color:var(--red);color:#fff;cursor:default}
+.dot-stop{width:7px;height:7px;border-radius:50%;background:var(--red);flex-shrink:0}
 .more{padding:12px;text-align:center;color:var(--faint);font-size:12px}
 
 /* Detail */
@@ -150,6 +152,7 @@ tr.click:hover td{background:var(--panel-2)}
         <button class="chip on" data-f="all">All</button>
         <button class="chip" data-f="customer">Accounts</button>
         <button class="chip" data-f="site">Sites</button>
+        <button class="chip" data-f="stop">On Stop</button>
       </div>
       <div class="count" id="count">Loading…</div>
     </div>
@@ -169,7 +172,7 @@ const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const LIST_COLS = 'account_ref,name,record_type,parent_account,town,county,postcode,site_route';
 const PAGE = 1000, SHOW = 200;
 
-let all = [], byRef = new Map(), sitesByParent = new Map();
+let all = [], byRef = new Map(), sitesByParent = new Map(), onStopRefs = new Set();
 let filter = 'all', current = null, currentTab = 'details';
 
 const $ = id => document.getElementById(id);
@@ -211,6 +214,9 @@ async function loadAll() {
       }
     });
     render();
+    db.from('customer_on_stop').select('account_ref').then(({ data: os }) => {
+      if (os) { onStopRefs = new Set(os.map(r => r.account_ref)); render(); }
+    });
     const params = new URLSearchParams(location.search);
     const ref = params.get('acc'), q = params.get('q');
     if (ref && byRef.has(ref)) open(ref, false);
@@ -228,7 +234,14 @@ async function loadAll() {
 /* List */
 function matches() {
   const terms = $('q').value.trim().toLowerCase().split(/\s+/).filter(Boolean);
-  return all.filter(r => (filter === 'all' || r.record_type === filter) && terms.every(t => r._s.includes(t)));
+  return all.filter(r => {
+    if (filter === 'customer' || filter === 'site') { if (r.record_type !== filter) return false; }
+    if (filter === 'stop') {
+      const stopRef = r.record_type === 'customer' ? r.account_ref : r.parent_account;
+      if (!stopRef || !onStopRefs.has(stopRef)) return false;
+    }
+    return terms.every(t => r._s.includes(t));
+  });
 }
 function render() {
   const m = matches();
@@ -240,8 +253,10 @@ function render() {
     const sub = r.record_type === 'customer'
       ? `${esc(r.account_ref)}${nSites ? ` · ${nSites} site${nSites > 1 ? 's' : ''}` : ''}${where ? ' · ' + esc(where) : ''}`
       : `${esc(r.account_ref)}${where ? ' · ' + esc(where) : ''}`;
+    const stopRef = r.record_type === 'customer' ? r.account_ref : r.parent_account;
+    const isStop = stopRef && onStopRefs.has(stopRef);
     return `<button class="row${current === r.account_ref ? ' active' : ''}" data-ref="${esc(r.account_ref)}">
-      <div class="row-top"><span class="row-name">${esc(r.name || '(no name)')}</span>
+      <div class="row-top">${isStop ? '<span class="dot-stop" title="On stop"></span>' : ''}<span class="row-name">${esc(r.name || '(no name)')}</span>
       <span class="tag ${r.record_type === 'customer' ? 'cust' : ''}">${r.record_type === 'customer' ? 'Account' : 'Site'}</span></div>
       <div class="row-sub">${sub}</div></button>`;
   }).join('') + (m.length > SHOW ? `<div class="more">Showing first ${SHOW} — refine your search</div>` : '');
@@ -272,7 +287,14 @@ async function open(ref, push = true) {
     if (current !== ref) return;
     spend = sp || undefined; // undefined = no row for this account
   }
-  drawDetail(data, spend);
+  const stopRef = data.record_type === 'customer' ? data.account_ref : data.parent_account;
+  let onStop;
+  if (stopRef) {
+    const { data: os } = await db.from('customer_on_stop').select('*').eq('account_ref', stopRef).maybeSingle();
+    if (current !== ref) return;
+    onStop = os || undefined;
+  }
+  drawDetail(data, spend, onStop);
   $('detailPane').scrollTop = 0;
 }
 
@@ -283,7 +305,7 @@ function fmtDate(d) {
   return d ? new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
 }
 
-function drawDetail(c, spend) {
+function drawDetail(c, spend, onStop) {
   const isCust = c.record_type === 'customer';
   const sites = isCust ? (sitesByParent.get(c.account_ref) || []) : [];
   const parent = !isCust && c.parent_account ? byRef.get(c.parent_account) : null;
@@ -293,6 +315,14 @@ function drawDetail(c, spend) {
   const parentHtml = !isCust
     ? (parent ? `<span>Account: <span class="parent-link" data-open="${esc(parent.account_ref)}">${esc(parent.name)} (${esc(parent.account_ref)})</span></span>`
               : (c.parent_account ? `<span>Account: ${esc(c.parent_account)} <span class="dim">(not in list)</span></span>` : ''))
+    : '';
+
+  const stopAreas = onStop ? [
+    onStop.on_stop_hire && 'Hire', onStop.on_stop_sales && 'Sales Orders',
+    onStop.on_stop_jobs && 'Jobs', onStop.on_stop_contracts && 'Maintenance Contracts'
+  ].filter(Boolean) : [];
+  const stopHtml = onStop
+    ? `<span class="tag stop" title="On stop for: ${esc(stopAreas.join(', '))}">On Stop${!isCust ? ' (account)' : ''}</span>`
     : '';
 
   const tabs = [['details', 'Details']];
@@ -309,6 +339,7 @@ function drawDetail(c, spend) {
           <span class="tag ${isCust ? 'cust' : ''}">${isCust ? 'Account' : 'Site'}</span>
           <span>${esc(c.account_ref)}</span>
           ${parentHtml}
+          ${stopHtml}
         </div>
       </div>
       <div class="d-actions">
@@ -343,6 +374,7 @@ function drawDetail(c, spend) {
         <dt>VAT reg</dt><dd>${val(c.vat_reg_no)}</dd>
         ${c.discount_group ? `<dt>Discount</dt><dd>${esc(c.discount_group)}</dd>` : ''}
         ${c.lease_company ? `<dt>Lease co.</dt><dd>Yes</dd>` : ''}
+        ${onStop ? `<dt>On stop</dt><dd style="color:var(--red)">${esc(stopAreas.join(', '))}${!isCust ? ' (on the account)' : ''}</dd>` : ''}
       </dl></div>
       ${addrParts.length ? `<div class="card map-card"><h3>Location</h3>
         <iframe class="map" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Map of ${esc(c.name)}"
