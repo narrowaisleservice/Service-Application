@@ -294,7 +294,10 @@ async function open(ref, push = true) {
     if (current !== ref) return;
     onStop = os || undefined;
   }
-  drawDetail(data, spend, onStop);
+  const eqCol = data.record_type === 'customer' ? 'account_ref' : 'site_ref';
+  const { count: eqCount } = await db.from('customer_equipment').select('equip_no', { count: 'exact', head: true }).eq(eqCol, ref);
+  if (current !== ref) return;
+  drawDetail(data, spend, onStop, eqCount || 0);
   $('detailPane').scrollTop = 0;
 }
 
@@ -305,7 +308,7 @@ function fmtDate(d) {
   return d ? new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
 }
 
-function drawDetail(c, spend, onStop) {
+function drawDetail(c, spend, onStop, eqCount) {
   const isCust = c.record_type === 'customer';
   const sites = isCust ? (sitesByParent.get(c.account_ref) || []) : [];
   const parent = !isCust && c.parent_account ? byRef.get(c.parent_account) : null;
@@ -327,6 +330,7 @@ function drawDetail(c, spend, onStop) {
 
   const tabs = [['details', 'Details']];
   if (isCust) tabs.push(['sites', 'Sites', sites.length]);
+  tabs.push(['equipment', 'Equipment', eqCount]);
   if (isCust) tabs.push(['spend', 'Spend']);
   if (c.notes) tabs.push(['notes', 'Notes']);
 
@@ -401,7 +405,8 @@ function drawDetail(c, spend, onStop) {
   const show = k => {
     currentTab = k;
     document.querySelectorAll('.tab').forEach(b => b.classList.toggle('on', b.dataset.tab === k));
-    $('tabBody').innerHTML = body[k]();
+    if (k === 'equipment') renderEquipment(c, isCust);
+    else $('tabBody').innerHTML = body[k]();
   };
   show(currentTab);
   $('tabs').onclick = e => { const b = e.target.closest('.tab'); if (b) show(b.dataset.tab); };
@@ -409,6 +414,50 @@ function drawDetail(c, spend, onStop) {
     const o = e.target.closest('[data-open]'); if (o) { open(o.dataset.open); scrollListTo(o.dataset.open); }
   });
   const mb = $('mBack'); if (mb) mb.onclick = () => $('wrap').classList.remove('show-detail');
+}
+
+const eqCache = new Map();
+async function renderEquipment(c, isCust) {
+  const ref = c.account_ref;
+  if (eqCache.has(ref)) { paintEquipment(eqCache.get(ref), isCust); return; }
+  $('tabBody').innerHTML = '<div class="state"><div class="spinner"></div>Loading equipment…</div>';
+  const col = isCust ? 'account_ref' : 'site_ref';
+  const { data: eq, error } = await db.from('customer_equipment').select('*').eq(col, ref).order('site_name').order('manufacturer').order('model');
+  if (current !== ref) return;
+  if (error) { $('tabBody').innerHTML = `<div class="state">Couldn't load equipment.<br><span class="dim">${esc(error.message)}</span></div>`; return; }
+  eqCache.set(ref, eq);
+  paintEquipment(eq, isCust);
+}
+
+function paintEquipment(eq, isCust) {
+  if (currentTab !== 'equipment') return;
+  if (!eq.length) { $('tabBody').innerHTML = '<div class="state">No equipment recorded for this account.</div>'; return; }
+  const draw = term => {
+    const t = term.trim().toLowerCase();
+    const rows = !t ? eq : eq.filter(e => [e.site_name, e.manufacturer, e.model, e.serial_no, e.cust_equip_id].some(v => v && v.toLowerCase().includes(t)));
+    $('eqBody').innerHTML = rows.length
+      ? rows.map(e => `<tr>
+          ${isCust ? `<td>${val(e.site_name)}</td>` : ''}
+          <td>${val(e.manufacturer)}</td>
+          <td>${val(e.model)}</td>
+          <td>${val(e.serial_no)}</td>
+          <td>${e.cust_equip_id && e.cust_equip_id !== e.serial_no && e.cust_equip_id !== e.equip_no ? esc(e.cust_equip_id) : ''}</td>
+        </tr>`).join('')
+      : `<tr><td colspan="${isCust ? 5 : 4}" class="state">No matches.</td></tr>`;
+    $('eqCountLine').textContent = `${rows.length.toLocaleString('en-GB')} of ${eq.length.toLocaleString('en-GB')}`;
+  };
+  $('tabBody').innerHTML = `
+    <div class="search" style="max-width:360px;margin-bottom:10px">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input id="eqFilter" type="search" placeholder="Filter by site, make, model, serial…" autocomplete="off">
+    </div>
+    <div class="dim" id="eqCountLine" style="font-size:12px;margin-bottom:8px"></div>
+    <div class="card table-card"><table>
+      <thead><tr>${isCust ? '<th>Site</th>' : ''}<th>Make</th><th>Model</th><th>Serial No</th><th>Note</th></tr></thead>
+      <tbody id="eqBody"></tbody>
+    </table></div>`;
+  draw('');
+  $('eqFilter').addEventListener('input', () => draw($('eqFilter').value));
 }
 
 function scrollListTo(ref) {
