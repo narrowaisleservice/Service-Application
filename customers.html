@@ -284,11 +284,15 @@ async function open(ref, push = true) {
   const { data, error } = await db.from('customers').select('*').eq('account_ref', ref).single();
   if (current !== ref) return;
   if (error) { $('detailPane').innerHTML = `<div class="state">Couldn't load this record.<br><span class="dim">${esc(error.message)}</span></div>`; return; }
-  let spend = null;
+  let spend = null, pl = null;
   if (data.record_type === 'customer') {
-    const { data: sp } = await db.from('customer_spend').select('*').eq('account_ref', ref).maybeSingle();
+    const [{ data: sp }, { data: mp }] = await Promise.all([
+      db.from('customer_spend').select('*').eq('account_ref', ref).maybeSingle(),
+      db.from('customer_maintenance_pl').select('*').ilike('customer_name', data.name).maybeSingle()
+    ]);
     if (current !== ref) return;
     spend = sp || undefined; // undefined = no row for this account
+    pl = mp || undefined;
   }
   const stopRef = data.record_type === 'customer' ? data.account_ref : data.parent_account;
   let onStop;
@@ -307,7 +311,7 @@ async function open(ref, push = true) {
     if (current !== ref) return;
     histCount = count || 0;
   }
-  drawDetail(data, spend, onStop, eqCount || 0, histName, histCount);
+  drawDetail(data, spend, onStop, eqCount || 0, histName, histCount, pl);
   $('detailPane').scrollTop = 0;
 }
 
@@ -318,7 +322,7 @@ function fmtDate(d) {
   return d ? new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
 }
 
-function drawDetail(c, spend, onStop, eqCount, histName, histCount) {
+function drawDetail(c, spend, onStop, eqCount, histName, histCount, pl) {
   const isCust = c.record_type === 'customer';
   const sites = isCust ? (sitesByParent.get(c.account_ref) || []) : [];
   const parent = !isCust && c.parent_account ? byRef.get(c.parent_account) : null;
@@ -401,15 +405,31 @@ function drawDetail(c, spend, onStop, eqCount, histName, histCount) {
     </table></div>` : '<div class="state">No sites linked to this account.</div>',
     notes: () => `<div class="card"><h3>Notes</h3><div class="notes">${esc(c.notes)}</div></div>`,
     spend: () => {
-      if (spend === undefined) return '<div class="state">No spend data for this account yet.</div>';
-      const profitClass = spend.profit < 0 ? ' neg' : '';
-      return `<div class="grid">
-        <div class="stat-tile"><div class="stat-label">Spend</div><div class="stat-value">${fmtMoney(spend.spend)}</div></div>
-        <div class="stat-tile"><div class="stat-label">Cost</div><div class="stat-value">${fmtMoney(spend.cost)}</div></div>
-        <div class="stat-tile"><div class="stat-label">Profit</div><div class="stat-value${profitClass}">${fmtMoney(spend.profit)}</div></div>
-        <div class="stat-tile"><div class="stat-label">Margin</div><div class="stat-value">${spend.margin_pct === null ? '—' : spend.margin_pct.toFixed(2) + '%'}</div></div>
-      </div>
-      <div class="dim" style="margin-top:14px;font-size:12px">Invoices raised ${fmtDate(spend.period_from)} – ${fmtDate(spend.period_to)}, from Protean. Updated ${fmtDate(spend.updated_at)}.</div>`;
+      const spendBlock = spend === undefined ? '' : (() => {
+        const profitClass = spend.profit < 0 ? ' neg' : '';
+        return `<h3 style="margin-bottom:10px">Overall Spend</h3>
+        <div class="grid">
+          <div class="stat-tile"><div class="stat-label">Spend</div><div class="stat-value">${fmtMoney(spend.spend)}</div></div>
+          <div class="stat-tile"><div class="stat-label">Cost</div><div class="stat-value">${fmtMoney(spend.cost)}</div></div>
+          <div class="stat-tile"><div class="stat-label">Profit</div><div class="stat-value${profitClass}">${fmtMoney(spend.profit)}</div></div>
+          <div class="stat-tile"><div class="stat-label">Margin</div><div class="stat-value">${spend.margin_pct === null ? '—' : spend.margin_pct.toFixed(2) + '%'}</div></div>
+        </div>
+        <div class="dim" style="margin-top:14px;margin-bottom:24px;font-size:12px">Invoices raised ${fmtDate(spend.period_from)} – ${fmtDate(spend.period_to)}, from Protean. Updated ${fmtDate(spend.updated_at)}.</div>`;
+      })();
+      const plBlock = pl === undefined ? '' : (() => {
+        const profitClass = pl.profit < 0 ? ' neg' : '';
+        return `<h3 style="margin-bottom:10px">Maintenance Contract P&amp;L</h3>
+        <div class="grid">
+          <div class="stat-tile"><div class="stat-label">Contract Revenue</div><div class="stat-value">${fmtMoney(pl.maint_rev)}</div></div>
+          <div class="stat-tile"><div class="stat-label">Job Revenue</div><div class="stat-value">${fmtMoney(pl.job_revenue)}</div></div>
+          <div class="stat-tile"><div class="stat-label">Job Costs</div><div class="stat-value">${fmtMoney(pl.job_costs)}</div></div>
+          <div class="stat-tile"><div class="stat-label">Profit</div><div class="stat-value${profitClass}">${fmtMoney(pl.profit)}</div></div>
+          <div class="stat-tile"><div class="stat-label">Margin</div><div class="stat-value">${pl.margin_pct === null ? '—' : Number(pl.margin_pct).toFixed(2) + '%'}</div></div>
+        </div>
+        <div class="dim" style="margin-top:14px;font-size:12px">From Protean's Maintenance Contract Profit &amp; Loss by Customer report.</div>`;
+      })();
+      if (!spendBlock && !plBlock) return '<div class="state">No spend data for this account yet.</div>';
+      return spendBlock + plBlock;
     }
   };
 
@@ -442,12 +462,12 @@ async function renderEquipment(c, isCust) {
   const equipNos = eq.map(e => e.equip_no).filter(Boolean);
   if (equipNos.length) {
     const [mc, nc, sd] = await Promise.all([
-      db.from('customer_maintenance_contract').select('equip_no,maint_contract_id').in('equip_no', equipNos),
+      db.from('customer_maintenance_contract').select('equip_no,maint_contract_id,contract_type,end_date').in('equip_no', equipNos),
       db.from('customer_no_maintenance_contract').select('equip_no').in('equip_no', equipNos),
       db.from('customer_service_due').select('equip_no,next_due,service_type').in('equip_no', equipNos)
     ]);
     if (current !== ref) return;
-    (mc.data || []).forEach(r => contractMap.set(r.equip_no, r.maint_contract_id));
+    (mc.data || []).forEach(r => contractMap.set(r.equip_no, r));
     (nc.data || []).forEach(r => noContractSet.add(r.equip_no));
     (sd.data || []).forEach(r => {
       if (!r.next_due) return;
@@ -466,7 +486,13 @@ function paintEquipment(bundle, isCust) {
   if (!eq.length) { $('tabBody').innerHTML = '<div class="state">No equipment recorded for this account.</div>'; return; }
   const today = new Date().toISOString().slice(0, 10);
   const contractCell = e => {
-    if (contractMap.has(e.equip_no)) return `<span class="tag contract-active">Contract #${esc(contractMap.get(e.equip_no))}</span>`;
+    const mc = contractMap.get(e.equip_no);
+    if (mc) {
+      const expired = mc.end_date && mc.end_date < today;
+      const typeShort = mc.contract_type ? mc.contract_type.replace(/^Preventative Maintenance$/, 'PM').replace(/^Inclusive Maintenance$/, 'Inclusive').replace(/^Hire Maintenance$/, 'Hire') : '';
+      return `<span class="tag contract-active">Contract #${esc(mc.maint_contract_id)}${typeShort ? ' · ' + esc(typeShort) : ''}</span>` +
+        (mc.end_date ? `<br><span class="${expired ? 'due-overdue' : 'dim'}" style="font-size:11px">${expired ? 'Ended' : 'Until'} ${fmtDate(mc.end_date)}</span>` : '');
+    }
     if (noContractSet.has(e.equip_no)) return `<span class="dim">No contract</span>`;
     return val();
   };
