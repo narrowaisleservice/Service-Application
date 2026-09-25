@@ -563,8 +563,8 @@
  }
 
  // ===== Supabase project config =====
- const SUPABASE_URL = 'https://dontubctlexlvifwhmbj.supabase.co';
- const SUPABASE_KEY = 'sb_publishable_99HLzSv4wMwFZHlR81yIsQ_z0A0Jpth';
+ const SUPABASE_URL = 'https://hkwcdpqpduptjwroawrw.supabase.co';
+ const SUPABASE_KEY = 'sb_publishable_ym0_ostk5WkdHGhGEGSkXw_d1sHadPY';
  const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
  // =====================================
 
@@ -710,7 +710,7 @@
      const step = 1000;
      while (true) {
        const { data, error } = await db
-         .from('maintenance_contracts')
+         .from('customer_maintenance_contract')
          .select('*')
          .order('cust_name', { ascending: true })
          .range(from, from + step - 1);
@@ -741,7 +741,7 @@
        (r.cust_name||'').toLowerCase().includes(q) ||
        (r.site_name||'').toLowerCase().includes(q) ||
        (r.site_address||'').toLowerCase().includes(q) ||
-       (r.equip_code||'').toLowerCase().includes(q) ||
+       (r.equip_no||'').toLowerCase().includes(q) ||
        (r.make||'').toLowerCase().includes(q) ||
        (r.serial_no||'').toLowerCase().includes(q) ||
        (r.contract_type||'').toLowerCase().includes(q)
@@ -752,7 +752,7 @@
      let av, bv;
      if (sortCol==='company')      { av=a.cust_name||'zzz'; bv=b.cust_name||'zzz'; return String(av).localeCompare(String(bv))*sortDir; }
      if (sortCol==='site')         { av=a.site_name||'zzz'; bv=b.site_name||'zzz'; return String(av).localeCompare(String(bv))*sortDir; }
-     if (sortCol==='equip')        { av=a.equip_code||'zzz'; bv=b.equip_code||'zzz'; return String(av).localeCompare(String(bv))*sortDir; }
+     if (sortCol==='equip')        { av=a.equip_no||'zzz'; bv=b.equip_no||'zzz'; return String(av).localeCompare(String(bv))*sortDir; }
      if (sortCol==='type')         { av=a.contract_type||'zzz'; bv=b.contract_type||'zzz'; return String(av).localeCompare(String(bv))*sortDir; }
      if (sortCol==='charge')       { av=Number(a.annual_charge)||0; bv=Number(b.annual_charge)||0; return (av-bv)*sortDir; }
      if (sortCol==='start')        { av=a.start_date||''; bv=b.start_date||''; return String(av).localeCompare(String(bv))*sortDir; }
@@ -786,8 +786,8 @@
      const company = r.cust_name || 'Unknown';
      const init = initials(company);
      const site = r.site_name ? `<span class="site-text" title="${esc(r.site_address||'')}">${highlight(r.site_name,q)}</span>` : '<span class="no-data">—</span>';
-     const equip = r.equip_code
-       ? `<div><span class="equip-tag">${highlight(r.equip_code,q)}</span>${r.make ? `<div class="make-text" title="${esc(r.make)}">${highlight(r.make,q)}</div>` : ''}</div>`
+     const equip = r.equip_no
+       ? `<div><span class="equip-tag">${highlight(r.equip_no,q)}</span>${r.make ? `<div class="make-text" title="${esc(r.make)}">${highlight(r.make,q)}</div>` : ''}</div>`
        : '<span class="no-data">—</span>';
      const type = r.contract_type ? `<span class="type-badge ${typeBadgeClass(r.contract_type)}">${esc(r.contract_type)}</span>` : '<span class="no-data">—</span>';
      const chargeVal = fmtCharge(r.annual_charge);

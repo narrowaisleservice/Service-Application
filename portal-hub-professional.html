@@ -2173,7 +2173,7 @@
                     db.from('controller_orders').select('id', { count: 'exact', head: true }).neq('status', 'Sent'),
                     db.from('field_service_orders').select('id', { count: 'exact', head: true }).neq('status', 'Sent'),
                     db.from('weld_reports').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
-                    db.from('maintenance_contracts').select('id', { count: 'exact', head: true }).gte('end_date', today).lte('end_date', in90),
+                    db.from('customer_maintenance_contract').select('id', { count: 'exact', head: true }).gte('end_date', today).lte('end_date', in90),
                     db.rpc('overdue_equipment', { months_threshold: 12 }, { count: 'exact', head: true })
                 ]);
                 globalCounts = {
@@ -2204,7 +2204,7 @@
                     .on('postgres_changes', { event: '*', schema: 'public', table: 'weld_reports' }, scheduleRefresh)
                     .on('postgres_changes', { event: '*', schema: 'public', table: 'controller_orders' }, scheduleRefresh)
                     .on('postgres_changes', { event: '*', schema: 'public', table: 'field_service_orders' }, scheduleRefresh)
-                    .on('postgres_changes', { event: '*', schema: 'public', table: 'maintenance_contracts' }, scheduleRefresh)
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'customer_maintenance_contract' }, scheduleRefresh)
                     .subscribe();
             } catch (e) {
                 // Realtime not available on this project/connection — the counts
