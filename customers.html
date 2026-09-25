@@ -109,6 +109,7 @@ td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
 tr.click{cursor:pointer}
 tr.click:hover td{background:var(--panel-2)}
 .table-card{padding:0;overflow:auto}
+.notes-cell{max-width:420px;white-space:pre-wrap;line-height:1.45}
 
 .state{padding:30px;text-align:center;color:var(--muted)}
 .spinner{width:22px;height:22px;border:2px solid var(--line);border-top-color:var(--red);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 10px}
@@ -297,7 +298,14 @@ async function open(ref, push = true) {
   const eqCol = data.record_type === 'customer' ? 'account_ref' : 'site_ref';
   const { count: eqCount } = await db.from('customer_equipment').select('equip_no', { count: 'exact', head: true }).eq(eqCol, ref);
   if (current !== ref) return;
-  drawDetail(data, spend, onStop, eqCount || 0);
+  const histName = data.record_type === 'customer' ? data.name : (byRef.get(data.parent_account)?.name || data.name);
+  let histCount = 0;
+  if (histName) {
+    const { count } = await db.from('service_visits').select('job_id', { count: 'exact', head: true }).ilike('customer_name', histName);
+    if (current !== ref) return;
+    histCount = count || 0;
+  }
+  drawDetail(data, spend, onStop, eqCount || 0, histName, histCount);
   $('detailPane').scrollTop = 0;
 }
 
@@ -308,7 +316,7 @@ function fmtDate(d) {
   return d ? new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
 }
 
-function drawDetail(c, spend, onStop, eqCount) {
+function drawDetail(c, spend, onStop, eqCount, histName, histCount) {
   const isCust = c.record_type === 'customer';
   const sites = isCust ? (sitesByParent.get(c.account_ref) || []) : [];
   const parent = !isCust && c.parent_account ? byRef.get(c.parent_account) : null;
@@ -331,6 +339,7 @@ function drawDetail(c, spend, onStop, eqCount) {
   const tabs = [['details', 'Details']];
   if (isCust) tabs.push(['sites', 'Sites', sites.length]);
   tabs.push(['equipment', 'Equipment', eqCount]);
+  if (histName) tabs.push(['history', 'History', histCount]);
   if (isCust) tabs.push(['spend', 'Spend']);
   if (c.notes) tabs.push(['notes', 'Notes']);
 
@@ -406,6 +415,7 @@ function drawDetail(c, spend, onStop, eqCount) {
     currentTab = k;
     document.querySelectorAll('.tab').forEach(b => b.classList.toggle('on', b.dataset.tab === k));
     if (k === 'equipment') renderEquipment(c, isCust);
+    else if (k === 'history') renderHistory(histName, c.account_ref);
     else $('tabBody').innerHTML = body[k]();
   };
   show(currentTab);
@@ -458,6 +468,51 @@ function paintEquipment(eq, isCust) {
     </table></div>`;
   draw('');
   $('eqFilter').addEventListener('input', () => draw($('eqFilter').value));
+}
+
+const histCache = new Map();
+async function renderHistory(histName, ref) {
+  if (!histName) { $('tabBody').innerHTML = '<div class="state">No service history available.</div>'; return; }
+  if (histCache.has(histName)) { paintHistory(histCache.get(histName)); return; }
+  $('tabBody').innerHTML = '<div class="state"><div class="spinner"></div>Loading service history…</div>';
+  const { data: visits, error } = await db.from('service_visits').select('*').ilike('customer_name', histName).order('visit_date', { ascending: false });
+  if (current !== ref) return;
+  if (error) { $('tabBody').innerHTML = `<div class="state">Couldn't load service history.<br><span class="dim">${esc(error.message)}</span></div>`; return; }
+  histCache.set(histName, visits);
+  paintHistory(visits);
+}
+
+function paintHistory(visits) {
+  if (currentTab !== 'history') return;
+  if (!visits.length) { $('tabBody').innerHTML = '<div class="state">No service visits recorded for this account.</div>'; return; }
+  const draw = term => {
+    const t = term.trim().toLowerCase();
+    const rows = !t ? visits : visits.filter(v => [v.equip_no, v.make_model, v.job_type, v.job_status, v.employee, v.description].some(x => x && x.toLowerCase().includes(t)));
+    $('histBody').innerHTML = rows.length
+      ? rows.map(v => `<tr>
+          <td>${fmtDate(v.visit_date)}</td>
+          <td>${val(v.equip_no)}</td>
+          <td>${val(v.make_model)}</td>
+          <td>${val(v.job_type)}</td>
+          <td>${val(v.employee)}</td>
+          <td class="notes-cell">${v.description ? esc(v.description) : val()}${v.work_report ? `<div class="dim" style="margin-top:4px">${esc(v.work_report)}</div>` : ''}</td>
+        </tr>`).join('')
+      : `<tr><td colspan="6" class="state">No matches.</td></tr>`;
+    $('histCountLine').textContent = `${rows.length.toLocaleString('en-GB')} of ${visits.length.toLocaleString('en-GB')}`;
+  };
+  $('tabBody').innerHTML = `
+    <div class="search" style="max-width:360px;margin-bottom:10px">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input id="histFilter" type="search" placeholder="Filter by equipment, job type, engineer…" autocomplete="off">
+    </div>
+    <div class="dim" id="histCountLine" style="font-size:12px;margin-bottom:8px"></div>
+    <div class="card table-card"><table>
+      <thead><tr><th>Date</th><th>Equip No</th><th>Make/Model</th><th>Job Type</th><th>Engineer</th><th>Notes</th></tr></thead>
+      <tbody id="histBody"></tbody>
+    </table></div>
+    <div class="dim" style="margin-top:14px;font-size:12px">From Protean's Equipment Job Visit History report — currently covers 11 Mar 2009 – 25 Sep 2009 only.</div>`;
+  draw('');
+  $('histFilter').addEventListener('input', () => draw($('histFilter').value));
 }
 
 function scrollListTo(ref) {
