@@ -1,903 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>(function(){try{var t=localStorage.getItem('portalTheme');if(!t){t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}document.documentElement.setAttribute('data-theme', t);}catch(e){}})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Active Maintenance Contracts — Narrow Aisle Service Portal</title>
 <script type="module" src="auth-guard.js"></script>
-<title>
- Active Maintenance Contracts — Narrow Aisle
-</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&family=Barlow+Condensed:wght@800&display=swap" rel="stylesheet">
-<style>
- *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
- :root {
-   --red: #df0a1e;
-   --red-dim: rgba(223,10,30,0.08);
-   --red-mid: rgba(223,10,30,0.3);
-   --bg: #FFFFFF;
-   --surface: #FFFFFF;
-   --surface2: #F5F5F5;
-   --border: rgba(0,0,0,0.1);
-   --border-hover: rgba(0,0,0,0.25);
-   --text: #101010;
-   --muted: #707070;
-   --mono: 'DM Mono', monospace;
-   --head: 'Syne', sans-serif;
-   --body: 'DM Sans', sans-serif;
- }
- html { scroll-behavior: smooth; }
- body {
-   font-family: var(--body);
-   background: var(--bg);
-   color: var(--text);
-   min-height: 100vh;
-   overflow-x: hidden;
- }
- body::before {
-   content:'';
-   position:fixed;
-   inset:0;
-   background-image:
-     radial-gradient(ellipse 80% 50% at 50% -10%, rgba(223,10,30,0.06) 0%, transparent 60%),
-     repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(0,0,0,0.025) 39px, rgba(0,0,0,0.025) 40px),
-     repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(0,0,0,0.025) 39px, rgba(0,0,0,0.025) 40px);
-   pointer-events:none;
-   z-index:0;
- }
-
- .app {
-   position: relative;
-   z-index: 1;
-   max-width: 1200px;
-   margin: 0 auto;
-   padding: 0 24px 80px;
- }
-
- .topbar {
-   display: flex;
-   align-items: center;
-   justify-content: space-between;
-   padding: 28px 0 40px;
-   border-bottom: 1px solid var(--border);
-   margin-bottom: 40px;
- }
- .topbar-left { display: flex; align-items: center; gap: 16px; }
- .back-btn {
-   display: inline-flex;
-   align-items: center;
-   justify-content: center;
-   width: 36px;
-   height: 36px;
-   border-radius: 8px;
-   background: none;
-   border: none;
-   color: var(--text);
-   cursor: pointer;
-   transition: color 0.15s, background 0.15s;
-   flex-shrink: 0;
- }
- .back-btn:hover { color: var(--red); background: var(--red-dim); }
- .brand { display: flex; align-items: center; gap: 16px; }
- .brand svg { height: 28px; width: auto; display: block; }
- .brand-divider { width: 1px; height: 28px; background: var(--border); }
- .brand-module {
-   font-family: var(--mono);
-   font-size: 11px;
-   letter-spacing: 2px;
-   color: var(--muted);
-   text-transform: uppercase;
- }
- .topbar-meta {
-   font-family: var(--mono);
-   font-size: 11px;
-   color: var(--muted);
-   letter-spacing: 1px;
-   text-align: right;
- }
- .topbar-meta strong { color: var(--red); font-weight: 500; }
-
- .page-title { margin-bottom: 36px; }
- .page-title .eyebrow {
-   font-family: var(--mono);
-   font-size: 11px;
-   letter-spacing: 3px;
-   color: var(--red);
-   text-transform: uppercase;
-   margin-bottom: 10px;
- }
- .page-title h1 {
-   font-family: 'Barlow Condensed', var(--head);
-   font-size: clamp(40px, 5.5vw, 64px);
-   font-weight: 800;
-   line-height: 1;
-   letter-spacing: -1px;
-   text-transform: uppercase;
-   color: #101010 !important;
- }
-
- .controls {
-   display: grid;
-   grid-template-columns: 1fr auto;
-   gap: 12px;
-   align-items: start;
-   margin-bottom: 20px;
- }
- .search-wrap { position: relative; }
- .search-icon {
-   position: absolute;
-   left: 14px;
-   top: 50%;
-   transform: translateY(-50%);
-   color: var(--muted);
-   pointer-events: none;
- }
- #searchInput {
-   width: 100%;
-   padding: 13px 42px 13px 42px;
-   background: var(--surface2);
-   border: 1px solid var(--border);
-   border-radius: 10px;
-   color: var(--text);
-   font-family: var(--body);
-   font-size: 15px;
-   outline: none;
-   transition: border-color 0.2s, box-shadow 0.2s;
- }
- #searchInput:focus {
-   border-color: var(--red);
-   box-shadow: 0 0 0 3px rgba(223,10,30,0.12);
- }
- #searchInput::placeholder { color: var(--muted); }
- #clearBtn {
-   position: absolute;
-   right: 12px;
-   top: 50%;
-   transform: translateY(-50%);
-   background: none;
-   border: none;
-   cursor: pointer;
-   color: var(--muted);
-   display: none;
-   padding: 4px;
-   border-radius: 6px;
-   line-height: 0;
-   transition: color 0.2s;
- }
- #clearBtn:hover { color: var(--text); }
-
- .filter-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
- .filter-btn {
-   padding: 7px 14px;
-   background: var(--surface2);
-   border: 1px solid var(--border);
-   border-radius: 20px;
-   color: var(--muted);
-   font-family: var(--mono);
-   font-size: 11px;
-   letter-spacing: 1px;
-   text-transform: uppercase;
-   cursor: pointer;
-   transition: all 0.2s;
-   font-weight: 500;
-   white-space: nowrap;
- }
- .filter-btn:hover { border-color: var(--border-hover); color: var(--text); }
- .filter-btn.active { background: var(--red-dim); border-color: var(--red-mid); color: var(--red); }
-
- .sort-select-wrap { display: flex; align-items: center; gap: 8px; }
- .sort-label {
-   font-family: var(--mono);
-   font-size: 11px;
-   color: var(--muted);
-   letter-spacing: 1px;
-   text-transform: uppercase;
-   white-space: nowrap;
- }
- #sortSelect {
-   padding: 13px 36px 13px 14px;
-   background: var(--surface2);
-   border: 1px solid var(--border);
-   border-radius: 10px;
-   color: var(--text);
-   font-family: var(--body);
-   font-size: 14px;
-   outline: none;
-   appearance: none;
-   cursor: pointer;
-   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23707070' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-   background-repeat: no-repeat;
-   background-position: right 12px center;
-   transition: border-color 0.2s;
- }
- #sortSelect:focus { border-color: var(--red); }
- #sortSelect option { background: #FFFFFF; color: #101010; }
-
- .stats-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-
- .view-toggle {
-  display: inline-flex; gap: 4px; background: var(--surface2); border: 1px solid var(--border);
-  border-radius: 10px; padding: 4px;
- }
- .view-toggle-btn {
-  padding: 7px 16px; background: none; border: none; border-radius: 7px; font-family: var(--mono);
-  font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); cursor: pointer;
-  transition: all 0.2s; font-weight: 500;
- }
- .view-toggle-btn.active { background: #FFFFFF; color: var(--red); box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-
- .revenue-card { display: none; }
- .revenue-card.show { display: block; }
- .revenue-stats {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 16px;
- }
- .rev-stat { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
- .rev-stat-value { font-family: var(--head); font-size: 26px; font-weight: 800; color: var(--red); line-height: 1; }
- .rev-stat-value.neutral { color: var(--text); }
- .rev-stat-label { font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; margin-top: 6px; }
- .revenue-charts { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 12px; }
- .rev-chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
- .rev-chart-card h3 { font-family: var(--mono); font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
- .rev-chart-card canvas { max-height: 260px; }
- .revenue-note { font-family: var(--mono); font-size: 11px; color: var(--muted); margin-bottom: 24px; }
- @media (max-width: 800px) { .revenue-charts { grid-template-columns: 1fr; } }
-
- .stats-text {
-   font-family: var(--mono);
-   font-size: 11px;
-   color: var(--muted);
-   letter-spacing: 1px;
-   text-transform: uppercase;
- }
- .stats-text strong { color: var(--red); font-weight: 500; }
-
- .table-card {
-   background: var(--surface);
-   border: 1px solid var(--border);
-   border-radius: 16px;
-   box-shadow: 0 2px 12px rgba(0,0,0,0.04);
-   position: relative;
- }
- .table-card::after {
-   content: '';
-   position: absolute;
-   top: 0; right: 0; bottom: 0;
-   width: 24px;
-   background: linear-gradient(to right, transparent, rgba(0,0,0,0.06));
-   pointer-events: none;
-   border-radius: 0 16px 16px 0;
- }
- .table-scroll {
-   overflow-x: auto;
-   -webkit-overflow-scrolling: touch;
-   border-radius: 16px 16px 0 0;
- }
- table { width: 100%; min-width: 900px; border-collapse: collapse; font-size: 14px; }
- thead { background: var(--surface2); border-bottom: 1px solid var(--border); }
- th {
-   padding: 12px 16px;
-   text-align: left;
-   font-family: var(--mono);
-   font-size: 10px;
-   font-weight: 500;
-   color: var(--muted);
-   letter-spacing: 2px;
-   text-transform: uppercase;
-   cursor: pointer;
-   user-select: none;
-   white-space: nowrap;
-   transition: color 0.2s;
- }
- th:hover { color: var(--text); }
- th.sorted-asc, th.sorted-desc { color: var(--red); }
- th .arrow { margin-left: 5px; opacity: 0.4; font-size: 9px; }
- th.sorted-asc .arrow::after { content: '▲'; opacity: 1; }
- th.sorted-desc .arrow::after { content: '▼'; opacity: 1; }
- th:not(.sorted-asc):not(.sorted-desc) .arrow::after { content: '⇅'; }
-
- tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
- tbody tr:last-child { border-bottom: none; }
- tbody tr:hover { background: rgba(0,0,0,0.02); }
- td { padding: 12px 16px; vertical-align: middle; }
-
- .company-cell { display: flex; align-items: center; gap: 12px; }
- .avatar {
-   width: 34px; height: 34px;
-   border-radius: 8px;
-   background: var(--red-dim);
-   border: 1px solid var(--red-mid);
-   color: var(--red);
-   font-family: var(--mono);
-   font-weight: 500;
-   font-size: 11px;
-   letter-spacing: 0.5px;
-   display: inline-flex;
-   align-items: center;
-   justify-content: center;
-   flex-shrink: 0;
-   text-transform: uppercase;
- }
- .company-text {
-   font-weight: 600;
-   font-size: 14px;
-   color: var(--text);
-   max-width: 220px;
-   overflow: hidden;
-   text-overflow: ellipsis;
-   white-space: nowrap;
- }
- .site-text {
-   font-size: 13px;
-   color: var(--text);
-   max-width: 220px;
-   overflow: hidden;
-   text-overflow: ellipsis;
-   white-space: nowrap;
- }
- .equip-tag {
-   display: inline-block;
-   padding: 4px 10px;
-   background: var(--surface2);
-   border: 1px solid var(--border);
-   border-radius: 6px;
-   font-family: var(--mono);
-   font-size: 12px;
-   font-weight: 500;
-   color: var(--text);
-   letter-spacing: 0.5px;
-   white-space: nowrap;
- }
- .make-text {
-   font-size: 12.5px;
-   color: var(--muted);
-   max-width: 200px;
-   overflow: hidden;
-   text-overflow: ellipsis;
-   white-space: nowrap;
- }
- .type-badge {
-   display: inline-block;
-   padding: 4px 11px;
-   border-radius: 6px;
-   font-size: 10.5px;
-   font-weight: 700;
-   text-transform: uppercase;
-   letter-spacing: 0.5px;
-   white-space: nowrap;
- }
- .type-badge.inclusive { background: rgba(223,10,30,0.1); color: var(--red); }
- .type-badge.preventative { background: rgba(76,175,80,0.1); color: #4caf50; }
- .type-badge.hire { background: rgba(33,150,243,0.1); color: #2196f3; }
- .type-badge.other { background: #f2f2f2; color: #606060; }
-
- .charge-text {
-   font-family: var(--mono);
-   font-size: 13px;
-   color: var(--text);
-   white-space: nowrap;
- }
- .charge-text.zero { color: var(--muted); }
-
- .date-text {
-   font-family: var(--mono);
-   font-size: 12.5px;
-   color: var(--text);
-   white-space: nowrap;
- }
- .date-text.expiring { color: var(--red); font-weight: 500; }
- .no-data { color: var(--muted); font-family: var(--mono); font-size: 12px; }
-
- .empty-state { padding: 72px 32px; text-align: center; color: var(--muted); }
- .empty-state .icon { font-size: 36px; margin-bottom: 16px; opacity: 0.4; }
- .empty-state h3 { font-family: var(--head); font-size: 20px; color: var(--text); margin-bottom: 8px; }
- .empty-state p { font-size: 14px; color: var(--muted); }
-
- .pagination {
-   display: flex;
-   align-items: center;
-   justify-content: center;
-   gap: 4px;
-   padding: 16px;
-   border-top: 1px solid var(--border);
-   background: var(--surface2);
-   border-radius: 0 0 16px 16px;
- }
- .page-btn {
-   min-width: 34px; height: 34px;
-   padding: 0 8px;
-   border: 1px solid transparent;
-   border-radius: 8px;
-   background: none;
-   font-family: var(--mono);
-   font-size: 12px;
-   cursor: pointer;
-   color: var(--muted);
-   transition: all 0.15s;
-   letter-spacing: 0.5px;
- }
- .page-btn:hover { background: var(--surface); border-color: var(--border); color: var(--text); }
- .page-btn.active { background: var(--red); border-color: var(--red); color: #fff; }
- .page-btn:disabled { opacity: 0.25; cursor: not-allowed; }
- .page-btn:disabled:hover { background: none; border-color: transparent; color: var(--muted); }
- .page-ellipsis { color: var(--muted); padding: 0 2px; font-size: 12px; font-family: var(--mono); }
-
- mark { background: rgba(223,10,30,0.18); color: var(--red); border-radius: 2px; padding: 0 1px; }
-
- @media (max-width: 768px) {
-   .controls { grid-template-columns: 1fr; }
-   .sort-select-wrap { justify-content: flex-start; }
-   .app { padding: 0 16px 60px; }
- }
-</style>
-<div class="app">
-
- <div class="topbar">
-  <div class="topbar-left">
-   <button class="back-btn" onclick="goBack()" title="Back" aria-label="Back">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-     <polyline points="15 18 9 12 15 6"/>
-    </svg>
-   </button>
-   <div class="brand">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 841.9 497.3" style="height:28px;width:auto;display:block;">
-     <style>.st0{fill:#101010;}</style>
-     <g>
-      <path class="st0" d="M724.9,251.8l9.8-4.4c0.7-0.3,1.5-0.2,2.1,0.2l21.4,13.9c1.4,0.9,1.4,3.1-0.1,3.9l-8.5,4.9c-0.7,0.4-1.6,0.4-2.3-0.1l-22.7-14.4C723.1,254.8,723.2,252.5,724.9,251.8"/>
-      <path class="st0" d="M465.5,354.3c-3.9-1.9-6.2-15.3,4.1-34.8c8-15.1,17.6-20.8,22.6-22.6c5.2-1.9,8.9-0.1,10,1c5.6,5.8,0.6,20-6.5,31.4C487.1,343.2,471.1,357,465.5,354.3 M806,352.8c-8.6,14.7-20.3,14-29.1,8.3c-7.7-5-13.3-26-16.2-34.6c-3.1-9-11.7-19.9-21.8-19.9c-13.1,0-30.8,36.5-35.8,42.1c-11.6,12.8-38.3,28-60.3,14.1c-12.1-7.6-28.3-29-28.3-29s49.6-49.4,51.6-52.3l-18.8-19.1c-2.3,3.8-48.6,51.6-50.4,51.6c-1.8,0-22.7-34.8-25.3-38c0,0-31.1-3-32.5-1.6c0,0,40.1,55.2,38.8,57.5c-2,3.3-45.5,34.9-56,40.5c-21.1,11.1-38.5,6.4-38.5,6.4s30.2-25.5,40.3-45.5c5-9.8,23.1-42.2-16.6-60.4c-23.6-10.8-44.4-1.6-63.6,26.8c-21.1,31-4.3,75.7-4.3,75.7s-23.6,16.7-44.6,1.3c-15.4-11.2-26.2-49.6-28.8-85.2c-3.9-52.6,6.8-158.4,6.8-158.4l-47.3-13.9c0,0,6,51.3-5.2,93.9c-26.9,102.3-97,128.4-104.6,129.3c-7.6,0.9-7.6-52.3-59.1-145C122.7,136.8,60,68.7,60.9,65.5c0.9-3.2,81.3-26.5,150.3-28.4c96.8-2.7,185.3,3,191.5,9.3c6.3,6.4-25.5,16.6,6.7,31.4c15.1,6.9,27.3-5.9,32.9-13.5c2.3-3.2,2.1-7.6-0.4-10.5C430.3,40.4,387.4,7.2,249,11.9C76.6,17.8,15.7,44.2,12.1,50.1s107.1,130.9,138,206.3c24.7,60.2,32.3,97.3,31.4,101.4c-0.9,4.1-44.4,1.4-44.4,1.4l13,21.4l35.4-1c0,0,3.9,24.3-1.8,42.7c-7.9,25.4-22.8,37.7-22.8,42.3l30.9,17.7c0,0,19.5-14.3,25.5-54.6c3-20.2,0-47.7,0-47.7s30.1-8.8,60.5-31.4c30.2-22.5,52.4-60,52.4-60s16.5,73.6,37.7,94.9c25.9,25.9,59,26.5,94,11.5c8.1,3.9,15.5,6.6,22.1,8.5c19.5,5.7,40.4,2.5,57.6-8.5c16.4-10.4,41-30.3,55.5-43.4c2.7-2.4,37.2,42.7,83.1,37.6c30.9-3.4,42.8-19,55.6-39c6.6-10.2,13.7,20.7,45.9,32.5c18.4,6.7,37.5,0.2,44.3-11C837,354,814.7,337.9,806,352.8"/>
-     </g>
-    </svg>
-    <div class="brand-divider"></div>
-    <div class="brand-module">Maintenance Contracts</div>
-   </div>
-  </div>
-  <div class="topbar-meta">
-   <strong id="totalCount">0</strong> contracts
-  </div>
- </div>
-
- <div class="page-title">
-  <div class="eyebrow">Portal Directory</div>
-  <h1>Active Maintenance Contracts</h1>
- </div>
-
- <div class="controls">
-  <div class="search-wrap">
-   <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-    <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
-   </svg>
-   <input type="text" id="searchInput" placeholder="Search customer, site, equipment, contract type…" autocomplete="off" spellcheck="false">
-   <button id="clearBtn" title="Clear">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-     <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-    </svg>
-   </button>
-  </div>
-  <div class="sort-select-wrap">
-   <span class="sort-label">Sort</span>
-   <select id="sortSelect">
-    <option value="company">Customer A–Z</option>
-    <option value="company-desc">Customer Z–A</option>
-    <option value="start-desc">Newest Start</option>
-    <option value="end-asc">Expiring Soonest</option>
-    <option value="charge-desc">Highest Charge</option>
-   </select>
-  </div>
- </div>
-
- <div class="filter-row">
-  <button class="filter-btn active" data-filter="all">All Contracts</button>
-  <button class="filter-btn" data-filter="Inclusive Maintenance">Inclusive Maintenance</button>
-  <button class="filter-btn" data-filter="Preventative Maintenance">Preventative Maintenance</button>
-  <button class="filter-btn" data-filter="Hire Maintenance">Hire Maintenance</button>
-  <button class="filter-btn" data-filter="expiring">Expiring Within 90 Days</button>
-  <span style="flex:1"></span>
-  <div class="view-toggle">
-   <button class="view-toggle-btn active" id="tableViewBtn">Table</button>
-   <button class="view-toggle-btn" id="revenueViewBtn">Revenue</button>
-  </div>
- </div>
-
- <div class="stats-bar">
-  <div class="stats-text">Showing <strong id="showingCount">0</strong> results</div>
-  <div class="stats-text" id="pageInfo"></div>
- </div>
-
- <div class="revenue-card" id="revenueCard">
-  <div class="revenue-stats">
-   <div class="rev-stat"><div class="rev-stat-value" id="revTotalValue">£0</div><div class="rev-stat-label">Active Annual Value</div></div>
-   <div class="rev-stat"><div class="rev-stat-value neutral" id="revActiveCount">0</div><div class="rev-stat-label">Active Contracts</div></div>
-   <div class="rev-stat"><div class="rev-stat-value neutral" id="revAvgValue">£0</div><div class="rev-stat-label">Avg Contract Value</div></div>
-   <div class="rev-stat"><div class="rev-stat-value" id="revAtRisk">£0</div><div class="rev-stat-label">Value Expiring in 90 Days</div></div>
-  </div>
-  <div class="revenue-charts">
-   <div class="rev-chart-card">
-    <h3>Top 10 Customers by Contract Value</h3>
-    <canvas id="topCustChart"></canvas>
-   </div>
-   <div class="rev-chart-card">
-    <h3>Renewal Value by Month (Next 12 Months)</h3>
-    <canvas id="renewalChart"></canvas>
-   </div>
-  </div>
-  <div class="revenue-note" id="revenueNote"></div>
- </div>
-
- <div class="table-card" id="tableCard">
-  <div class="table-scroll">
-   <table>
-    <thead>
-     <tr>
-      <th data-col="company">Customer <span class="arrow"></span></th>
-      <th data-col="site">Site <span class="arrow"></span></th>
-      <th data-col="equip">Equipment <span class="arrow"></span></th>
-      <th data-col="type">Contract Type <span class="arrow"></span></th>
-      <th data-col="charge">Annual Charge <span class="arrow"></span></th>
-      <th data-col="start">Start <span class="arrow"></span></th>
-      <th data-col="end">End <span class="arrow"></span></th>
-     </tr>
-    </thead>
-    <tbody id="tableBody">
-     <tr><td colspan="7" style="padding:40px 16px;text-align:center;color:var(--muted);font-family:var(--mono);font-size:12px;">Loading contracts…</td></tr>
-    </tbody>
-   </table>
-  </div>
-  <div id="emptyState" class="empty-state" style="display:none;">
-   <div class="icon">◎</div>
-   <h3>No contracts found</h3>
-   <p>Try adjusting your search or filter</p>
-  </div>
-  <div class="pagination" id="pagination"></div>
- </div>
-
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --bg-page:#f7f7f7;
+    --bg-surface:#ffffff;
+    --bg-surface-alt:#f0f0f0;
+    --border-color:#e4e4e4;
+    --border-strong:#d4d4d4;
+    --text-primary:#0a0a0a;
+    --text-secondary:#4a4a4a;
+    --text-tertiary:#8a8a8a;
+    --shadow-rgb:10,10,10;
+    --accent:#df0a1e;
+    --accent-hover:#c3161e;
+    --accent-soft:rgba(223,10,30,0.07);
+    --accent-soft-strong:rgba(223,10,30,0.14);
+    --warning:#b9750a;
+    --warning-soft:rgba(185,117,10,0.1);
+    --success:#1a9d55;
+    --success-soft:rgba(26,157,85,0.1);
+    --info:#2f6fed;
+    --info-soft:rgba(47,111,237,0.1);
+    --danger-bg:#fff4f4;
+    --danger-border:#f3c4c4;
+    --danger-text:#7a1520;
+    --radius-sm:6px;
+    --radius-md:8px;
+    --radius-lg:14px;
+    color-scheme:light;
+  }
+  :root[data-theme="dark"]{
+    --bg-page:#0b0b0d;
+    --bg-surface:#17171a;
+    --bg-surface-alt:#1c1c1f;
+    --border-color:#29292e;
+    --border-strong:#38383e;
+    --text-primary:#f3f3f4;
+    --text-secondary:#a5a5ac;
+    --text-tertiary:#7c7c84;
+    --shadow-rgb:0,0,0;
+    --accent-soft:rgba(223,10,30,0.16);
+    --accent-soft-strong:rgba(223,10,30,0.26);
+    --warning-soft:rgba(185,117,10,0.18);
+    --success-soft:rgba(26,157,85,0.18);
+    --info-soft:rgba(47,111,237,0.18);
+    --danger-bg:rgba(223,10,30,0.12);
+    --danger-border:rgba(223,10,30,0.38);
+    --danger-text:#ff9b9b;
+    color-scheme:dark;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'IBM Plex Sans',sans-serif;background:var(--bg-page);color:var(--text-primary);transition:background-color .2s ease,color .2s ease;}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+
+  header{
+    background:#0a0a0a;color:#fff;padding:0;
+    display:flex;align-items:stretch;justify-content:space-between;
+    border-bottom:3px solid var(--accent);
+    position:sticky;top:0;z-index:50;
+  }
+  .breadcrumb{display:flex;align-items:center;gap:10px;padding:16px 28px;color:#fff;text-decoration:none;}
+  .breadcrumb:hover .crumb-home{color:#fff;}
+  .breadcrumb:hover .crumb-back{border-color:var(--accent);color:var(--accent);}
+  .crumb-back{width:30px;height:30px;border-radius:8px;border:1px solid #333;display:flex;align-items:center;justify-content:center;color:#ccc;transition:all .15s ease;flex-shrink:0;}
+  .crumb-back svg{width:15px;height:15px;}
+  .crumb-home{font-size:13px;color:#ccc;transition:color .15s ease;}
+  .crumb-sep{color:#555;font-size:13px;}
+  .crumb-current{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#fff;font-weight:500;}
+  .header-actions{display:flex;align-items:center;gap:14px;padding:14px 24px;}
+  .topbar-count{font-family:'DM Mono',monospace;font-size:12px;color:#ccc;letter-spacing:.03em;white-space:nowrap;}
+  .topbar-count strong{color:#fff;font-weight:600;}
+  .ghost-btn{background:none;border:1px solid #333;color:#ccc;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;transition:all .15s ease;}
+  .ghost-btn:hover{border-color:var(--accent);color:#fff;}
+  .icon-btn{width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:none;border:1px solid #333;border-radius:8px;color:#ccc;cursor:pointer;transition:all .15s ease;}
+  .icon-btn svg{width:16px;height:16px;}
+  .icon-btn:hover{border-color:var(--accent);color:#fff;}
+
+  main{max-width:1180px;margin:0 auto;padding:32px 28px 48px;}
+  h1{font-size:24px;margin:0 0 6px;font-weight:700;letter-spacing:-.2px;}
+  .page-subtitle{margin:0 0 24px;font-size:13.5px;color:var(--text-secondary);}
+
+  .tabs{display:flex;gap:4px;margin-bottom:20px;border-bottom:1px solid var(--border-color);}
+  .tab{padding:11px 18px;font-size:13px;font-weight:600;color:var(--text-tertiary);cursor:pointer;border-bottom:2px solid transparent;user-select:none;transition:color .15s ease,border-color .15s ease;}
+  .tab:hover{color:var(--text-primary);}
+  .tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+  .panel{display:none;}
+  .panel.active{display:block;animation:fadeIn .3s ease;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+  .kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:26px;}
+  .kpi{background:var(--bg-surface-alt);border:1px solid var(--border-color);border-radius:var(--radius-md);padding:18px 20px;position:relative;overflow:hidden;transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease;}
+  .kpi::after{content:'';position:absolute;left:0;bottom:0;width:100%;height:3px;background:linear-gradient(90deg,var(--accent),#ff8a8a);transform:scaleX(0);transform-origin:left;transition:transform .4s cubic-bezier(.16,1,.3,1);}
+  .kpi:hover{transform:translateY(-3px);box-shadow:0 12px 24px rgba(var(--shadow-rgb),.1);border-color:var(--accent-soft-strong);}
+  .kpi:hover::after{transform:scaleX(1);}
+  .kpi .num{font-family:'DM Mono',monospace;font-size:26px;font-weight:500;color:var(--accent);line-height:1;}
+  .kpi .num.neutral{color:var(--text-primary);}
+  .kpi .label{font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;margin-top:8px;}
+
+  .chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:14px;}
+  @media (max-width:800px){.chart-grid{grid-template-columns:1fr;}}
+  .chart-card{background:var(--bg-surface);border:1px solid var(--border-color);border-radius:var(--radius-lg);padding:20px 22px;transition:border-color .2s ease;}
+  .chart-card h3{margin:0 0 16px;font-size:13.5px;font-weight:700;color:var(--text-primary);}
+  .bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+  .bar-row:last-child{margin-bottom:0;}
+  .bar-label{width:130px;font-size:12px;color:var(--text-secondary);flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .bar-track{flex:1;background:var(--bg-surface-alt);border-radius:4px;height:14px;position:relative;overflow:hidden;}
+  .bar-fill{background:linear-gradient(90deg,var(--accent),var(--accent-hover));height:100%;border-radius:4px;width:0;transition:width .7s cubic-bezier(.16,1,.3,1);}
+  .bar-val{font-family:'DM Mono',monospace;font-size:11px;color:var(--text-secondary);width:70px;text-align:right;flex-shrink:0;}
+
+  .note{background:var(--bg-surface);border:1px solid var(--border-color);border-left:4px solid var(--warning);border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:4px;font-size:12.5px;color:var(--text-secondary);line-height:1.5;}
+
+  .controls-row{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+  .controls-row input[type=search]{flex:1;min-width:240px;}
+  .sort-label{font-size:12px;color:var(--text-secondary);white-space:nowrap;}
+  select,input[type=search]{padding:9px 11px;border:1.5px solid var(--border-color);border-radius:var(--radius-sm);font-family:'IBM Plex Sans',sans-serif;font-size:13px;background:var(--bg-surface);color:var(--text-primary);}
+  input[type=search]:focus,select:focus{outline:none;border-color:var(--accent);}
+
+  .subtabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+  .subtab{background:var(--bg-surface);border:1.5px solid var(--border-color);border-radius:20px;padding:8px 16px;font-family:'IBM Plex Sans',sans-serif;font-size:12.5px;font-weight:600;color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;gap:8px;transition:all .15s ease;white-space:nowrap;}
+  .subtab:hover{border-color:var(--border-strong);}
+  .subtab.active{border-color:var(--accent);color:var(--accent);background:var(--accent-soft);}
+  .subtab .count{font-family:'DM Mono',monospace;font-size:11px;background:var(--bg-surface-alt);color:var(--text-secondary);border-radius:10px;padding:1px 7px;}
+  .subtab.active .count{background:var(--accent);color:#fff;}
+
+  .rowcount{font-size:12px;color:var(--text-tertiary);margin-bottom:10px;}
+  .rowcount strong{color:var(--text-secondary);}
+
+  .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  table{width:100%;min-width:900px;border-collapse:collapse;background:var(--bg-surface);border-radius:var(--radius-lg);overflow:hidden;border:1px solid var(--border-color);}
+  th,td{text-align:left;padding:11px 14px;font-size:13px;border-bottom:1px solid var(--border-color);}
+  th{background:var(--bg-surface-alt);font-weight:600;color:var(--text-secondary);text-transform:uppercase;font-size:10.5px;letter-spacing:.05em;cursor:pointer;user-select:none;white-space:nowrap;transition:color .15s ease;}
+  th:hover{color:var(--text-primary);}
+  th.sorted-asc,th.sorted-desc{color:var(--accent);}
+  th .arrow{margin-left:5px;opacity:.4;font-size:9px;}
+  th.sorted-asc .arrow::after{content:'▲';opacity:1;}
+  th.sorted-desc .arrow::after{content:'▼';opacity:1;}
+  th:not(.sorted-asc):not(.sorted-desc) .arrow::after{content:'⇅';}
+  tbody tr{transition:background-color .12s ease;}
+  tbody tr:hover{background:var(--accent-soft);}
+  tr:last-child td{border-bottom:none;}
+
+  .company-cell{display:flex;align-items:center;gap:12px;}
+  .avatar{width:32px;height:32px;border-radius:var(--radius-sm);background:var(--accent-soft);border:1px solid var(--accent-soft-strong);color:var(--accent);font-family:'DM Mono',monospace;font-weight:500;font-size:11px;letter-spacing:.5px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;text-transform:uppercase;}
+  .company-text{font-weight:600;font-size:13.5px;color:var(--text-primary);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .site-text{font-size:13px;color:var(--text-primary);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .equip-tag{display:inline-block;padding:4px 10px;background:var(--bg-surface-alt);border:1px solid var(--border-color);border-radius:6px;font-family:'DM Mono',monospace;font-size:12px;font-weight:500;color:var(--text-primary);letter-spacing:.5px;white-space:nowrap;}
+  .make-text{font-size:12.5px;color:var(--text-tertiary);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px;}
+  .type-badge{display:inline-block;padding:4px 11px;border-radius:6px;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;}
+  .type-badge.inclusive{background:var(--accent-soft);color:var(--accent);}
+  .type-badge.preventative{background:var(--success-soft);color:var(--success);}
+  .type-badge.hire{background:var(--info-soft);color:var(--info);}
+  .type-badge.other{background:var(--bg-surface-alt);color:var(--text-secondary);}
+  .charge-text{font-family:'DM Mono',monospace;font-size:13px;color:var(--text-primary);white-space:nowrap;}
+  .charge-text.zero{color:var(--text-tertiary);}
+  .date-text{font-family:'DM Mono',monospace;font-size:12.5px;color:var(--text-primary);white-space:nowrap;}
+  .date-text.expiring{color:var(--accent);font-weight:500;}
+  .no-data{color:var(--text-tertiary);font-family:'DM Mono',monospace;font-size:12px;}
+  mark{background:var(--accent-soft-strong);color:var(--accent);border-radius:2px;padding:0 1px;}
+
+  .pagination{display:flex;align-items:center;justify-content:center;gap:4px;padding:14px;margin-top:12px;border:1px solid var(--border-color);border-radius:var(--radius-lg);background:var(--bg-surface-alt);}
+  .page-btn{min-width:34px;height:34px;padding:0 8px;border:1px solid transparent;border-radius:var(--radius-sm);background:none;font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;color:var(--text-tertiary);transition:all .15s ease;letter-spacing:.5px;}
+  .page-btn:hover{background:var(--bg-surface);border-color:var(--border-color);color:var(--text-primary);}
+  .page-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .page-btn:disabled{opacity:.25;cursor:not-allowed;}
+  .page-btn:disabled:hover{background:none;border-color:transparent;color:var(--text-tertiary);}
+  .page-ellipsis{color:var(--text-tertiary);padding:0 2px;font-size:12px;font-family:'DM Mono',monospace;}
+
+  .empty{padding:44px 20px;text-align:center;color:var(--text-tertiary);font-size:14px;background:var(--bg-surface);border:1px solid var(--border-color);border-radius:var(--radius-lg);}
+
+  @media (prefers-reduced-motion: reduce){
+    .panel.active,.bar-fill{animation:none!important;transition:none!important;}
+  }
+  ::-webkit-scrollbar{width:8px;height:8px;}
+  ::-webkit-scrollbar-track{background:var(--bg-surface-alt);}
+  ::-webkit-scrollbar-thumb{background:var(--accent);border-radius:4px;}
+
+  @media (max-width:768px){
+    main{padding:24px 16px 40px;}
+    .controls-row{flex-direction:column;align-items:stretch;}
+  }
+</style>
+</head>
+<body>
+<header>
+  <a class="breadcrumb" href="portal-hub-professional.html" onclick="goBack(event)">
+    <span class="crumb-back">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"></path></svg>
+    </span>
+    <span class="crumb-home">Service Portal</span>
+    <span class="crumb-sep">/</span>
+    <span class="crumb-current">Maintenance Contracts</span>
+  </a>
+  <div class="header-actions">
+    <span class="topbar-count"><strong id="totalCount">0</strong> contracts</span>
+    <button class="icon-btn" id="themeToggleBtn" aria-label="Toggle dark mode" title="Toggle dark mode">
+      <svg id="themeIconSun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.2"></circle><path d="M12 2.5v2.5M12 19v2.5M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2.5 12h2.5M19 12h2.5M4.2 19.8L6 18M18 6l1.8-1.8"></path></svg>
+      <svg id="themeIconMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"></path></svg>
+    </button>
+    <button class="ghost-btn" onclick="logout()">Sign out</button>
+  </div>
+</header>
+
+<main>
+  <h1>Active Maintenance Contracts</h1>
+  <p class="page-subtitle">Every live maintenance contract by customer and site, synced from Supabase.</p>
+
+  <div class="controls-row">
+    <input type="search" id="searchInput" placeholder="Search customer, site, equipment, contract type…" autocomplete="off" spellcheck="false">
+    <span class="sort-label">Sort</span>
+    <select id="sortSelect">
+      <option value="company">Customer A–Z</option>
+      <option value="company-desc">Customer Z–A</option>
+      <option value="start-desc">Newest Start</option>
+      <option value="end-asc">Expiring Soonest</option>
+      <option value="charge-desc">Highest Charge</option>
+    </select>
+  </div>
+
+  <div class="subtabs">
+    <button class="subtab active" data-filter="all">All Contracts <span class="count" id="cntAll">–</span></button>
+    <button class="subtab" data-filter="Inclusive Maintenance">Inclusive Maintenance <span class="count" id="cntInclusive">–</span></button>
+    <button class="subtab" data-filter="Preventative Maintenance">Preventative Maintenance <span class="count" id="cntPreventative">–</span></button>
+    <button class="subtab" data-filter="Hire Maintenance">Hire Maintenance <span class="count" id="cntHire">–</span></button>
+    <button class="subtab" data-filter="expiring">Expiring Within 90 Days <span class="count" id="cntExpiring">–</span></button>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="table">Table</div>
+    <div class="tab" data-tab="revenue">Revenue</div>
+  </div>
+
+  <div class="panel active" id="panel-table">
+    <div class="rowcount" id="rowcountLine"></div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th data-col="company">Customer <span class="arrow"></span></th>
+            <th data-col="site">Site <span class="arrow"></span></th>
+            <th data-col="equip">Equipment <span class="arrow"></span></th>
+            <th data-col="type">Contract Type <span class="arrow"></span></th>
+            <th data-col="charge">Annual Charge <span class="arrow"></span></th>
+            <th data-col="start">Start <span class="arrow"></span></th>
+            <th data-col="end">End <span class="arrow"></span></th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <tr><td colspan="7" style="padding:40px 16px;text-align:center;color:var(--text-tertiary);font-family:'DM Mono',monospace;font-size:12px;">Loading contracts…</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="pagination" id="pagination"></div>
+  </div>
+
+  <div class="panel" id="panel-revenue">
+    <div class="kpi-row">
+      <div class="kpi"><div class="num" id="revTotalValue">£0</div><div class="label">Active Annual Value</div></div>
+      <div class="kpi"><div class="num neutral" id="revActiveCount">0</div><div class="label">Active Contracts</div></div>
+      <div class="kpi"><div class="num neutral" id="revAvgValue">£0</div><div class="label">Avg Contract Value</div></div>
+      <div class="kpi"><div class="num" id="revAtRisk">£0</div><div class="label">Value Expiring in 90 Days</div></div>
+    </div>
+    <div class="chart-grid">
+      <div class="chart-card">
+        <h3>Top 10 Customers by Contract Value</h3>
+        <div id="topCustChart" class="empty">No data yet.</div>
+      </div>
+      <div class="chart-card">
+        <h3>Renewal Value by Month (Next 12 Months)</h3>
+        <div id="renewalChart" class="empty">No data yet.</div>
+      </div>
+    </div>
+    <div class="note" id="revenueNote" style="display:none;"></div>
+  </div>
+</main>
+
 <script>
- function goBack() {
-   try {
-     if (document.referrer && new URL(document.referrer).host === window.location.host) {
-       window.history.back();
-     } else {
-       window.location.href = 'portal-hub-professional.html';
-     }
-   } catch (e) {
-     window.location.href = 'portal-hub-professional.html';
-   }
- }
+  // ===== Supabase project config =====
+  const SUPABASE_URL = 'https://hkwcdpqpduptjwroawrw.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_ym0_ostk5WkdHGhGEGSkXw_d1sHadPY';
+  const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  // =====================================
 
- // ===== Supabase project config =====
- const SUPABASE_URL = 'https://hkwcdpqpduptjwroawrw.supabase.co';
- const SUPABASE_KEY = 'sb_publishable_ym0_ostk5WkdHGhGEGSkXw_d1sHadPY';
- const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
- // =====================================
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
- const PAGE_SIZE = 50;
- let DATA = [];
- let filtered = [], currentPage = 1, sortCol = 'company', sortDir = 1, searchTerm = '', activeFilter = 'all';
- let currentView = 'table';
- let revCharts = { topCust: null, renewal: null };
+  // ===== Theme (shared with the rest of the portal via the same localStorage key) =====
+  (function initTheme(){
+    const sunIcon = document.getElementById('themeIconSun');
+    const moonIcon = document.getElementById('themeIconMoon');
+    function reflect(theme){
+      sunIcon.style.display = theme === 'dark' ? 'none' : 'block';
+      moonIcon.style.display = theme === 'dark' ? 'block' : 'none';
+    }
+    function applyTheme(theme){
+      document.documentElement.setAttribute('data-theme', theme);
+      try { localStorage.setItem('portalTheme', theme); } catch(e){}
+      reflect(theme);
+    }
+    reflect(document.documentElement.getAttribute('data-theme') || 'light');
+    document.getElementById('themeToggleBtn').addEventListener('click', () => {
+      const now = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      applyTheme(now);
+    });
+  })();
 
- function switchView(view) {
-   currentView = view;
-   const tableCard = document.getElementById('tableCard');
-   const revenueCard = document.getElementById('revenueCard');
-   const tableBtn = document.getElementById('tableViewBtn');
-   const revBtn = document.getElementById('revenueViewBtn');
-   if (view === 'revenue') {
-     tableCard.style.display = 'none';
-     revenueCard.classList.add('show');
-     tableBtn.classList.remove('active');
-     revBtn.classList.add('active');
-     updateRevenueView(filtered);
-   } else {
-     tableCard.style.display = '';
-     revenueCard.classList.remove('show');
-     tableBtn.classList.add('active');
-     revBtn.classList.remove('active');
-   }
- }
+  async function logout(){
+    await db.auth.signOut();
+    localStorage.clear();
+    window.location.href = 'login.html';
+  }
 
- function updateRevenueView(rows) {
-   const isActive = r => !r.end_date || new Date(r.end_date) >= new Date();
-   const active = rows.filter(r => isActive(r) && Number(r.annual_charge) > 0);
-   const totalValue = active.reduce((sum, r) => sum + Number(r.annual_charge), 0);
-   const avgValue = active.length ? totalValue / active.length : 0;
-   const atRisk = active.filter(r => isExpiringSoon(r.end_date)).reduce((sum, r) => sum + Number(r.annual_charge), 0);
+  function goBack(event) {
+    try {
+      if (document.referrer && new URL(document.referrer).host === window.location.host) {
+        event.preventDefault();
+        window.history.back();
+      }
+    } catch (e) {}
+  }
 
-   document.getElementById('revTotalValue').textContent = fmtCharge(totalValue) || '£0';
-   document.getElementById('revActiveCount').textContent = active.length.toLocaleString();
-   document.getElementById('revAvgValue').textContent = fmtCharge(avgValue) || '£0';
-   document.getElementById('revAtRisk').textContent = fmtCharge(atRisk) || '£0';
+  const PAGE_SIZE = 50;
+  let DATA = [];
+  let filtered = [], currentPage = 1, sortCol = 'company', sortDir = 1, searchTerm = '', activeFilter = 'all';
 
-   const zeroCount = rows.filter(r => isActive(r) && !(Number(r.annual_charge) > 0)).length;
-   document.getElementById('revenueNote').textContent = zeroCount
-     ? `Note: ${zeroCount.toLocaleString()} active contract(s) in the current view have no annual charge on file (mostly Preventative/Hire Maintenance, which are billed per-visit rather than a fixed annual fee) and aren't counted in these figures.`
-     : '';
+  function esc(s) {
+    return (s||'').toString().replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function highlight(text, term) {
+    if (!term || !text) return esc(text||'');
+    return esc(text).replace(new RegExp('(' + term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ')', 'gi'), '<mark>$1</mark>');
+  }
+  function initials(name) {
+    const words = (name||'').trim().split(/\s+/).filter(Boolean);
+    if (!words.length) return '?';
+    return (words[0][0] + (words[1] ? words[1][0] : '')).toUpperCase();
+  }
+  function fmtDate(d) {
+    if (!d) return null;
+    const dt = new Date(d + 'T00:00:00');
+    return dt.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+  function fmtCharge(c) {
+    const n = Number(c);
+    if (!n) return null;
+    return '£' + n.toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  }
+  function typeBadgeClass(t) {
+    if (t === 'Inclusive Maintenance') return 'inclusive';
+    if (t === 'Preventative Maintenance') return 'preventative';
+    if (t === 'Hire Maintenance') return 'hire';
+    return 'other';
+  }
+  function isExpiringSoon(endDate) {
+    if (!endDate) return false;
+    const end = new Date(endDate + 'T00:00:00');
+    const now = new Date();
+    const diffDays = (end - now) / (1000*60*60*24);
+    return diffDays >= 0 && diffDays <= 90;
+  }
 
-   // Top 10 customers by contract value
-   const byCust = {};
-   active.forEach(r => {
-     const key = r.cust_name || 'Unknown';
-     byCust[key] = (byCust[key] || 0) + Number(r.annual_charge);
-   });
-   const topCust = Object.entries(byCust).sort((a,b) => b[1]-a[1]).slice(0, 10);
+  // Renders a set of {label, value} rows into the CSS bar-chart component used
+  // throughout the portal (insights-dashboard.html's .bar-row pattern).
+  function renderBarChart(containerId, items) {
+    const el = document.getElementById(containerId);
+    if (!el) return;
+    if (!items || !items.length) { el.className = 'empty'; el.innerHTML = 'No data yet.'; return; }
+    el.className = '';
+    const max = Math.max(...items.map(i => i.value));
+    el.innerHTML = items.map(i => {
+      const pct = max ? (i.value / max * 100) : 0;
+      return `<div class="bar-row">
+        <div class="bar-label" title="${esc(i.label)}">${esc(i.label)}</div>
+        <div class="bar-track"><div class="bar-fill" data-pct="${pct}" style="width:0"></div></div>
+        <div class="bar-val">${fmtCharge(i.value) || '£0'}</div>
+      </div>`;
+    }).join('');
+    requestAnimationFrame(() => {
+      el.querySelectorAll('.bar-fill').forEach(bar => {
+        bar.style.width = bar.dataset.pct + '%';
+      });
+    });
+  }
 
-   if (revCharts.topCust) { revCharts.topCust.destroy(); revCharts.topCust = null; }
-   const topCustEl = document.getElementById('topCustChart');
-   if (topCustEl && topCust.length) {
-     revCharts.topCust = new Chart(topCustEl, {
-       type: 'bar',
-       data: {
-         labels: topCust.map(([name]) => name.length > 22 ? name.slice(0,20)+'…' : name),
-         datasets: [{ data: topCust.map(([,v]) => v), backgroundColor: '#df0a1e', borderRadius: 4 }]
-       },
-       options: {
-         indexAxis: 'y', responsive: true, maintainAspectRatio: false,
-         plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => '£' + ctx.parsed.x.toLocaleString('en-GB') } } },
-         scales: { x: { beginAtZero: true, ticks: { callback: v => '£' + v.toLocaleString('en-GB'), font: { size: 10 } }, grid: { color: '#f2f2f2' } }, y: { ticks: { font: { size: 10.5 } }, grid: { display: false } } }
-       }
-     });
-   }
+  function updateRevenueView(rows) {
+    const isActive = r => !r.end_date || new Date(r.end_date) >= new Date();
+    const active = rows.filter(r => isActive(r) && Number(r.annual_charge) > 0);
+    const totalValue = active.reduce((sum, r) => sum + Number(r.annual_charge), 0);
+    const avgValue = active.length ? totalValue / active.length : 0;
+    const atRisk = active.filter(r => isExpiringSoon(r.end_date)).reduce((sum, r) => sum + Number(r.annual_charge), 0);
 
-   // Renewal value by month, next 12 months
-   const now = new Date();
-   const months = [];
-   for (let i = 0; i < 12; i++) {
-     const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
-     months.push({ key: d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0'), label: d.toLocaleDateString('en-GB', { month: 'short', year: '2-digit' }), value: 0 });
-   }
-   active.forEach(r => {
-     if (!r.end_date) return;
-     const d = new Date(r.end_date);
-     const key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
-     const bucket = months.find(m => m.key === key);
-     if (bucket) bucket.value += Number(r.annual_charge);
-   });
+    document.getElementById('revTotalValue').textContent = fmtCharge(totalValue) || '£0';
+    document.getElementById('revActiveCount').textContent = active.length.toLocaleString();
+    document.getElementById('revAvgValue').textContent = fmtCharge(avgValue) || '£0';
+    document.getElementById('revAtRisk').textContent = fmtCharge(atRisk) || '£0';
 
-   if (revCharts.renewal) { revCharts.renewal.destroy(); revCharts.renewal = null; }
-   const renewalEl = document.getElementById('renewalChart');
-   if (renewalEl) {
-     revCharts.renewal = new Chart(renewalEl, {
-       type: 'bar',
-       data: { labels: months.map(m => m.label), datasets: [{ data: months.map(m => m.value), backgroundColor: '#101010', borderRadius: 4, maxBarThickness: 28 }] },
-       options: {
-         responsive: true, maintainAspectRatio: false,
-         plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => '£' + ctx.parsed.y.toLocaleString('en-GB') } } },
-         scales: { y: { beginAtZero: true, ticks: { callback: v => '£' + v.toLocaleString('en-GB'), font: { size: 10 } }, grid: { color: '#f2f2f2' } }, x: { ticks: { font: { size: 9.5 }, maxRotation: 0 }, grid: { display: false } } }
-       }
-     });
-   }
- }
+    const zeroCount = rows.filter(r => isActive(r) && !(Number(r.annual_charge) > 0)).length;
+    const noteEl = document.getElementById('revenueNote');
+    if (zeroCount) {
+      noteEl.style.display = '';
+      noteEl.textContent = `Note: ${zeroCount.toLocaleString()} active contract(s) in the current view have no annual charge on file (mostly Preventative/Hire Maintenance, which are billed per-visit rather than a fixed annual fee) and aren't counted in these figures.`;
+    } else {
+      noteEl.style.display = 'none';
+    }
 
- function esc(s) {
-   return (s||'').toString().replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
- }
- function highlight(text, term) {
-   if (!term || !text) return esc(text||'');
-   return esc(text).replace(new RegExp('(' + term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ')', 'gi'), '<mark>$1</mark>');
- }
- function initials(name) {
-   const words = (name||'').trim().split(/\s+/).filter(Boolean);
-   if (!words.length) return '?';
-   return (words[0][0] + (words[1] ? words[1][0] : '')).toUpperCase();
- }
- function fmtDate(d) {
-   if (!d) return null;
-   const dt = new Date(d + 'T00:00:00');
-   return dt.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
- }
- function fmtCharge(c) {
-   const n = Number(c);
-   if (!n) return null;
-   return '£' + n.toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
- }
- function typeBadgeClass(t) {
-   if (t === 'Inclusive Maintenance') return 'inclusive';
-   if (t === 'Preventative Maintenance') return 'preventative';
-   if (t === 'Hire Maintenance') return 'hire';
-   return 'other';
- }
- function isExpiringSoon(endDate) {
-   if (!endDate) return false;
-   const end = new Date(endDate + 'T00:00:00');
-   const now = new Date();
-   const diffDays = (end - now) / (1000*60*60*24);
-   return diffDays >= 0 && diffDays <= 90;
- }
+    // Top 10 customers by contract value
+    const byCust = {};
+    active.forEach(r => {
+      const key = r.cust_name || 'Unknown';
+      byCust[key] = (byCust[key] || 0) + Number(r.annual_charge);
+    });
+    const topCust = Object.entries(byCust).sort((a,b) => b[1]-a[1]).slice(0, 10)
+      .map(([name, value]) => ({ label: name.length > 22 ? name.slice(0,20)+'…' : name, value }));
+    renderBarChart('topCustChart', topCust);
 
- async function loadData() {
-   const tbody = document.getElementById('tableBody');
-   try {
-     let all = [];
-     let from = 0;
-     const step = 1000;
-     while (true) {
-       const { data, error } = await db
-         .from('customer_maintenance_contract')
-         .select('*')
-         .order('cust_name', { ascending: true })
-         .range(from, from + step - 1);
-       if (error) throw error;
-       all = all.concat(data || []);
-       if (!data || data.length < step) break;
-       from += step;
-     }
-     DATA = all;
-   } catch (err) {
-     tbody.innerHTML = `<tr><td colspan="7" style="padding:40px 16px;text-align:center;color:var(--red);font-family:var(--mono);font-size:12px;">Couldn't load contracts from Supabase.<br>${esc(String(err.message||err))}</td></tr>`;
-     return;
-   }
-   document.getElementById('totalCount').textContent = DATA.length.toLocaleString();
-   run();
- }
+    // Renewal value by month, next 12 months
+    const now = new Date();
+    const months = [];
+    for (let i = 0; i < 12; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+      months.push({ key: d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0'), label: d.toLocaleDateString('en-GB', { month: 'short', year: '2-digit' }), value: 0 });
+    }
+    active.forEach(r => {
+      if (!r.end_date) return;
+      const d = new Date(r.end_date);
+      const key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+      const bucket = months.find(m => m.key === key);
+      if (bucket) bucket.value += Number(r.annual_charge);
+    });
+    renderBarChart('renewalChart', months.map(m => ({ label: m.label, value: m.value })));
+  }
 
- function run() {
-   let d = DATA.slice();
-   if (activeFilter === 'expiring') {
-     d = d.filter(r => isExpiringSoon(r.end_date));
-   } else if (activeFilter !== 'all') {
-     d = d.filter(r => r.contract_type === activeFilter);
-   }
-   if (searchTerm) {
-     const q = searchTerm.toLowerCase();
-     d = d.filter(r =>
-       (r.cust_name||'').toLowerCase().includes(q) ||
-       (r.site_name||'').toLowerCase().includes(q) ||
-       (r.site_address||'').toLowerCase().includes(q) ||
-       (r.equip_no||'').toLowerCase().includes(q) ||
-       (r.make||'').toLowerCase().includes(q) ||
-       (r.serial_no||'').toLowerCase().includes(q) ||
-       (r.contract_type||'').toLowerCase().includes(q)
-     );
-   }
-   d.sort((a,b) => {
-     if (sortCol === 'start-sort') { /* unused */ }
-     let av, bv;
-     if (sortCol==='company')      { av=a.cust_name||'zzz'; bv=b.cust_name||'zzz'; return String(av).localeCompare(String(bv))*sortDir; }
-     if (sortCol==='site')         { av=a.site_name||'zzz'; bv=b.site_name||'zzz'; return String(av).localeCompare(String(bv))*sortDir; }
-     if (sortCol==='equip')        { av=a.equip_no||'zzz'; bv=b.equip_no||'zzz'; return String(av).localeCompare(String(bv))*sortDir; }
-     if (sortCol==='type')         { av=a.contract_type||'zzz'; bv=b.contract_type||'zzz'; return String(av).localeCompare(String(bv))*sortDir; }
-     if (sortCol==='charge')       { av=Number(a.annual_charge)||0; bv=Number(b.annual_charge)||0; return (av-bv)*sortDir; }
-     if (sortCol==='start')        { av=a.start_date||''; bv=b.start_date||''; return String(av).localeCompare(String(bv))*sortDir; }
-     if (sortCol==='end')          { av=a.end_date||'9999-99-99'; bv=b.end_date||'9999-99-99'; return String(av).localeCompare(String(bv))*sortDir; }
-     return 0;
-   });
-   filtered = d;
-   currentPage = 1;
-   render();
-   if (currentView === 'revenue') updateRevenueView(filtered);
- }
+  function updateFilterCounts() {
+    const counts = { all: DATA.length, 'Inclusive Maintenance': 0, 'Preventative Maintenance': 0, 'Hire Maintenance': 0, expiring: 0 };
+    DATA.forEach(r => {
+      if (counts.hasOwnProperty(r.contract_type)) counts[r.contract_type]++;
+      if (isExpiringSoon(r.end_date)) counts.expiring++;
+    });
+    const map = { all: 'cntAll', 'Inclusive Maintenance': 'cntInclusive', 'Preventative Maintenance': 'cntPreventative', 'Hire Maintenance': 'cntHire', expiring: 'cntExpiring' };
+    Object.entries(map).forEach(([key, id]) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = counts[key].toLocaleString();
+    });
+  }
 
- function render() {
-   const tbody = document.getElementById('tableBody');
-   const empty = document.getElementById('emptyState');
-   const total = filtered.length;
-   const start = (currentPage-1)*PAGE_SIZE;
-   const page = filtered.slice(start, start+PAGE_SIZE);
-   const pages = Math.ceil(total/PAGE_SIZE);
+  async function loadData() {
+    const tbody = document.getElementById('tableBody');
+    try {
+      let all = [];
+      let from = 0;
+      const step = 1000;
+      while (true) {
+        const { data, error } = await db
+          .from('customer_maintenance_contract')
+          .select('*')
+          .order('cust_name', { ascending: true })
+          .range(from, from + step - 1);
+        if (error) throw error;
+        all = all.concat(data || []);
+        if (!data || data.length < step) break;
+        from += step;
+      }
+      DATA = all;
+    } catch (err) {
+      tbody.innerHTML = `<tr><td colspan="7" style="padding:40px 16px;text-align:center;color:var(--danger-text);font-family:'DM Mono',monospace;font-size:12px;">Couldn't load contracts from Supabase.<br>${esc(String(err.message||err))}</td></tr>`;
+      return;
+    }
+    document.getElementById('totalCount').textContent = DATA.length.toLocaleString();
+    updateFilterCounts();
+    run();
+  }
 
-   document.getElementById('showingCount').textContent = total.toLocaleString();
-   document.getElementById('pageInfo').textContent = total > 0 ? `Page ${currentPage} of ${pages}` : '';
+  function run() {
+    let d = DATA.slice();
+    if (activeFilter === 'expiring') {
+      d = d.filter(r => isExpiringSoon(r.end_date));
+    } else if (activeFilter !== 'all') {
+      d = d.filter(r => r.contract_type === activeFilter);
+    }
+    if (searchTerm) {
+      const q = searchTerm.toLowerCase();
+      d = d.filter(r =>
+        (r.cust_name||'').toLowerCase().includes(q) ||
+        (r.site_name||'').toLowerCase().includes(q) ||
+        (r.site_address||'').toLowerCase().includes(q) ||
+        (r.equip_no||'').toLowerCase().includes(q) ||
+        (r.make||'').toLowerCase().includes(q) ||
+        (r.serial_no||'').toLowerCase().includes(q) ||
+        (r.contract_type||'').toLowerCase().includes(q)
+      );
+    }
+    d.sort((a,b) => {
+      let av, bv;
+      if (sortCol==='company')      { av=a.cust_name||'zzz'; bv=b.cust_name||'zzz'; return String(av).localeCompare(String(bv))*sortDir; }
+      if (sortCol==='site')         { av=a.site_name||'zzz'; bv=b.site_name||'zzz'; return String(av).localeCompare(String(bv))*sortDir; }
+      if (sortCol==='equip')        { av=a.equip_no||'zzz'; bv=b.equip_no||'zzz'; return String(av).localeCompare(String(bv))*sortDir; }
+      if (sortCol==='type')         { av=a.contract_type||'zzz'; bv=b.contract_type||'zzz'; return String(av).localeCompare(String(bv))*sortDir; }
+      if (sortCol==='charge')       { av=Number(a.annual_charge)||0; bv=Number(b.annual_charge)||0; return (av-bv)*sortDir; }
+      if (sortCol==='start')        { av=a.start_date||''; bv=b.start_date||''; return String(av).localeCompare(String(bv))*sortDir; }
+      if (sortCol==='end')          { av=a.end_date||'9999-99-99'; bv=b.end_date||'9999-99-99'; return String(av).localeCompare(String(bv))*sortDir; }
+      return 0;
+    });
+    filtered = d;
+    currentPage = 1;
+    render();
+    if (document.querySelector('.tab[data-tab="revenue"]').classList.contains('active')) updateRevenueView(filtered);
+  }
 
-   if (!total) {
-     tbody.innerHTML=''; empty.style.display=''; renderPagination(0); return;
-   }
-   empty.style.display='none';
-   const q = searchTerm;
+  function render() {
+    const tbody = document.getElementById('tableBody');
+    const total = filtered.length;
+    const start = (currentPage-1)*PAGE_SIZE;
+    const page = filtered.slice(start, start+PAGE_SIZE);
+    const pages = Math.ceil(total/PAGE_SIZE);
 
-   tbody.innerHTML = page.map(r => {
-     const company = r.cust_name || 'Unknown';
-     const init = initials(company);
-     const site = r.site_name ? `<span class="site-text" title="${esc(r.site_address||'')}">${highlight(r.site_name,q)}</span>` : '<span class="no-data">—</span>';
-     const equip = r.equip_no
-       ? `<div><span class="equip-tag">${highlight(r.equip_no,q)}</span>${r.make ? `<div class="make-text" title="${esc(r.make)}">${highlight(r.make,q)}</div>` : ''}</div>`
-       : '<span class="no-data">—</span>';
-     const type = r.contract_type ? `<span class="type-badge ${typeBadgeClass(r.contract_type)}">${esc(r.contract_type)}</span>` : '<span class="no-data">—</span>';
-     const chargeVal = fmtCharge(r.annual_charge);
-     const charge = chargeVal ? `<span class="charge-text">${chargeVal}</span>` : '<span class="charge-text zero">—</span>';
-     const startVal = fmtDate(r.start_date);
-     const start_ = startVal ? `<span class="date-text">${startVal}</span>` : '<span class="no-data">—</span>';
-     const endVal = fmtDate(r.end_date);
-     const end_ = endVal ? `<span class="date-text ${isExpiringSoon(r.end_date) ? 'expiring' : ''}">${endVal}</span>` : '<span class="no-data">Ongoing</span>';
+    const rc = document.getElementById('rowcountLine');
+    rc.innerHTML = total > 0
+      ? `Showing <strong>${total.toLocaleString()}</strong> result${total===1?'':'s'} — Page ${currentPage} of ${pages}`
+      : '';
 
-     return `<tr>
-       <td><div class="company-cell"><div class="avatar">${esc(init)}</div><span class="company-text">${highlight(company,q)}</span></div></td>
-       <td>${site}</td>
-       <td>${equip}</td>
-       <td>${type}</td>
-       <td>${charge}</td>
-       <td>${start_}</td>
-       <td>${end_}</td>
-     </tr>`;
-   }).join('');
+    if (!total) {
+      tbody.innerHTML = `<tr><td colspan="7" style="padding:44px 20px;text-align:center;color:var(--text-tertiary);font-size:14px;">No contracts found — try adjusting your search or filter.</td></tr>`;
+      renderPagination(0);
+      return;
+    }
+    const q = searchTerm;
 
-   renderPagination(total);
- }
+    tbody.innerHTML = page.map(r => {
+      const company = r.cust_name || 'Unknown';
+      const init = initials(company);
+      const site = r.site_name ? `<span class="site-text" title="${esc(r.site_address||'')}">${highlight(r.site_name,q)}</span>` : '<span class="no-data">—</span>';
+      const equip = r.equip_no
+        ? `<div><span class="equip-tag">${highlight(r.equip_no,q)}</span>${r.make ? `<div class="make-text" title="${esc(r.make)}">${highlight(r.make,q)}</div>` : ''}</div>`
+        : '<span class="no-data">—</span>';
+      const type = r.contract_type ? `<span class="type-badge ${typeBadgeClass(r.contract_type)}">${esc(r.contract_type)}</span>` : '<span class="no-data">—</span>';
+      const chargeVal = fmtCharge(r.annual_charge);
+      const charge = chargeVal ? `<span class="charge-text">${chargeVal}</span>` : '<span class="charge-text zero">—</span>';
+      const startVal = fmtDate(r.start_date);
+      const start_ = startVal ? `<span class="date-text">${startVal}</span>` : '<span class="no-data">—</span>';
+      const endVal = fmtDate(r.end_date);
+      const end_ = endVal ? `<span class="date-text ${isExpiringSoon(r.end_date) ? 'expiring' : ''}">${endVal}</span>` : '<span class="no-data">Ongoing</span>';
 
- function renderPagination(total) {
-   const pages = Math.ceil(total/PAGE_SIZE);
-   const el = document.getElementById('pagination');
-   if (pages <= 1) { el.innerHTML=''; return; }
-   const p = currentPage;
-   let html = `<button class="page-btn" onclick="go(${p-1})" ${p===1?'disabled':''}>‹</button>`;
-   const range = [...new Set([1,2,p-1,p,p+1,pages-1,pages].filter(x=>x>=1&&x<=pages))].sort((a,b)=>a-b);
-   let prev=null;
-   for (const n of range) {
-     if (prev!==null && n-prev>1) html+=`<span class="page-ellipsis">…</span>`;
-     html+=`<button class="page-btn ${n===p?'active':''}" onclick="go(${n})">${n}</button>`;
-     prev=n;
-   }
-   html+=`<button class="page-btn" onclick="go(${p+1})" ${p===pages?'disabled':''}>›</button>`;
-   el.innerHTML=html;
- }
+      return `<tr>
+        <td><div class="company-cell"><div class="avatar">${esc(init)}</div><span class="company-text">${highlight(company,q)}</span></div></td>
+        <td>${site}</td>
+        <td>${equip}</td>
+        <td>${type}</td>
+        <td>${charge}</td>
+        <td>${start_}</td>
+        <td>${end_}</td>
+      </tr>`;
+    }).join('');
 
- function go(n) {
-   const pages = Math.ceil(filtered.length/PAGE_SIZE);
-   if (n<1||n>pages) return;
-   currentPage=n;
-   render();
-   window.scrollTo({top:0,behavior:'smooth'});
- }
+    renderPagination(total);
+  }
 
- const si = document.getElementById('searchInput');
- const cb = document.getElementById('clearBtn');
- let deb;
- si.addEventListener('input', () => {
-   clearTimeout(deb);
-   deb = setTimeout(() => {
-     searchTerm = si.value.trim();
-     cb.style.display = searchTerm ? '' : 'none';
-     run();
-   }, 180);
- });
- cb.addEventListener('click', () => {
-   si.value=''; searchTerm=''; cb.style.display='none'; run(); si.focus();
- });
+  function renderPagination(total) {
+    const pages = Math.ceil(total/PAGE_SIZE);
+    const el = document.getElementById('pagination');
+    if (pages <= 1) { el.innerHTML=''; return; }
+    const p = currentPage;
+    let html = `<button class="page-btn" onclick="go(${p-1})" ${p===1?'disabled':''}>‹</button>`;
+    const range = [...new Set([1,2,p-1,p,p+1,pages-1,pages].filter(x=>x>=1&&x<=pages))].sort((a,b)=>a-b);
+    let prev=null;
+    for (const n of range) {
+      if (prev!==null && n-prev>1) html+=`<span class="page-ellipsis">…</span>`;
+      html+=`<button class="page-btn ${n===p?'active':''}" onclick="go(${n})">${n}</button>`;
+      prev=n;
+    }
+    html+=`<button class="page-btn" onclick="go(${p+1})" ${p===pages?'disabled':''}>›</button>`;
+    el.innerHTML=html;
+  }
 
- document.getElementById('tableViewBtn').addEventListener('click', () => switchView('table'));
- document.getElementById('revenueViewBtn').addEventListener('click', () => switchView('revenue'));
+  function go(n) {
+    const pages = Math.ceil(filtered.length/PAGE_SIZE);
+    if (n<1||n>pages) return;
+    currentPage=n;
+    render();
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
 
- document.querySelectorAll('.filter-btn').forEach(btn => {
-   btn.addEventListener('click', () => {
-     document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
-     btn.classList.add('active');
-     activeFilter = btn.dataset.filter;
-     run();
-   });
- });
+  const si = document.getElementById('searchInput');
+  let deb;
+  si.addEventListener('input', () => {
+    clearTimeout(deb);
+    deb = setTimeout(() => {
+      searchTerm = si.value.trim();
+      run();
+    }, 180);
+  });
 
- document.getElementById('sortSelect').addEventListener('change', e => {
-   const v=e.target.value;
-   if (v==='company') { sortCol='company'; sortDir=1; }
-   else if (v==='company-desc') { sortCol='company'; sortDir=-1; }
-   else if (v==='start-desc') { sortCol='start'; sortDir=-1; }
-   else if (v==='end-asc') { sortCol='end'; sortDir=1; }
-   else if (v==='charge-desc') { sortCol='charge'; sortDir=-1; }
-   document.querySelectorAll('th').forEach(t=>t.classList.remove('sorted-asc','sorted-desc'));
-   run();
- });
+  document.querySelectorAll('.tabs .tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tabs .tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+      if (tab.dataset.tab === 'revenue') updateRevenueView(filtered);
+    });
+  });
 
- document.querySelectorAll('th[data-col]').forEach(th => {
-   th.addEventListener('click', () => {
-     const col = th.dataset.col;
-     if (sortCol===col) sortDir*=-1; else { sortCol=col; sortDir=1; }
-     document.querySelectorAll('th').forEach(t=>t.classList.remove('sorted-asc','sorted-desc'));
-     th.classList.add(sortDir===1?'sorted-asc':'sorted-desc');
-     run();
-   });
- });
+  document.querySelectorAll('.subtab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.subtab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeFilter = btn.dataset.filter;
+      run();
+    });
+  });
 
- document.querySelector('th[data-col="company"]').classList.add('sorted-asc');
+  document.getElementById('sortSelect').addEventListener('change', e => {
+    const v=e.target.value;
+    if (v==='company') { sortCol='company'; sortDir=1; }
+    else if (v==='company-desc') { sortCol='company'; sortDir=-1; }
+    else if (v==='start-desc') { sortCol='start'; sortDir=-1; }
+    else if (v==='end-asc') { sortCol='end'; sortDir=1; }
+    else if (v==='charge-desc') { sortCol='charge'; sortDir=-1; }
+    document.querySelectorAll('th').forEach(t=>t.classList.remove('sorted-asc','sorted-desc'));
+    run();
+  });
 
- window.addEventListener('pageshow', (event) => {
-   if (event.persisted) {
-     loadData();
-   }
- });
+  document.querySelectorAll('th[data-col]').forEach(th => {
+    th.addEventListener('click', () => {
+      const col = th.dataset.col;
+      if (sortCol===col) sortDir*=-1; else { sortCol=col; sortDir=1; }
+      document.querySelectorAll('th').forEach(t=>t.classList.remove('sorted-asc','sorted-desc'));
+      th.classList.add(sortDir===1?'sorted-asc':'sorted-desc');
+      run();
+    });
+  });
 
- const qParam = new URLSearchParams(window.location.search).get('q');
- if (qParam) {
-   searchTerm = qParam;
-   document.getElementById('searchInput').value = qParam;
-   document.getElementById('clearBtn').style.display = '';
- }
+  document.querySelector('th[data-col="company"]').classList.add('sorted-asc');
 
- loadData();
+  window.addEventListener('pageshow', (event) => {
+    if (event.persisted) {
+      loadData();
+    }
+  });
+
+  const qParam = new URLSearchParams(window.location.search).get('q');
+  if (qParam) {
+    searchTerm = qParam;
+    document.getElementById('searchInput').value = qParam;
+  }
+
+  loadData();
 </script>
+</body>
+</html>
