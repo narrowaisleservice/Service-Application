@@ -11,14 +11,14 @@
 <script src="auth-guard.js"></script>
 <style>
 :root{
-  --red:#E30613; --red-soft:rgba(227,6,19,.10);
+  --red:#E30613; --red-soft:rgba(227,6,19,.10); --green:#1a7f4b;
   --bg:#f4f5f7; --panel:#ffffff; --panel-2:#f8f9fb; --line:#e3e6eb;
   --text:#14171c; --muted:#646b76; --faint:#9aa1ab;
   --shadow:0 1px 2px rgba(0,0,0,.04),0 4px 16px rgba(0,0,0,.05);
 }
 [data-theme="dark"]{
   --bg:#0e1013; --panel:#16191e; --panel-2:#1b1f25; --line:#262b33;
-  --text:#e9ecf1; --muted:#99a1ad; --faint:#666e7a; --red-soft:rgba(227,6,19,.18);
+  --text:#e9ecf1; --muted:#99a1ad; --faint:#666e7a; --red-soft:rgba(227,6,19,.18); --green:#3ba36e;
   --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 16px rgba(0,0,0,.25);
 }
 *{box-sizing:border-box;margin:0;padding:0}
@@ -63,6 +63,8 @@ h1 b{font-weight:500;color:var(--red)}
 .tag{font-family:'IBM Plex Sans Condensed',sans-serif;text-transform:uppercase;letter-spacing:.08em;font-size:10px;padding:2px 7px;border-radius:4px;border:1px solid var(--line);color:var(--muted);flex-shrink:0}
 .tag.cust{border-color:var(--red);color:var(--red)}
 .tag.stop{background:var(--red);border-color:var(--red);color:#fff;cursor:default}
+.tag.contract-active{border-color:var(--green);color:var(--green)}
+.due-overdue{color:var(--red);font-weight:500}
 .dot-stop{width:7px;height:7px;border-radius:50%;background:var(--red);flex-shrink:0}
 .more{padding:12px;text-align:center;color:var(--faint);font-size:12px}
 
@@ -435,13 +437,45 @@ async function renderEquipment(c, isCust) {
   const { data: eq, error } = await db.from('customer_equipment').select('*').eq(col, ref).order('site_name').order('manufacturer').order('model');
   if (current !== ref) return;
   if (error) { $('tabBody').innerHTML = `<div class="state">Couldn't load equipment.<br><span class="dim">${esc(error.message)}</span></div>`; return; }
-  eqCache.set(ref, eq);
-  paintEquipment(eq, isCust);
+
+  let contractMap = new Map(), noContractSet = new Set(), dueMap = new Map();
+  const equipNos = eq.map(e => e.equip_no).filter(Boolean);
+  if (equipNos.length) {
+    const [mc, nc, sd] = await Promise.all([
+      db.from('customer_maintenance_contract').select('equip_no,maint_contract_id').in('equip_no', equipNos),
+      db.from('customer_no_maintenance_contract').select('equip_no').in('equip_no', equipNos),
+      db.from('customer_service_due').select('equip_no,next_due,service_type').in('equip_no', equipNos)
+    ]);
+    if (current !== ref) return;
+    (mc.data || []).forEach(r => contractMap.set(r.equip_no, r.maint_contract_id));
+    (nc.data || []).forEach(r => noContractSet.add(r.equip_no));
+    (sd.data || []).forEach(r => {
+      if (!r.next_due) return;
+      const existing = dueMap.get(r.equip_no);
+      if (!existing || r.next_due < existing.next_due) dueMap.set(r.equip_no, { next_due: r.next_due, service_type: r.service_type });
+    });
+  }
+  const bundle = { eq, contractMap, noContractSet, dueMap };
+  eqCache.set(ref, bundle);
+  paintEquipment(bundle, isCust);
 }
 
-function paintEquipment(eq, isCust) {
+function paintEquipment(bundle, isCust) {
   if (currentTab !== 'equipment') return;
+  const { eq, contractMap, noContractSet, dueMap } = bundle;
   if (!eq.length) { $('tabBody').innerHTML = '<div class="state">No equipment recorded for this account.</div>'; return; }
+  const today = new Date().toISOString().slice(0, 10);
+  const contractCell = e => {
+    if (contractMap.has(e.equip_no)) return `<span class="tag contract-active">Contract #${esc(contractMap.get(e.equip_no))}</span>`;
+    if (noContractSet.has(e.equip_no)) return `<span class="dim">No contract</span>`;
+    return val();
+  };
+  const dueCell = e => {
+    const d = dueMap.get(e.equip_no);
+    if (!d) return val();
+    const overdue = d.next_due < today;
+    return `<span class="${overdue ? 'due-overdue' : ''}" title="${esc(d.service_type || '')}">${fmtDate(d.next_due)}${overdue ? ' (overdue)' : ''}</span>`;
+  };
   const draw = term => {
     const t = term.trim().toLowerCase();
     const rows = !t ? eq : eq.filter(e => [e.site_name, e.manufacturer, e.model, e.serial_no, e.cust_equip_id].some(v => v && v.toLowerCase().includes(t)));
@@ -452,8 +486,10 @@ function paintEquipment(eq, isCust) {
           <td>${val(e.model)}</td>
           <td>${val(e.serial_no)}</td>
           <td>${e.cust_equip_id && e.cust_equip_id !== e.serial_no && e.cust_equip_id !== e.equip_no ? esc(e.cust_equip_id) : ''}</td>
+          <td>${contractCell(e)}</td>
+          <td>${dueCell(e)}</td>
         </tr>`).join('')
-      : `<tr><td colspan="${isCust ? 5 : 4}" class="state">No matches.</td></tr>`;
+      : `<tr><td colspan="${isCust ? 7 : 6}" class="state">No matches.</td></tr>`;
     $('eqCountLine').textContent = `${rows.length.toLocaleString('en-GB')} of ${eq.length.toLocaleString('en-GB')}`;
   };
   $('tabBody').innerHTML = `
@@ -463,7 +499,7 @@ function paintEquipment(eq, isCust) {
     </div>
     <div class="dim" id="eqCountLine" style="font-size:12px;margin-bottom:8px"></div>
     <div class="card table-card"><table>
-      <thead><tr>${isCust ? '<th>Site</th>' : ''}<th>Make</th><th>Model</th><th>Serial No</th><th>Note</th></tr></thead>
+      <thead><tr>${isCust ? '<th>Site</th>' : ''}<th>Make</th><th>Model</th><th>Serial No</th><th>Note</th><th>Contract</th><th>Next Service</th></tr></thead>
       <tbody id="eqBody"></tbody>
     </table></div>`;
   draw('');
