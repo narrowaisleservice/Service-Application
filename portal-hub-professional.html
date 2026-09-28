@@ -294,6 +294,99 @@
             box-shadow: 0 0 8px 1px rgba(223, 10, 30, 0.7);
         }
 
+        /* ===== Collapsible nav groups (Joblogic-style) ===== */
+        .sidebar-nav {
+            padding: 14px 14px 6px;
+        }
+
+        .nav-group-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 11px 12px;
+            margin-bottom: 3px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            font-size: 13.5px;
+            font-weight: 500;
+            color: #b8b8bf;
+            border-left: 3px solid transparent;
+            white-space: nowrap;
+        }
+
+        .nav-group-header:hover {
+            background: rgba(223, 10, 30, 0.14);
+            color: #ff5a6a;
+            border-left-color: var(--accent);
+        }
+
+        .nav-group.expanded .nav-group-header {
+            color: #ff5a6a;
+        }
+
+        .nav-group-chevron {
+            display: inline-flex;
+            width: 14px;
+            height: 14px;
+            flex-shrink: 0;
+            margin-left: auto;
+            color: #6c6c74;
+            transition: transform 0.2s ease, color 0.15s ease;
+        }
+
+        .nav-group-chevron svg { width: 100%; height: 100%; }
+
+        .nav-group-header:hover .nav-group-chevron,
+        .nav-group.expanded .nav-group-chevron {
+            color: var(--accent);
+        }
+
+        .nav-group.expanded .nav-group-chevron {
+            transform: rotate(180deg);
+        }
+
+        .nav-group-children {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.25s ease;
+        }
+
+        .nav-group.expanded .nav-group-children {
+            max-height: 280px;
+        }
+
+        .nav-subitem {
+            display: flex;
+            align-items: center;
+            padding: 9px 12px 9px 40px;
+            margin-bottom: 2px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            color: #9c9ca4;
+            text-decoration: none;
+            transition: all 0.15s ease;
+            border-left: 3px solid transparent;
+            white-space: nowrap;
+        }
+
+        .nav-subitem:hover,
+        .nav-subitem.active {
+            background: rgba(223, 10, 30, 0.14);
+            color: #ff5a6a;
+            border-left-color: var(--accent);
+        }
+
+        .sidebar.collapsed .nav-group-chevron,
+        .sidebar.collapsed .nav-group-children {
+            display: none;
+        }
+
+        .sidebar.collapsed .nav-group-header { justify-content: center; padding: 12px; }
+        .sidebar.collapsed .sidebar-nav { padding: 14px 8px 6px; }
+
         .sidebar-footer {
             margin-top: auto;
             padding: 14px;
@@ -1566,49 +1659,72 @@
             </button>
         </div>
 
-        <div class="nav-section">
-            <div class="nav-section-title">Overview</div>
+        <nav class="sidebar-nav">
             <div class="nav-item active" data-section="dashboard" title="Dashboard">
                 <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5L12 4l9 7.5"></path><path d="M5 10.5V20h5v-6h4v6h5v-9.5"></path></svg></span>
                 <span class="nav-label">Dashboard</span>
             </div>
-        </div>
 
-        <div class="nav-section">
-            <div class="nav-section-title">Field Service</div>
-            <div class="nav-item" data-section="field-service" title="Field Service">
-                <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5z"></path><path d="M3 8v8l9 5 9-5V8"></path><path d="M12 13v8"></path></svg></span>
-                <span class="nav-label">Field Service</span>
+            <div class="nav-group" data-group="customers">
+                <div class="nav-group-header" role="button" tabindex="0" aria-expanded="false" aria-controls="navGroupCustomers" title="Customers">
+                    <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"></circle><path d="M2.5 20c0-3.5 3-6 6.5-6s6.5 2.5 6.5 6"></path><path d="M16 4.3a3.2 3.2 0 0 1 0 7.4"></path><path d="M17.5 14c2.8.4 4 2.4 4 6"></path></svg></span>
+                    <span class="nav-label">Customers</span>
+                    <span class="nav-group-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg></span>
+                </div>
+                <div class="nav-group-children" id="navGroupCustomers">
+                    <a class="nav-subitem" href="customers.html">Customers</a>
+                    <a class="nav-subitem" href="maintenance-contracts.html">Maintenance Contracts</a>
+                </div>
             </div>
-            <div class="nav-item" data-section="instructions" title="Instructions">
-                <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v17H6.5A2.5 2.5 0 0 0 4 21.5z"></path><path d="M4 4.5v17"></path><path d="M20 19H6.5A2.5 2.5 0 0 0 4 21.5"></path></svg></span>
-                <span class="nav-label">Instructions</span>
-            </div>
-            <div class="nav-item" data-section="technical-docs" title="Manuals">
-                <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"></path><path d="M15 3v4h4"></path><path d="M8 12h8M8 16h5"></path></svg></span>
-                <span class="nav-label">Manuals</span>
-            </div>
-            <div class="nav-item" data-section="customer-info" title="Customer Info">
-                <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"></circle><path d="M2.5 20c0-3.5 3-6 6.5-6s6.5 2.5 6.5 6"></path><path d="M16 4.3a3.2 3.2 0 0 1 0 7.4"></path><path d="M17.5 14c2.8.4 4 2.4 4 6"></path></svg></span>
-                <span class="nav-label">Customer Info</span>
-            </div>
-            <div class="nav-item" data-section="troubleshooting" title="Troubleshooting">
-                <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="M20 20l-4.8-4.8"></path></svg></span>
-                <span class="nav-label">Troubleshooting</span>
-            </div>
-        </div>
 
-        <div class="nav-section">
-            <div class="nav-section-title">Compliance</div>
-            <div class="nav-item" data-section="safety-checks" title="Safety Checks">
-                <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"></rect><path d="M8 8l1.5 1.5L12 7"></path><path d="M8 14l1.5 1.5L12 13"></path><path d="M14.5 8.5h4M14.5 14.5h4"></path></svg></span>
-                <span class="nav-label">Safety Checks</span>
+            <div class="nav-group" data-group="jobs">
+                <div class="nav-group-header" role="button" tabindex="0" aria-expanded="false" aria-controls="navGroupJobs" title="Jobs">
+                    <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5z"></path><path d="M3 8v8l9 5 9-5V8"></path><path d="M12 13v8"></path></svg></span>
+                    <span class="nav-label">Jobs</span>
+                    <span class="nav-group-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg></span>
+                </div>
+                <div class="nav-group-children" id="navGroupJobs">
+                    <a class="nav-subitem" href="fault-tracker.html">Fault Tracker</a>
+                    <a class="nav-subitem" href="https://narrowaisleservice.github.io/Service-Application/flexi-parts-return-white.html">Return Parts</a>
+                    <a class="nav-subitem" href="fault-reporter.html">Faults &amp; Issues</a>
+                </div>
             </div>
-            <div class="nav-item" data-section="health-safety" title="H&amp;S Docs">
-                <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 3.5v6c0 5-3.4 8.4-8 10.5-4.6-2.1-8-5.5-8-10.5v-6z"></path><path d="M8.5 12l2.3 2.3L15.5 9.5"></path></svg></span>
-                <span class="nav-label">H&amp;S Docs</span>
+
+            <div class="nav-item" title="Quotes" onclick="window.location.href='transport-quote-calculator.html'">
+                <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"></rect><path d="M9 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1"></path><path d="M9 11h6M9 15h6M9 7h6"></path></svg></span>
+                <span class="nav-label">Quotes</span>
             </div>
-        </div>
+
+            <div class="nav-item" title="Purchasing" onclick="window.location.href='field-parts-request.html'">
+                <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"></path><path d="M22 2l-7 20-4-9-9-4 20-7z"></path></svg></span>
+                <span class="nav-label">Purchasing</span>
+            </div>
+
+            <div class="nav-group" data-group="engineers">
+                <div class="nav-group-header" role="button" tabindex="0" aria-expanded="false" aria-controls="navGroupEngineers" title="Engineers">
+                    <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L2 19l3 3 7.3-7.3a4 4 0 0 0 5.4-5.4l-2.8 2.8-2.2-2.2 2.8-2.8z"></path></svg></span>
+                    <span class="nav-label">Engineers</span>
+                    <span class="nav-group-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg></span>
+                </div>
+                <div class="nav-group-children" id="navGroupEngineers">
+                    <div class="nav-item nav-subitem" data-section="instructions">Instructions</div>
+                    <div class="nav-item nav-subitem" data-section="technical-docs">Manuals</div>
+                    <div class="nav-item nav-subitem" data-section="troubleshooting">Troubleshooting</div>
+                </div>
+            </div>
+
+            <div class="nav-group" data-group="compliance">
+                <div class="nav-group-header" role="button" tabindex="0" aria-expanded="false" aria-controls="navGroupCompliance" title="Compliance">
+                    <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 3.5v6c0 5-3.4 8.4-8 10.5-4.6-2.1-8-5.5-8-10.5v-6z"></path><path d="M8.5 12l2.3 2.3L15.5 9.5"></path></svg></span>
+                    <span class="nav-label">Compliance</span>
+                    <span class="nav-group-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg></span>
+                </div>
+                <div class="nav-group-children" id="navGroupCompliance">
+                    <div class="nav-item nav-subitem" data-section="safety-checks">Safety Checks</div>
+                    <div class="nav-item nav-subitem" data-section="health-safety">H&amp;S Docs</div>
+                </div>
+            </div>
+        </nav>
 
         <div class="sidebar-footer">
             <button class="logout-btn" id="logoutBtn">
@@ -1825,36 +1941,6 @@
                     { title: 'AC3', desc: 'Service instructions for AC3 trucks', icon: 'book', link: 'doc-library.html?folder=instructions-ac3&title=AC3%20Instructions&subtitle=Service%20instructions%20for%20AC3%20trucks&icon=📖&repo=Service-Application', badge: '' },
                     { title: 'ACe Gen1', desc: 'Service instructions for ACe Gen1 trucks', icon: 'book', link: 'doc-library.html?folder=instructions-acegen1&title=ACe%20Gen1%20Instructions&subtitle=Service%20instructions%20for%20ACe%20Gen1%20trucks&icon=📖&repo=Service-Application', badge: '' },
                     { title: 'ACe Gen2', desc: 'Service instructions for ACe Gen2 trucks', icon: 'book', link: 'doc-library.html?folder=instructions-acegen2&title=ACe%20Gen2%20Instructions&subtitle=Service%20instructions%20for%20ACe%20Gen2%20trucks&icon=📖&repo=Service-Application', badge: '' }
-                ]
-            },
-            'time-tracking': {
-                title: 'Time Tracking',
-                subtitle: 'Log your hours and manage your time',
-                cards: [
-                    { title: 'Clock In', desc: 'Start your working day', icon: 'clock', link: '#', badge: 'Essential' },
-                    { title: 'Clock Out', desc: 'End your shift', icon: 'stop', link: '#', badge: 'Essential' },
-                    { title: 'Job Time Log', desc: 'Log time spent on jobs', icon: 'timer', link: '#', badge: '' },
-                    { title: 'Time Report', desc: 'View your time entries', icon: 'chart', link: '#', badge: '' }
-                ]
-            },
-            'vehicle-check': {
-                title: 'Vehicle Checks',
-                subtitle: 'Daily vehicle safety and condition checks',
-                cards: [
-                    { title: 'Daily Safety Check', desc: 'Vehicle condition check', icon: 'van', link: 'https://narrowaisleservice.github.io/Service-Application/vw-transporter-daily-check.html', badge: 'Essential' },
-                    { title: 'Service History', desc: 'View vehicle maintenance', icon: 'wrench', link: '#', badge: '' },
-                    { title: 'Fuel Log', desc: 'Log fuel and expenses', icon: 'fuel', link: '#', badge: '' },
-                    { title: 'Damage Report', desc: 'Report vehicle damage', icon: 'camera', link: '#', badge: '' }
-                ]
-            },
-            'parts-ordering': {
-                title: 'Parts Ordering',
-                subtitle: 'Quick access to order parts on-site',
-                cards: [
-                    { title: 'Order Parts', desc: 'Place new parts orders instantly', icon: 'send', link: 'field-parts-request.html', badge: 'Featured' },
-                    { title: 'Parts Used Log', desc: 'Record parts installed on jobs', icon: 'note', link: '#', badge: '' },
-                    { title: 'Stock Levels', desc: 'Check van parts availability', icon: 'chart', link: '#', badge: '' },
-                    { title: 'Urgent Orders', desc: 'Express delivery options', icon: 'lightning', link: '#', badge: 'New' }
                 ]
             },
             'technical-docs': {
@@ -2286,7 +2372,39 @@
                 const section = this.dataset.section;
                 currentSection = section;
                 loadSection(section);
+                const parentGroup = this.closest('.nav-group');
+                if (parentGroup) {
+                    parentGroup.classList.add('expanded');
+                    const hdr = parentGroup.querySelector('.nav-group-header');
+                    if (hdr) hdr.setAttribute('aria-expanded', 'true');
+                }
                 closeSidebar();
+            });
+        });
+
+        document.querySelectorAll('.nav-group-header').forEach(header => {
+            function toggleGroup() {
+                const grp = header.closest('.nav-group');
+                if (sidebar.classList.contains('collapsed')) {
+                    const firstChild = grp.querySelector('.nav-group-children > *');
+                    if (firstChild) {
+                        if (firstChild.tagName === 'A') {
+                            window.location.href = firstChild.getAttribute('href');
+                        } else {
+                            firstChild.click();
+                        }
+                    }
+                    return;
+                }
+                const expanded = grp.classList.toggle('expanded');
+                header.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+            }
+            header.addEventListener('click', toggleGroup);
+            header.addEventListener('keydown', e => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggleGroup();
+                }
             });
         });
 
