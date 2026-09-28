@@ -149,8 +149,8 @@
     }
 
     // ===== Supabase project config =====
-    const SUPABASE_URL = 'https://dontubctlexlvifwhmbj.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_99HLzSv4wMwFZHlR81yIsQ_z0A0Jpth';
+    const SUPABASE_URL = 'https://hkwcdpqpduptjwroawrw.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_ym0_ostk5WkdHGhGEGSkXw_d1sHadPY';
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     // =====================================
 
@@ -166,14 +166,14 @@
             items.map(item => `
                 <div class="equip-card">
                     <div class="equip-top">
-                        <div class="equip-title">${item.make || ''} ${item.model || ''}</div>
+                        <div class="equip-title"><a href="truck.html?equip=${encodeURIComponent(item.equip_no)}" style="color:inherit;text-decoration:none;">${item.manufacturer || ''} ${item.model || ''}</a></div>
                         <div class="equip-serial">${item.serial_no || '—'}</div>
                     </div>
                     <div class="equip-meta">
-                        <span><strong>Customer:</strong> ${item.customer_name || '—'}</span>
+                        <span><strong>Customer:</strong> ${item.account_name || '—'}</span>
                         <span><strong>Site:</strong> ${item.site_name || '—'}</span>
-                        <span><strong>Site Ref:</strong> ${item.site_alpha || '—'}</span>
-                        <span><strong>Equip Code:</strong> ${item.equip_code || '—'}</span>
+                        <span><strong>Site Ref:</strong> ${item.site_ref || '—'}</span>
+                        <span><strong>Equip No:</strong> ${item.equip_no || '—'}</span>
                     </div>
                     <div class="equip-address">${item.site_address || '—'}</div>
                 </div>
@@ -193,8 +193,8 @@
             const { data, error } = await db
                 .from('customer_equipment')
                 .select('*')
-                .ilike('customer_name', `%${customer}%`)
-                .order('customer_name', { ascending: true });
+                .ilike('account_name', `%${customer}%`)
+                .order('account_name', { ascending: true });
             if (error) throw error;
             renderResults(data || []);
         } catch (err) {
