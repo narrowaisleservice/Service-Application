@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script type="module" src="auth-guard.js"></script>
+<meta name="theme-color" content="#df0a1e">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&family=DM+Sans:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>Contract Opportunities - Narrow Aisle Service Portal</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { background: white !important; color-scheme: light only; }
+    body {
+        font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        color: #101010;
+        min-height: 100vh;
+    }
+
+    .header {
+        background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+        border-bottom: 3px solid #df0a1e;
+        padding: 24px 32px;
+        position: sticky;
+        top: 0;
+        z-index: 50;
+    }
+    .back-link { font-size: 12px; color: #707070; text-decoration: none; font-weight: 600; }
+    .back-link:hover { color: #df0a1e; }
+    .header-title { font-family: 'IBM Plex Sans', sans-serif; font-size: 28px; font-weight: 700; margin-top: 4px; }
+    .header-subtitle { font-size: 13px; color: #707070; margin-top: 2px; }
+
+    .content { max-width: 1080px; margin: 0 auto; padding: 32px; }
+
+    .explainer {
+        background: #fafafa;
+        border: 1px solid #eee;
+        border-radius: 10px;
+        padding: 14px 18px;
+        font-size: 12.5px;
+        color: #707070;
+        line-height: 1.5;
+        margin-bottom: 20px;
+    }
+
+    .summary-row { display: flex; gap: 14px; margin-bottom: 20px; flex-wrap: wrap; }
+    .summary-tile {
+        background: white; border: 1px solid #e8e8e8; border-radius: 12px;
+        padding: 16px 20px; flex: 1; min-width: 160px;
+    }
+    .summary-tile .k { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #909090; margin-bottom: 4px; }
+    .summary-tile .v { font-family: 'IBM Plex Sans', sans-serif; font-size: 22px; font-weight: 700; color: #df0a1e; }
+
+    .search-panel {
+        background: white; border: 1px solid #e8e8e8; border-radius: 12px;
+        padding: 20px 24px; margin-bottom: 20px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
+    }
+    .search-panel input {
+        flex: 1; min-width: 220px;
+        font-family: 'DM Mono', monospace; font-size: 14px;
+        padding: 12px 14px; border: 1px solid #ddd; border-radius: 8px; color: #101010;
+    }
+    .search-panel input:focus { outline: none; border-color: #df0a1e; }
+    .search-panel select {
+        font-family: 'DM Sans', sans-serif; font-size: 13px; padding: 10px 12px;
+        border: 1px solid #ddd; border-radius: 8px; color: #101010; background: white; cursor: pointer;
+    }
+
+    .loading-state, .empty-state { text-align: center; padding: 60px 20px; color: #909090; font-size: 14px; }
+
+    table { width: 100%; border-collapse: collapse; background: white; border: 1px solid #e8e8e8; border-radius: 10px; overflow: hidden; }
+    th, td { text-align: left; padding: 11px 14px; font-size: 13px; border-bottom: 1px solid #eee; vertical-align: top; }
+    th { background: #f7f7f7; font-weight: 700; color: #707070; text-transform: uppercase; font-size: 10.5px; letter-spacing: 0.4px; }
+    tr:last-child td { border-bottom: none; }
+    tr.data-row:hover { background: #fafafa; cursor: pointer; }
+    td.mono { font-family: 'DM Mono', monospace; font-size: 12px; white-space: nowrap; }
+    td.num { font-family: 'DM Mono', monospace; font-size: 12.5px; text-align: right; white-space: nowrap; }
+
+    .showmore { text-align: center; padding: 16px; font-size: 12.5px; color: #909090; }
+
+    @media (max-width: 640px) {
+        .header { padding: 16px 20px; }
+        .header-title { font-size: 22px; }
+        .content { padding: 16px; }
+        table { display: block; overflow-x: auto; }
+    }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <a class="back-link" href="portal-hub-professional.html">&larr; Back to Portal</a>
+    <div class="header-title">Contract Opportunities</div>
+    <div class="header-subtitle">Equipment with no active maintenance contract that's still costing money in ad-hoc jobs</div>
+</div>
+
+<div class="content">
+    <div class="explainer">
+        Built from <code>customer_no_maintenance_contract</code> crossed with <code>equipment_job_history_summary</code> &mdash;
+        equipment that's had ad-hoc job costs but has no active maintenance contract on file. Sorted by total job cost, highest first.
+    </div>
+
+    <div class="summary-row" id="summaryRow"></div>
+
+    <div class="search-panel">
+        <input type="text" id="customerInput" placeholder="Filter by customer name...">
+        <select id="limitSelect">
+            <option value="50">Top 50</option>
+            <option value="100" selected>Top 100</option>
+            <option value="300">Top 300</option>
+        </select>
+    </div>
+
+    <div id="resultsWrap"><div class="loading-state">Loading opportunities…</div></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    // ===== Supabase project config =====
+    const SUPABASE_URL = 'https://hkwcdpqpduptjwroawrw.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_ym0_ostk5WkdHGhGEGSkXw_d1sHadPY';
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    // =====================================
+
+    let ALL_ROWS = [];
+
+    function escHtml(s){
+        return (s == null ? '' : String(s)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+    function fmtMoney(n) {
+        if (n == null) return '—';
+        return '£' + Number(n).toLocaleString('en-GB', { maximumFractionDigits: 0 });
+    }
+
+    function renderSummary(rows) {
+        const totalCost = rows.reduce((s, r) => s + (Number(r.total_cost) || 0), 0);
+        const customers = new Set(rows.map(r => r.account_name).filter(Boolean));
+        document.getElementById('summaryRow').innerHTML = `
+            <div class="summary-tile"><div class="k">Opportunities</div><div class="v">${rows.length.toLocaleString('en-GB')}</div></div>
+            <div class="summary-tile"><div class="k">Total ad-hoc cost</div><div class="v">${fmtMoney(totalCost)}</div></div>
+            <div class="summary-tile"><div class="k">Customers affected</div><div class="v">${customers.size.toLocaleString('en-GB')}</div></div>
+        `;
+    }
+
+    function render() {
+        const filter = document.getElementById('customerInput').value.trim().toLowerCase();
+        const limit = Number(document.getElementById('limitSelect').value);
+
+        let rows = ALL_ROWS;
+        if (filter) rows = rows.filter(r => (r.account_name || '').toLowerCase().includes(filter));
+        renderSummary(rows);
+        rows = rows.slice(0, limit);
+
+        const wrap = document.getElementById('resultsWrap');
+        if (!rows.length) {
+            wrap.innerHTML = '<div class="empty-state">No matching equipment.</div>';
+            return;
+        }
+
+        wrap.innerHTML = `<table><thead><tr>
+            <th>Equip No</th><th>Model</th><th>Customer</th><th>Site / Town</th>
+            <th style="text-align:right">Jobs</th><th style="text-align:right">Job Cost</th><th style="text-align:right">Job Value</th>
+        </tr></thead><tbody>` + rows.map(r => `
+            <tr class="data-row" onclick="window.location.href='truck.html?equip=${encodeURIComponent(r.equip_no)}'">
+                <td class="mono">${escHtml(r.equip_no)}</td>
+                <td>${escHtml([r.make, r.model].filter(Boolean).join(' ')) || '—'}</td>
+                <td>${escHtml(r.account_name || '—')}</td>
+                <td>${escHtml([r.site_name, r.town].filter(Boolean).join(', ')) || '—'}</td>
+                <td class="num">${r.job_count ?? '—'}</td>
+                <td class="num">${fmtMoney(r.total_cost)}</td>
+                <td class="num">${fmtMoney(r.total_value)}</td>
+            </tr>
+        `).join('') + '</tbody></table>';
+    }
+
+    async function loadData() {
+        try {
+            const { data, error } = await db
+                .from('contract_opportunities')
+                .select('*')
+                .order('total_cost', { ascending: false })
+                .limit(1000);
+            if (error) throw error;
+            ALL_ROWS = data || [];
+            render();
+        } catch (err) {
+            document.getElementById('resultsWrap').innerHTML =
+                '<div class="empty-state">Could not load opportunities.<br>' + (err.message || err) + '</div>';
+        }
+    }
+
+    document.getElementById('customerInput').addEventListener('input', render);
+    document.getElementById('limitSelect').addEventListener('change', render);
+
+    (async () => {
+        const { data: { session } } = await db.auth.getSession();
+        if (!session){
+            document.getElementById('resultsWrap').innerHTML = '<div class="loading-state">Not signed in — <a href="login.html">sign in</a> to view this.</div>';
+            return;
+        }
+        loadData();
+    })();
+</script>
+</body>
+</html>
