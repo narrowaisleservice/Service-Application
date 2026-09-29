@@ -205,6 +205,19 @@
       status: r.status
     };
   }
+  function normFromHire(r){
+    return {
+      equip_no: r.equip_no,
+      model_label: r.make_model || '',
+      serial_no: r.serial_no,
+      account_name: r.account_name,
+      site_name: r.site_name,
+      site_address: r.site_address,
+      category: r.category,
+      status: 'On Hire',
+      on_hire: true
+    };
+  }
 
   async function search(term){
     term = (term || '').trim();
@@ -213,7 +226,7 @@
     $back.classList.add('hidden');
     $results.innerHTML = '<div class="loading">Searching...</div>';
 
-    const [ceRes, locRes] = await Promise.all([
+    const [ceRes, locRes, hireRes] = await Promise.all([
       db.from('customer_equipment')
         .select('equip_no,account_name,site_name,site_address,manufacturer,model,serial_no,category')
         .or(`equip_no.ilike.%${term}%,serial_no.ilike.%${term}%`)
@@ -221,16 +234,28 @@
       db.from('equipment_location_by_status')
         .select('equip_no,make_model,serial_no,category,status,location,account_name')
         .or(`equip_no.ilike.%${term}%,serial_no.ilike.%${term}%`)
+        .limit(60),
+      db.from('equipment_on_hire')
+        .select('equip_no,account_name,site_name,site_address,make_model,serial_no,category')
+        .or(`equip_no.ilike.%${term}%,serial_no.ilike.%${term}%`)
         .limit(60)
     ]);
 
-    if (ceRes.error && locRes.error){ $results.innerHTML = errHtml('equipment search', ceRes.error); return; }
+    if (ceRes.error && locRes.error && hireRes.error){ $results.innerHTML = errHtml('equipment search', ceRes.error); return; }
 
     const merged = new Map();
     (ceRes.data || []).forEach(r => merged.set(r.equip_no, normFromCustomerEquipment(r)));
     (locRes.data || []).forEach(r => {
       if (!merged.has(r.equip_no)) merged.set(r.equip_no, normFromLocation(r));
       else merged.get(r.equip_no).status = r.status; // enrich with live status if we already had the customer_equipment row
+    });
+    (hireRes.data || []).forEach(r => {
+      if (!merged.has(r.equip_no)) merged.set(r.equip_no, normFromHire(r));
+      else {
+        const ex = merged.get(r.equip_no);
+        ex.on_hire = true;
+        if (!ex.status) ex.status = 'On Hire';
+      }
     });
 
     const rows = [...merged.values()];
@@ -271,7 +296,7 @@
 
     $record.innerHTML = `
       <div class="idcard">
-        <div class="model">${escHtml(eq.model_label) || 'Unknown model'}</div>
+        <div class="model">${escHtml(eq.model_label) || 'Unknown model'}${eq.on_hire ? ' <span class="verdict" style="background:#fff4f4;color:var(--red);vertical-align:middle;">ON HIRE</span>' : ''}</div>
         <div class="serial">${escHtml(equipNo)}${eq.serial_no && eq.serial_no !== equipNo ? ' · serial ' + escHtml(eq.serial_no) : ''}</div>
         <div class="facts">
           <div class="fact"><div class="k">Customer</div><div class="v">${
@@ -289,6 +314,7 @@
       <div class="card"><h2>Attributes</h2><div id="secAttrs" class="loading">Loading...</div></div>
       <div class="card"><h2>Warranty</h2><div id="secWarranty" class="loading">Loading...</div></div>
       <div class="card"><h2>Maintenance contract</h2><div id="secContract" class="loading">Loading...</div></div>
+      <div class="card"><h2>Hire status</h2><div id="secHire" class="loading">Loading...</div></div>
       <div class="card"><h2>Parts fitted <span class="pill" id="partsCount"></span></h2><div id="secParts" class="loading">Loading...</div></div>
       <div class="card"><h2>Spec sheets</h2><div id="secSpecs" class="loading">Loading...</div></div>
       <div class="card"><h2>Weld reports</h2><div id="secWeld" class="loading">Loading...</div></div>
@@ -300,6 +326,7 @@
     loadAttributes(equipNo);
     loadWarranty(equipNo);
     loadContract(equipNo);
+    loadHireStatus(equipNo);
     loadPartsFitted(equipNo);
     loadStatusSnapshot(equipNo);
     loadSpecs(serial);
@@ -397,6 +424,28 @@
         <td><span class="verdict${live ? '' : ' crack'}">${live ? 'Active' : 'Expired'}</span></td>
       </tr>`;
     }).join('') + '</tbody></table>';
+  }
+
+  async function loadHireStatus(equipNo){
+    const el = document.getElementById('secHire');
+    const { data, error } = await db
+      .from('equipment_on_hire')
+      .select('depot,account_name,site_name,site_address,category,contact_name,phone_no')
+      .eq('equip_no', equipNo)
+      .maybeSingle();
+
+    if (error){ el.innerHTML = errHtml('hire status', error); return; }
+    if (!data){ el.innerHTML = '<div class="empty">Not currently on hire.</div>'; return; }
+
+    el.innerHTML = `<div class="facts">
+      <div class="fact"><div class="k">Depot</div><div class="v">${escHtml(data.depot || '—')}</div></div>
+      <div class="fact"><div class="k">Customer</div><div class="v">${escHtml(data.account_name || '—')}</div></div>
+      <div class="fact"><div class="k">Site</div><div class="v">${escHtml(data.site_name || '—')}</div></div>
+      <div class="fact"><div class="k">Site address</div><div class="v">${escHtml(data.site_address || '—')}</div></div>
+      <div class="fact"><div class="k">Category</div><div class="v">${escHtml(data.category || '—')}</div></div>
+      <div class="fact"><div class="k">Contact</div><div class="v">${escHtml(data.contact_name || '—')}</div></div>
+      <div class="fact"><div class="k">Phone</div><div class="v">${escHtml(data.phone_no || '—')}</div></div>
+    </div>`;
   }
 
   async function loadPartsFitted(equipNo){

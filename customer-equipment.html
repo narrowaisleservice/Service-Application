@@ -109,6 +109,21 @@
 
     .equip-address { font-size: 13px; color: #707070; margin-top: 10px; padding-top: 10px; border-top: 1px solid #f0f0f0; }
 
+    .hire-badge {
+        display: inline-block;
+        font-family: 'IBM Plex Sans', sans-serif;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        color: #df0a1e;
+        background: #fff0f1;
+        border-radius: 4px;
+        padding: 3px 8px;
+        margin-left: 8px;
+        vertical-align: middle;
+    }
+
     .empty-state, .loading-state {
         text-align: center;
         padding: 60px 20px;
@@ -166,7 +181,7 @@
             items.map(item => `
                 <div class="equip-card">
                     <div class="equip-top">
-                        <div class="equip-title"><a href="truck.html?equip=${encodeURIComponent(item.equip_no)}" style="color:inherit;text-decoration:none;">${item.manufacturer || ''} ${item.model || ''}</a></div>
+                        <div class="equip-title"><a href="truck.html?equip=${encodeURIComponent(item.equip_no)}" style="color:inherit;text-decoration:none;">${item.manufacturer || ''} ${item.model || ''}</a>${item.on_hire ? '<span class="hire-badge">On Hire</span>' : ''}</div>
                         <div class="equip-serial">${item.serial_no || '—'}</div>
                     </div>
                     <div class="equip-meta">
@@ -190,13 +205,41 @@
         document.getElementById('resultsWrap').innerHTML = '<div class="loading-state">Searching customer equipment...</div>';
 
         try {
-            const { data, error } = await db
-                .from('customer_equipment')
-                .select('*')
-                .ilike('account_name', `%${customer}%`)
-                .order('account_name', { ascending: true });
-            if (error) throw error;
-            renderResults(data || []);
+            const [ceRes, hireRes] = await Promise.all([
+                db.from('customer_equipment')
+                    .select('*')
+                    .ilike('account_name', `%${customer}%`)
+                    .order('account_name', { ascending: true }),
+                db.from('equipment_on_hire')
+                    .select('equip_no,account_name,site_name,site_address,make_model,serial_no')
+                    .ilike('account_name', `%${customer}%`)
+                    .order('account_name', { ascending: true })
+            ]);
+            if (ceRes.error && hireRes.error) throw ceRes.error;
+
+            const owned = ceRes.data || [];
+            const ownedEquipNos = new Set(owned.map(r => r.equip_no));
+
+            // Hire trucks are a separate table (no manufacturer/model split, no site_ref) --
+            // normalise to the same shape and tag them so they don't look like owned equipment.
+            const hire = (hireRes.data || [])
+                .filter(r => !ownedEquipNos.has(r.equip_no)) // avoid double-listing if it's already in customer_equipment
+                .map(r => {
+                    const [manufacturer, ...rest] = (r.make_model || '').split('/');
+                    return {
+                        equip_no: r.equip_no,
+                        manufacturer: manufacturer || '',
+                        model: rest.join('/') || r.make_model || '',
+                        serial_no: r.serial_no,
+                        account_name: r.account_name,
+                        site_name: r.site_name,
+                        site_ref: '',
+                        site_address: r.site_address,
+                        on_hire: true
+                    };
+                });
+
+            renderResults([...owned, ...hire]);
         } catch (err) {
             document.getElementById('resultsWrap').innerHTML = '<div class="empty-state">Could not reach Supabase.<br>' + (err.message || err) + '</div>';
         } finally {
