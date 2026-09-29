@@ -81,8 +81,27 @@
     .tag.overdue { background: #fff0f1; color: #df0a1e; }
     .tag.soon { background: #fff8e8; color: #96650a; }
     .tag.ok { background: #f0f0f0; color: #707070; }
+    .tag.generated { background: #eefbf0; color: #1e8e3e; }
 
     .showmore { text-align: center; padding: 16px; font-size: 12.5px; color: #909090; }
+
+    .gen-bar {
+        background: white; border: 1px solid #e8e8e8; border-radius: 12px;
+        padding: 16px 24px; margin-bottom: 20px; display: flex; gap: 14px; align-items: center; flex-wrap: wrap;
+    }
+    .gen-bar .gen-text { font-size: 12.5px; color: #707070; flex: 1; min-width: 200px; }
+    .gen-bar .gen-text strong { color: #101010; }
+    .btn-gen {
+        padding: 11px 20px; background: #df0a1e; border: none; border-radius: 8px; color: white;
+        font-family: 'IBM Plex Sans', sans-serif; font-size: 12px; font-weight: 700; text-transform: uppercase;
+        letter-spacing: 0.3px; cursor: pointer; white-space: nowrap;
+    }
+    .btn-gen:hover { background: #c3161e; }
+    .btn-gen:disabled { background: #ccc; cursor: not-allowed; }
+
+    td.checkcell { width: 24px; }
+    td.checkcell input { width: 16px; height: 16px; cursor: pointer; }
+    th.checkcell input { width: 16px; height: 16px; cursor: pointer; }
 
     @media (max-width: 640px) {
         .header { padding: 16px 20px; }
@@ -109,6 +128,15 @@
 
     <div class="summary-row" id="summaryRow"></div>
 
+    <div class="gen-bar">
+        <div class="gen-text">
+            Turns the services shown below into draft jobs in <strong>Job Management</strong> &mdash; pre-filled with the truck,
+            site, priority and the round's usual engineer, ready to drop onto the schedule. Already-generated ones are skipped automatically.
+        </div>
+        <button class="btn-gen" id="genSelectedBtn">Generate Selected (<span id="genSelectedCount">0</span>)</button>
+        <button class="btn-gen" id="genVisibleBtn">Generate All Shown</button>
+    </div>
+
     <div class="search-panel">
         <input type="text" id="searchInput" placeholder="Filter by equip no, customer or site...">
         <select id="sortSelect">
@@ -128,7 +156,13 @@
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     // =====================================
 
+    // Job Management's GAS backend (same one job-management.html posts to) --
+    // generating a visit here just calls its existing addJob/list actions, no new backend needed.
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyKgDVIdIGjS0RTMvDyAuDK99E8xV22wit3g1vv_qLF-s6AqlfyKOSwUPvwcExdF3wj/exec";
+
     let ALL_ROWS = [];
+    let VISIBLE_ROWS = [];
+    let GENERATED_KEYS = new Set(); // equip_no|service_type|next_due already pushed to Job Management
     let FILTER_MODE = 'all'; // all | overdue | soon
 
     function escHtml(s){
@@ -143,6 +177,9 @@
         if (days > 0) return `<span class="tag overdue">${days}d overdue</span>`;
         if (days >= -30) return `<span class="tag soon">due in ${-days}d</span>`;
         return `<span class="tag ok">due in ${-days}d</span>`;
+    }
+    function rowKey(r) {
+        return `${r.equip_no}|${r.service_type}|${r.next_due ? String(r.next_due).slice(0, 10) : ''}`;
     }
 
     function renderSummary(rows) {
@@ -182,20 +219,53 @@
             return;
         }
 
+        VISIBLE_ROWS = rows.slice(0, 400);
+
         wrap.innerHTML = `<table><thead><tr>
+            <th class="checkcell"><input type="checkbox" id="selectAllCheck" title="Select all shown"></th>
             <th>Equip No</th><th>Model</th><th>Site</th><th>Service</th><th>Next Due</th><th>Status</th><th>Contract</th>
-        </tr></thead><tbody>` + rows.slice(0, 400).map(r => `
-            <tr class="data-row" onclick="window.location.href='truck.html?equip=${encodeURIComponent(r.equip_no)}'">
-                <td class="mono">${escHtml(r.equip_no)}</td>
-                <td>${escHtml(r.model_label || '—')}</td>
-                <td>${escHtml(r.site_info || '—')}</td>
-                <td>${escHtml(r.service_type || '—')}</td>
-                <td class="mono">${fmtDate(r.next_due)}</td>
-                <td>${dueTag(r.days_overdue)}</td>
-                <td>${escHtml(r.contract_type || '—')}</td>
+        </tr></thead><tbody>` + VISIBLE_ROWS.map(r => `
+            <tr class="data-row">
+                <td class="checkcell" onclick="event.stopPropagation()"><input type="checkbox" class="rowCheck" data-key="${escHtml(rowKey(r))}" ${GENERATED_KEYS.has(rowKey(r)) ? 'disabled' : ''}></td>
+                <td class="mono" onclick="window.location.href='truck.html?equip=${encodeURIComponent(r.equip_no)}'">${escHtml(r.equip_no)}</td>
+                <td onclick="window.location.href='truck.html?equip=${encodeURIComponent(r.equip_no)}'">${escHtml(r.model_label || '—')}</td>
+                <td onclick="window.location.href='truck.html?equip=${encodeURIComponent(r.equip_no)}'">${escHtml(r.site_info || '—')}</td>
+                <td onclick="window.location.href='truck.html?equip=${encodeURIComponent(r.equip_no)}'">${escHtml(r.service_type || '—')}</td>
+                <td class="mono" onclick="window.location.href='truck.html?equip=${encodeURIComponent(r.equip_no)}'">${fmtDate(r.next_due)}</td>
+                <td onclick="window.location.href='truck.html?equip=${encodeURIComponent(r.equip_no)}'">${GENERATED_KEYS.has(rowKey(r)) ? '<span class="tag generated">Job Generated</span>' : dueTag(r.days_overdue)}</td>
+                <td onclick="window.location.href='truck.html?equip=${encodeURIComponent(r.equip_no)}'">${escHtml(r.contract_type || '—')}</td>
             </tr>
         `).join('') + '</tbody></table>' + (rows.length > 400
             ? `<div class="showmore">Showing the 400 most urgent of ${rows.length} matching services.</div>` : '');
+
+        document.getElementById('selectAllCheck').addEventListener('change', (e) => {
+            wrap.querySelectorAll('.rowCheck:not(:disabled)').forEach(cb => { cb.checked = e.target.checked; });
+            updateSelectedCount();
+        });
+        wrap.querySelectorAll('.rowCheck').forEach(cb => cb.addEventListener('change', updateSelectedCount));
+        updateSelectedCount();
+    }
+
+    function updateSelectedCount() {
+        const n = document.querySelectorAll('.rowCheck:checked').length;
+        document.getElementById('genSelectedCount').textContent = n;
+        document.getElementById('genSelectedBtn').disabled = n === 0;
+    }
+
+    async function loadGeneratedKeys() {
+        try {
+            const res = await fetch(`${GAS_URL}?action=list`);
+            const result = await res.json();
+            if (!result.success) return;
+            const marker = /\[\[svc:([^\]]+)\]\]/;
+            (result.jobs || []).forEach(j => {
+                const m = marker.exec(j.description || '');
+                if (m) GENERATED_KEYS.add(m[1]);
+            });
+        } catch (err) {
+            // Job Management unreachable -- generation buttons still work, just without dedupe info
+            console.warn('Could not load existing jobs for dedupe:', err);
+        }
     }
 
     async function loadData() {
@@ -207,6 +277,7 @@
                 .limit(1500);
             if (error) throw error;
             ALL_ROWS = data || [];
+            await loadGeneratedKeys();
             render();
         } catch (err) {
             document.getElementById('resultsWrap').innerHTML =
@@ -216,6 +287,75 @@
 
     document.getElementById('searchInput').addEventListener('input', render);
     document.getElementById('sortSelect').addEventListener('change', render);
+
+    // ── Auto-generate jobs in Job Management ──
+    function priorityFor(daysOverdue) {
+        const d = daysOverdue || 0;
+        if (d > 14) return 'Critical';
+        if (d > 0) return 'High';
+        if (d >= -7) return 'Medium';
+        return 'Low';
+    }
+
+    async function generateJobs(rows) {
+        const toGenerate = rows.filter(r => !GENERATED_KEYS.has(rowKey(r)));
+        if (!toGenerate.length) {
+            alert('Nothing to generate — every one of those already has a job in Job Management.');
+            return;
+        }
+        if (!confirm(`Generate ${toGenerate.length} draft job(s) in Job Management? They'll land in the Unallocated list ready to slot onto the schedule.`)) return;
+
+        document.getElementById('genSelectedBtn').disabled = true;
+        document.getElementById('genVisibleBtn').disabled = true;
+
+        let created = 0, failed = 0;
+        for (const r of toGenerate) {
+            const key = rowKey(r);
+            const overdue = (r.days_overdue || 0) > 0;
+            const scheduledDate = overdue
+                ? new Date().toISOString().slice(0, 10)
+                : (r.next_due ? String(r.next_due).slice(0, 10) : '');
+
+            const payload = {
+                action: 'addJob',
+                customer: r.site_info || r.equip_no || '',
+                equipment: r.equip_no || '',
+                jobType: 'Planned Maintenance',
+                priority: priorityFor(r.days_overdue),
+                assignedEngineer: r.engineer || '',
+                status: 'New',
+                scheduledDate: scheduledDate,
+                startTime: '',
+                endTime: '',
+                description: `${r.service_type || 'Service'} — ${r.model_label || 'equipment'} at ${r.site_info || 'site unknown'} (equip ${r.equip_no}). Auto-generated from Services Due. [[svc:${key}]]`
+            };
+
+            try {
+                const response = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
+                const result = await response.json();
+                if (result && result.success) {
+                    created++;
+                    GENERATED_KEYS.add(key);
+                } else {
+                    failed++;
+                }
+            } catch (err) {
+                failed++;
+            }
+        }
+
+        document.getElementById('genSelectedBtn').disabled = false;
+        document.getElementById('genVisibleBtn').disabled = false;
+        render();
+        alert(`Generated ${created} job${created === 1 ? '' : 's'} in Job Management${failed ? ` (${failed} failed — check GAS_URL / connection)` : ''}.`);
+    }
+
+    document.getElementById('genSelectedBtn').addEventListener('click', () => {
+        const keys = new Set([...document.querySelectorAll('.rowCheck:checked')].map(cb => cb.dataset.key));
+        const rows = VISIBLE_ROWS.filter(r => keys.has(rowKey(r)));
+        generateJobs(rows);
+    });
+    document.getElementById('genVisibleBtn').addEventListener('click', () => generateJobs(VISIBLE_ROWS));
 
     (async () => {
         const { data: { session } } = await db.auth.getSession();

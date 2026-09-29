@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script type="module" src="auth-guard.js"></script>
+<meta name="theme-color" content="#df0a1e">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&family=DM+Sans:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>Engineer Compliance - Narrow Aisle Service Portal</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { background: white !important; color-scheme: light only; }
+    body {
+        font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        color: #101010;
+        min-height: 100vh;
+    }
+
+    .header {
+        background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+        border-bottom: 3px solid #df0a1e;
+        padding: 24px 32px;
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+    .back-link { font-size: 12px; color: #707070; text-decoration: none; font-weight: 600; }
+    .back-link:hover { color: #df0a1e; }
+    .header-title { font-family: 'IBM Plex Sans', sans-serif; font-size: 28px; font-weight: 700; margin-top: 4px; }
+    .header-subtitle { font-size: 13px; color: #707070; margin-top: 2px; }
+
+    .btn-new {
+        padding: 12px 22px;
+        background: #df0a1e;
+        border: none;
+        border-radius: 8px;
+        color: white;
+        font-family: 'IBM Plex Sans', sans-serif;
+        font-size: 12.5px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        cursor: pointer;
+        white-space: nowrap;
+        margin-top: 6px;
+    }
+    .btn-new:hover { background: #c3161e; }
+
+    .content { max-width: 1180px; margin: 0 auto; padding: 32px; }
+
+    .explainer {
+        background: #fafafa;
+        border: 1px solid #eee;
+        border-radius: 10px;
+        padding: 14px 18px;
+        font-size: 12.5px;
+        color: #707070;
+        line-height: 1.5;
+        margin-bottom: 20px;
+    }
+
+    .summary-row { display: flex; gap: 14px; margin-bottom: 20px; flex-wrap: wrap; }
+    .summary-tile {
+        background: white; border: 1px solid #e8e8e8; border-radius: 12px;
+        padding: 16px 20px; flex: 1; min-width: 150px; cursor: pointer; transition: border-color .15s ease;
+    }
+    .summary-tile:hover { border-color: #df0a1e; }
+    .summary-tile.active { border-color: #df0a1e; background: #fff8f8; }
+    .summary-tile .k { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #909090; margin-bottom: 4px; }
+    .summary-tile .v { font-family: 'IBM Plex Sans', sans-serif; font-size: 22px; font-weight: 700; color: #df0a1e; }
+
+    .search-panel {
+        background: white; border: 1px solid #e8e8e8; border-radius: 12px;
+        padding: 20px 24px; margin-bottom: 20px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
+    }
+    .search-panel input[type="text"] {
+        flex: 1; min-width: 220px;
+        font-family: 'DM Sans', sans-serif; font-size: 14px;
+        padding: 12px 14px; border: 1px solid #ddd; border-radius: 8px; color: #101010;
+    }
+    .search-panel input:focus, .search-panel select:focus { outline: none; border-color: #df0a1e; }
+    .search-panel select {
+        font-family: 'DM Sans', sans-serif; font-size: 13px; padding: 10px 12px;
+        border: 1px solid #ddd; border-radius: 8px; color: #101010; background: white; cursor: pointer;
+    }
+
+    .loading-state, .empty-state { text-align: center; padding: 60px 20px; color: #909090; font-size: 14px; }
+
+    table { width: 100%; border-collapse: collapse; background: white; border: 1px solid #e8e8e8; border-radius: 10px; overflow: hidden; }
+    th, td { text-align: left; padding: 11px 14px; font-size: 13px; border-bottom: 1px solid #eee; vertical-align: top; }
+    th { background: #f7f7f7; font-weight: 700; color: #707070; text-transform: uppercase; font-size: 10.5px; letter-spacing: 0.4px; }
+    tr:last-child td { border-bottom: none; }
+    tr.data-row:hover { background: #fafafa; cursor: pointer; }
+    td.mono { font-family: 'DM Mono', monospace; font-size: 12px; white-space: nowrap; }
+    td.notes-cell { max-width: 220px; color: #707070; font-size: 12.5px; }
+
+    .cat-badge {
+        display: inline-block; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .3px;
+        border-radius: 6px; padding: 3px 8px; background: #f0f0f0; color: #505050;
+    }
+
+    .tag { display: inline-block; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .3px; border-radius: 10px; padding: 2px 9px; white-space: nowrap; }
+    .tag.expired { background: #fff0f1; color: #df0a1e; }
+    .tag.expiring_soon { background: #fff8e8; color: #96650a; }
+    .tag.valid { background: #eefbf0; color: #1e8e3e; }
+    .tag.no_expiry { background: #f0f0f0; color: #707070; }
+
+    .showmore { text-align: center; padding: 16px; font-size: 12.5px; color: #909090; }
+
+    /* ── Modal ── */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 300;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+        background: white;
+        border-radius: 12px;
+        width: 100%;
+        max-width: 560px;
+        max-height: 90vh;
+        overflow-y: auto;
+        padding: 28px;
+    }
+    .modal-title {
+        font-family: 'IBM Plex Sans', sans-serif;
+        font-size: 20px;
+        font-weight: 700;
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .modal-close { background: none; border: none; font-size: 22px; cursor: pointer; color: #707070; line-height: 1; }
+    .modal-close:hover { color: #df0a1e; }
+
+    .form-group { margin-bottom: 16px; }
+    .form-group.inline { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .form-group.inline .form-group { margin-bottom: 0; }
+
+    .form-group label {
+        display: block;
+        font-family: 'IBM Plex Sans', sans-serif;
+        font-size: 12px;
+        font-weight: 700;
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+    .form-group input, .form-group select, .form-group textarea {
+        width: 100%;
+        padding: 10px 14px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 14px;
+        color: #101010;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #df0a1e; }
+    .form-group textarea { resize: vertical; min-height: 60px; }
+
+    .modal-actions { display: flex; gap: 12px; margin-top: 8px; }
+    .btn { flex: 1; padding: 13px 20px; border: none; border-radius: 8px; font-family: 'IBM Plex Sans', sans-serif; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; cursor: pointer; }
+    .btn-submit { background: #df0a1e; color: white; }
+    .btn-submit:hover { background: #c3161e; }
+    .btn-submit:disabled { background: #ccc; cursor: not-allowed; }
+    .btn-cancel { background: #f0f0f0; color: #101010; }
+    .btn-cancel:hover { background: #e0e0e0; }
+    .btn-delete { background: white; color: #df0a1e; border: 2px solid #df0a1e; flex: 0 0 auto; padding: 13px 18px; }
+    .btn-delete:hover { background: #fff0f1; }
+
+    .modal-error {
+        display: none; background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24;
+        padding: 12px 14px; border-radius: 8px; margin-bottom: 16px; font-size: 13px;
+    }
+
+    @media (max-width: 640px) {
+        .header { padding: 16px 20px; }
+        .header-title { font-size: 22px; }
+        .content { padding: 16px; }
+        table { display: block; overflow-x: auto; }
+        .form-group.inline { grid-template-columns: 1fr; }
+    }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <div>
+        <a class="back-link" href="portal-hub-professional.html">&larr; Back to Portal</a>
+        <div class="header-title">Engineer Compliance</div>
+        <div class="header-subtitle">Certifications, training, PPE and vehicle checks &mdash; expiry tracked automatically</div>
+    </div>
+    <button class="btn-new" id="addBtn">+ Add Record</button>
+</div>
+
+<div class="content">
+    <div class="explainer">
+        Every certification, training course, PPE item and vehicle check for each engineer, with expiry status worked
+        out automatically: <strong>Expired</strong> (past expiry), <strong>Expiring Soon</strong> (within 30 days), or <strong>Valid</strong>.
+    </div>
+
+    <div class="summary-row" id="summaryRow"></div>
+
+    <div class="search-panel">
+        <input type="text" id="searchInput" placeholder="Filter by engineer or item...">
+        <select id="categorySelect"><option value="">All categories</option></select>
+        <select id="sortSelect">
+            <option value="expiry_asc" selected>Soonest expiry first</option>
+            <option value="expiry_desc">Furthest out first</option>
+            <option value="engineer_asc">Engineer (A-Z)</option>
+        </select>
+    </div>
+
+    <div id="resultsWrap"><div class="loading-state">Loading compliance records&hellip;</div></div>
+</div>
+
+<!-- Add / Edit Modal -->
+<div class="modal-overlay" id="recordModal">
+    <div class="modal">
+        <div class="modal-title"><span id="modalTitle">Add Record</span><button class="modal-close" id="modalClose">&times;</button></div>
+        <div class="modal-error" id="modalError"></div>
+        <form id="recordForm">
+            <div class="form-group inline">
+                <div class="form-group">
+                    <label for="fEngineer">Engineer</label>
+                    <input type="text" id="fEngineer" list="engineerList" required>
+                    <datalist id="engineerList"></datalist>
+                </div>
+                <div class="form-group">
+                    <label for="fCategory">Category</label>
+                    <select id="fCategory">
+                        <option>Certification</option>
+                        <option>Training</option>
+                        <option>PPE</option>
+                        <option>Vehicle Check</option>
+                        <option>Medical</option>
+                        <option>License</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="fItem">Item / Description</label>
+                <input type="text" id="fItem" placeholder="e.g. LOLER Inspection Certificate" required>
+            </div>
+            <div class="form-group inline">
+                <div class="form-group">
+                    <label for="fIssueDate">Issue Date</label>
+                    <input type="date" id="fIssueDate">
+                </div>
+                <div class="form-group">
+                    <label for="fExpiryDate">Expiry Date</label>
+                    <input type="date" id="fExpiryDate">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="fNotes">Notes</label>
+                <textarea id="fNotes" placeholder="Optional notes"></textarea>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-delete" id="deleteBtn" style="display:none;">Delete</button>
+                <button type="button" class="btn btn-cancel" id="modalCancel">Cancel</button>
+                <button type="submit" class="btn btn-submit" id="modalSubmit">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    // ===== Supabase project config =====
+    const SUPABASE_URL = 'https://hkwcdpqpduptjwroawrw.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_ym0_ostk5WkdHGhGEGSkXw_d1sHadPY';
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    // =====================================
+
+    let ALL_ROWS = [];
+    let FILTER_MODE = 'all'; // all | expired | expiring_soon | valid
+    let editingId = null;
+
+    function escHtml(s){
+        return (s == null ? '' : String(s)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+    function fmtDate(d) {
+        if (!d) return '—';
+        return new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+    function statusLabel(s) {
+        return { expired: 'Expired', expiring_soon: 'Expiring Soon', valid: 'Valid', no_expiry: 'No Expiry' }[s] || s;
+    }
+
+    function renderSummary(rows) {
+        const expired = rows.filter(r => r.status === 'expired').length;
+        const expiring = rows.filter(r => r.status === 'expiring_soon').length;
+        const valid = rows.filter(r => r.status === 'valid').length;
+        document.getElementById('summaryRow').innerHTML = `
+            <div class="summary-tile${FILTER_MODE==='all'?' active':''}" data-mode="all"><div class="k">All records</div><div class="v">${rows.length.toLocaleString('en-GB')}</div></div>
+            <div class="summary-tile${FILTER_MODE==='expired'?' active':''}" data-mode="expired"><div class="k">Expired</div><div class="v">${expired.toLocaleString('en-GB')}</div></div>
+            <div class="summary-tile${FILTER_MODE==='expiring_soon'?' active':''}" data-mode="expiring_soon"><div class="k">Expiring &le;30d</div><div class="v">${expiring.toLocaleString('en-GB')}</div></div>
+            <div class="summary-tile${FILTER_MODE==='valid'?' active':''}" data-mode="valid"><div class="k">Valid</div><div class="v">${valid.toLocaleString('en-GB')}</div></div>
+        `;
+        document.querySelectorAll('.summary-tile').forEach(el => {
+            el.addEventListener('click', () => { FILTER_MODE = el.dataset.mode; render(); });
+        });
+    }
+
+    function populateFilters(rows) {
+        const catSel = document.getElementById('categorySelect');
+        if (!catSel.dataset.populated) {
+            const cats = [...new Set(rows.map(r => r.category).filter(Boolean))].sort();
+            catSel.innerHTML = '<option value="">All categories</option>' + cats.map(c => `<option value="${escHtml(c)}">${escHtml(c)}</option>`).join('');
+            catSel.dataset.populated = '1';
+        }
+        const engList = document.getElementById('engineerList');
+        const engineers = [...new Set(rows.map(r => r.engineer_name).filter(Boolean))].sort();
+        engList.innerHTML = engineers.map(e => `<option value="${escHtml(e)}">`).join('');
+    }
+
+    function render() {
+        const filter = document.getElementById('searchInput').value.trim().toLowerCase();
+        const category = document.getElementById('categorySelect').value;
+        const sortMode = document.getElementById('sortSelect').value;
+
+        renderSummary(ALL_ROWS);
+        populateFilters(ALL_ROWS);
+
+        let rows = ALL_ROWS;
+        if (FILTER_MODE !== 'all') rows = rows.filter(r => r.status === FILTER_MODE);
+        if (category) rows = rows.filter(r => r.category === category);
+        if (filter) {
+            rows = rows.filter(r =>
+                (r.engineer_name || '').toLowerCase().includes(filter) ||
+                (r.item_name || '').toLowerCase().includes(filter)
+            );
+        }
+
+        rows = [...rows].sort((a, b) => {
+            if (sortMode === 'engineer_asc') return (a.engineer_name || '').localeCompare(b.engineer_name || '');
+            const da = a.expiry_date ? new Date(a.expiry_date).getTime() : (sortMode === 'expiry_asc' ? Infinity : -Infinity);
+            const dbb = b.expiry_date ? new Date(b.expiry_date).getTime() : (sortMode === 'expiry_asc' ? Infinity : -Infinity);
+            return sortMode === 'expiry_asc' ? da - dbb : dbb - da;
+        });
+
+        const wrap = document.getElementById('resultsWrap');
+        if (!rows.length) {
+            wrap.innerHTML = '<div class="empty-state">No matching compliance records.</div>';
+            return;
+        }
+
+        wrap.innerHTML = `<table><thead><tr>
+            <th>Engineer</th><th>Category</th><th>Item</th><th>Issued</th><th>Expires</th><th>Status</th><th>Notes</th>
+        </tr></thead><tbody>` + rows.slice(0, 500).map(r => `
+            <tr class="data-row" data-id="${r.id}">
+                <td>${escHtml(r.engineer_name)}</td>
+                <td><span class="cat-badge">${escHtml(r.category || 'Other')}</span></td>
+                <td>${escHtml(r.item_name)}</td>
+                <td class="mono">${fmtDate(r.issue_date)}</td>
+                <td class="mono">${fmtDate(r.expiry_date)}</td>
+                <td><span class="tag ${r.status}">${statusLabel(r.status)}</span></td>
+                <td class="notes-cell">${escHtml(r.notes || '—')}</td>
+            </tr>
+        `).join('') + '</tbody></table>' + (rows.length > 500
+            ? `<div class="showmore">Showing 500 of ${rows.length} matching records.</div>` : '');
+
+        wrap.querySelectorAll('.data-row').forEach(tr => {
+            tr.addEventListener('click', () => openEditModal(tr.dataset.id));
+        });
+    }
+
+    async function loadData() {
+        try {
+            const { data, error } = await db
+                .from('compliance_board')
+                .select('*')
+                .limit(2000);
+            if (error) throw error;
+            ALL_ROWS = data || [];
+            render();
+        } catch (err) {
+            document.getElementById('resultsWrap').innerHTML =
+                '<div class="empty-state">Could not load compliance records.<br>' + (err.message || err) + '</div>';
+        }
+    }
+
+    document.getElementById('searchInput').addEventListener('input', render);
+    document.getElementById('categorySelect').addEventListener('change', render);
+    document.getElementById('sortSelect').addEventListener('change', render);
+
+    // ── Modal ──
+    const modal = document.getElementById('recordModal');
+    const form = document.getElementById('recordForm');
+    const modalError = document.getElementById('modalError');
+    const deleteBtn = document.getElementById('deleteBtn');
+
+    function resetForm() {
+        form.reset();
+        document.getElementById('fCategory').value = 'Certification';
+        modalError.style.display = 'none';
+    }
+
+    document.getElementById('addBtn').addEventListener('click', () => {
+        editingId = null;
+        document.getElementById('modalTitle').textContent = 'Add Record';
+        deleteBtn.style.display = 'none';
+        resetForm();
+        modal.classList.add('show');
+    });
+
+    function openEditModal(id) {
+        const row = ALL_ROWS.find(r => String(r.id) === String(id));
+        if (!row) return;
+        editingId = id;
+        document.getElementById('modalTitle').textContent = 'Edit Record';
+        deleteBtn.style.display = '';
+        modalError.style.display = 'none';
+        document.getElementById('fEngineer').value = row.engineer_name || '';
+        document.getElementById('fCategory').value = row.category || 'Other';
+        document.getElementById('fItem').value = row.item_name || '';
+        document.getElementById('fIssueDate').value = row.issue_date ? String(row.issue_date).slice(0, 10) : '';
+        document.getElementById('fExpiryDate').value = row.expiry_date ? String(row.expiry_date).slice(0, 10) : '';
+        document.getElementById('fNotes').value = row.notes || '';
+        modal.classList.add('show');
+    }
+
+    function closeModal() { modal.classList.remove('show'); }
+    document.getElementById('modalClose').addEventListener('click', closeModal);
+    document.getElementById('modalCancel').addEventListener('click', closeModal);
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const submitBtn = document.getElementById('modalSubmit');
+        modalError.style.display = 'none';
+        submitBtn.disabled = true;
+
+        const payload = {
+            engineer_name: document.getElementById('fEngineer').value.trim(),
+            category: document.getElementById('fCategory').value,
+            item_name: document.getElementById('fItem').value.trim(),
+            issue_date: document.getElementById('fIssueDate').value || null,
+            expiry_date: document.getElementById('fExpiryDate').value || null,
+            notes: document.getElementById('fNotes').value.trim() || null,
+        };
+
+        try {
+            let error;
+            if (editingId) {
+                ({ error } = await db.from('engineer_compliance').update(payload).eq('id', editingId));
+            } else {
+                ({ error } = await db.from('engineer_compliance').insert(payload));
+            }
+            if (error) throw error;
+            closeModal();
+            loadData();
+        } catch (err) {
+            modalError.textContent = '❌ ' + (err.message || err);
+            modalError.style.display = 'block';
+        } finally {
+            submitBtn.disabled = false;
+        }
+    });
+
+    deleteBtn.addEventListener('click', async () => {
+        if (!editingId) return;
+        if (!confirm('Delete this compliance record? This cannot be undone.')) return;
+        try {
+            const { error } = await db.from('engineer_compliance').delete().eq('id', editingId);
+            if (error) throw error;
+            closeModal();
+            loadData();
+        } catch (err) {
+            modalError.textContent = '❌ ' + (err.message || err);
+            modalError.style.display = 'block';
+        }
+    });
+
+    (async () => {
+        const { data: { session } } = await db.auth.getSession();
+        if (!session){
+            document.getElementById('resultsWrap').innerHTML = '<div class="loading-state">Not signed in — <a href="login.html">sign in</a> to view this.</div>';
+            document.getElementById('addBtn').style.display = 'none';
+            return;
+        }
+        loadData();
+    })();
+</script>
+</body>
+</html>
