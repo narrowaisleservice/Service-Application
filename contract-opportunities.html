@@ -77,6 +77,25 @@
 
     .showmore { text-align: center; padding: 16px; font-size: 12.5px; color: #909090; }
 
+    .tag.lead { display: inline-block; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .3px; border-radius: 10px; padding: 2px 9px; background: #eefbf0; color: #1e8e3e; }
+
+    .gen-bar {
+        background: white; border: 1px solid #e8e8e8; border-radius: 12px;
+        padding: 16px 24px; margin-bottom: 20px; display: flex; gap: 14px; align-items: center; flex-wrap: wrap;
+    }
+    .gen-bar .gen-text { font-size: 12.5px; color: #707070; flex: 1; min-width: 200px; }
+    .gen-bar .gen-text strong { color: #101010; }
+    .btn-gen {
+        padding: 11px 20px; background: #df0a1e; border: none; border-radius: 8px; color: white;
+        font-family: 'IBM Plex Sans', sans-serif; font-size: 12px; font-weight: 700; text-transform: uppercase;
+        letter-spacing: 0.3px; cursor: pointer; white-space: nowrap;
+    }
+    .btn-gen:hover { background: #c3161e; }
+    .btn-gen:disabled { background: #ccc; cursor: not-allowed; }
+
+    td.checkcell { width: 24px; }
+    td.checkcell input, th.checkcell input { width: 16px; height: 16px; cursor: pointer; }
+
     @media (max-width: 640px) {
         .header { padding: 16px 20px; }
         .header-title { font-size: 22px; }
@@ -101,6 +120,15 @@
 
     <div class="summary-row" id="summaryRow"></div>
 
+    <div class="gen-bar">
+        <div class="gen-text">
+            Turns the accounts shown below into <strong>Lead</strong>-stage deals in the <strong>Pipeline</strong> &mdash; one deal per account,
+            summing its ad-hoc job cost as the value. Accounts already in the pipeline from here are skipped automatically.
+        </div>
+        <button class="btn-gen" id="genSelectedBtn">Generate Selected (<span id="genSelectedCount">0</span>)</button>
+        <button class="btn-gen" id="genVisibleBtn">Generate All Shown</button>
+    </div>
+
     <div class="search-panel">
         <input type="text" id="customerInput" placeholder="Filter by customer name...">
         <select id="limitSelect">
@@ -122,6 +150,8 @@
     // =====================================
 
     let ALL_ROWS = [];
+    let VISIBLE_ROWS = [];
+    let GENERATED_REFS = new Set(); // account_ref already pushed to Pipeline from here
 
     function escHtml(s){
         return (s == null ? '' : String(s)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -156,21 +186,101 @@
             return;
         }
 
+        VISIBLE_ROWS = rows;
+
         wrap.innerHTML = `<table><thead><tr>
+            <th class="checkcell"><input type="checkbox" id="selectAllCheck" title="Select all shown"></th>
             <th>Equip No</th><th>Model</th><th>Customer</th><th>Site / Town</th>
             <th style="text-align:right">Jobs</th><th style="text-align:right">Job Cost</th><th style="text-align:right">Job Value</th>
         </tr></thead><tbody>` + rows.map(r => `
-            <tr class="data-row" onclick="window.location.href='truck.html?equip=${encodeURIComponent(r.equip_no)}'">
-                <td class="mono">${escHtml(r.equip_no)}</td>
-                <td>${escHtml([r.make, r.model].filter(Boolean).join(' ')) || '—'}</td>
-                <td>${escHtml(r.account_name || '—')}</td>
-                <td>${escHtml([r.site_name, r.town].filter(Boolean).join(', ')) || '—'}</td>
-                <td class="num">${r.job_count ?? '—'}</td>
-                <td class="num">${fmtMoney(r.total_cost)}</td>
-                <td class="num">${fmtMoney(r.total_value)}</td>
+            <tr class="data-row">
+                <td class="checkcell" onclick="event.stopPropagation()">${r.account_ref ? `<input type="checkbox" class="rowCheck" data-ref="${escHtml(r.account_ref)}" ${GENERATED_REFS.has(r.account_ref) ? 'disabled' : ''}>` : ''}</td>
+                <td class="mono" onclick="window.location.href='truck.html?equip=${encodeURIComponent(r.equip_no)}'">${escHtml(r.equip_no)}</td>
+                <td onclick="window.location.href='truck.html?equip=${encodeURIComponent(r.equip_no)}'">${escHtml([r.make, r.model].filter(Boolean).join(' ')) || '—'}</td>
+                <td onclick="window.location.href='truck.html?equip=${encodeURIComponent(r.equip_no)}'">${escHtml(r.account_name || '—')}${r.account_ref && GENERATED_REFS.has(r.account_ref) ? ' <span class="tag lead">In Pipeline</span>' : ''}</td>
+                <td onclick="window.location.href='truck.html?equip=${encodeURIComponent(r.equip_no)}'">${escHtml([r.site_name, r.town].filter(Boolean).join(', ')) || '—'}</td>
+                <td class="num" onclick="window.location.href='truck.html?equip=${encodeURIComponent(r.equip_no)}'">${r.job_count ?? '—'}</td>
+                <td class="num" onclick="window.location.href='truck.html?equip=${encodeURIComponent(r.equip_no)}'">${fmtMoney(r.total_cost)}</td>
+                <td class="num" onclick="window.location.href='truck.html?equip=${encodeURIComponent(r.equip_no)}'">${fmtMoney(r.total_value)}</td>
             </tr>
         `).join('') + '</tbody></table>';
+
+        document.getElementById('selectAllCheck').addEventListener('change', (e) => {
+            wrap.querySelectorAll('.rowCheck:not(:disabled)').forEach(cb => { cb.checked = e.target.checked; });
+            updateSelectedCount();
+        });
+        wrap.querySelectorAll('.rowCheck').forEach(cb => cb.addEventListener('change', updateSelectedCount));
+        updateSelectedCount();
     }
+
+    function updateSelectedCount() {
+        const n = document.querySelectorAll('.rowCheck:checked').length;
+        document.getElementById('genSelectedCount').textContent = n;
+        document.getElementById('genSelectedBtn').disabled = n === 0;
+    }
+
+    async function loadGeneratedRefs() {
+        try {
+            const { data, error } = await db.from('crm_deals').select('source_ref').like('source_ref', 'contract_opp:%');
+            if (error) return;
+            (data || []).forEach(d => { if (d.source_ref) GENERATED_REFS.add(d.source_ref.replace('contract_opp:', '')); });
+        } catch (err) {
+            console.warn('Could not load existing pipeline deals for dedupe:', err);
+        }
+    }
+
+    // ── Generate Lead deals in Pipeline ──
+    async function generateLeads(rows) {
+        const byAccount = new Map();
+        rows.forEach(r => {
+            if (!r.account_ref || GENERATED_REFS.has(r.account_ref)) return;
+            const entry = byAccount.get(r.account_ref) || { account_ref: r.account_ref, account_name: r.account_name, cost: 0, count: 0 };
+            entry.cost += Number(r.total_cost) || 0;
+            entry.count += 1;
+            byAccount.set(r.account_ref, entry);
+        });
+        const accounts = [...byAccount.values()];
+        if (!accounts.length) {
+            alert('Nothing to generate — every account shown is already in the Pipeline.');
+            return;
+        }
+        if (!confirm(`Add ${accounts.length} Lead deal(s) to the Pipeline, one per account?`)) return;
+
+        document.getElementById('genSelectedBtn').disabled = true;
+        document.getElementById('genVisibleBtn').disabled = true;
+
+        // One insert per account (not a single batch) -- crm_deals.account_ref has a foreign key
+        // against customers, and some contract_opportunities accounts are closed/internal codes
+        // not present there. A batch insert would fail entirely on the first bad row.
+        let created = 0, skipped = 0;
+        for (const a of accounts) {
+            const { error } = await db.from('crm_deals').insert({
+                account_ref: a.account_ref,
+                title: `Contract opportunity — ${a.count} truck${a.count === 1 ? '' : 's'}, ${fmtMoney(a.cost)} ad-hoc costs`,
+                stage: 'Lead',
+                value: a.cost || null,
+                source_ref: `contract_opp:${a.account_ref}`,
+            });
+            if (error) {
+                skipped++;
+            } else {
+                created++;
+                GENERATED_REFS.add(a.account_ref);
+            }
+        }
+
+        document.getElementById('genSelectedBtn').disabled = false;
+        document.getElementById('genVisibleBtn').disabled = false;
+        render();
+        alert(`Added ${created} deal${created === 1 ? '' : 's'} to the Pipeline` +
+            (skipped ? ` (${skipped} skipped — account not in the Customers table, e.g. closed or internal codes).` : '.'));
+    }
+
+    document.getElementById('genSelectedBtn').addEventListener('click', () => {
+        const refs = new Set([...document.querySelectorAll('.rowCheck:checked')].map(cb => cb.dataset.ref));
+        generateLeads(VISIBLE_ROWS.filter(r => refs.has(r.account_ref)));
+    });
+    document.getElementById('genVisibleBtn').addEventListener('click', () => generateLeads(VISIBLE_ROWS));
 
     async function loadData() {
         try {
@@ -181,6 +291,7 @@
                 .limit(1000);
             if (error) throw error;
             ALL_ROWS = data || [];
+            await loadGeneratedRefs();
             render();
         } catch (err) {
             document.getElementById('resultsWrap').innerHTML =
