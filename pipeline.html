@@ -84,6 +84,7 @@
     .deal-auto { display: inline-block; font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .3px; color: #df0a1e; background: #fff0f1; border-radius: 8px; padding: 1px 7px; margin-top: 6px; }
     .deal-owner { font-size: 11px; color: #909090; margin-top: 6px; }
     .deal-reason { font-size: 11px; color: #707070; font-style: italic; margin-top: 4px; }
+    .deal-job-tag { display: inline-block; font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .3px; color: #1e8e3e; background: #eafaf0; border-radius: 8px; padding: 1px 7px; margin-top: 6px; margin-left: 6px; }
 
     .deal-stage-select { width: 100%; margin-top: 8px; padding: 6px 8px; font-family: 'DM Sans', sans-serif; font-size: 11.5px; border-radius: 6px; cursor: pointer; }
 
@@ -197,6 +198,9 @@
                 <label for="dCloseReason">Reason (Won / Lost)</label>
                 <input type="text" id="dCloseReason" placeholder="e.g. went with a competitor on price">
             </div>
+            <div class="form-group" id="createJobRow" style="display:none;">
+                <button type="button" class="btn" id="createJobBtn" style="width:100%;background:#eafaf0;color:#1e8e3e;border:2px solid #1e8e3e;">Create Job in Job Management</button>
+            </div>
             <div class="modal-actions">
                 <button type="button" class="btn btn-delete" id="delBtn" style="display:none;">Delete</button>
                 <button type="button" class="btn btn-cancel" id="addCancel">Cancel</button>
@@ -216,6 +220,11 @@
 
     const STAGES = ['Lead', 'Qualified', 'Quoted', 'Won', 'Lost'];
     const STAGE_COLORS = { Lead: '#707070', Qualified: '#2f80ed', Quoted: '#c98a12', Won: '#1e8e3e', Lost: '#df0a1e' };
+
+    // Job Management is a separate GAS/Sheets backend (same one services-due.html pushes into).
+    // Dedupe against it the same way: an embedded [[deal:ID]] marker in the job description.
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyKgDVIdIGjS0RTMvDyAuDK99E8xV22wit3g1vv_qLF-s6AqlfyKOSwUPvwcExdF3wj/exec";
+    let JOBS_FOR_DEALS = new Set();
 
     let ALL_DEALS = [];
     let CUSTOMER_BY_REF = new Map();
@@ -285,6 +294,7 @@
                                     ${d.owner ? `<div class="deal-owner">${escHtml(d.owner)}</div>` : ''}
                                     ${d.close_reason ? `<div class="deal-reason">${escHtml(d.close_reason)}</div>` : ''}
                                     ${d.source_ref ? '<span class="deal-auto">Auto</span>' : ''}
+                                    ${d.stage === 'Won' && JOBS_FOR_DEALS.has(String(d.id)) ? '<span class="deal-job-tag">Job Created</span>' : ''}
                                     <select class="deal-stage-select" data-id="${d.id}" onclick="event.stopPropagation()">
                                         ${STAGES.map(s => `<option value="${s}" ${s===d.stage?'selected':''}>Move to ${s}</option>`).join('')}
                                     </select>
@@ -320,11 +330,28 @@
         render();
     }
 
+    async function loadGeneratedJobKeys() {
+        try {
+            const res = await fetch(`${GAS_URL}?action=list`);
+            const result = await res.json();
+            if (!result.success) return;
+            const marker = /\[\[deal:([^\]]+)\]\]/;
+            (result.jobs || []).forEach(j => {
+                const m = marker.exec(j.description || '');
+                if (m) JOBS_FOR_DEALS.add(m[1]);
+            });
+        } catch (err) {
+            // Job Management unreachable -- Create Job button still works, just without dedupe info
+            console.warn('Could not load existing jobs for dedupe:', err);
+        }
+    }
+
     async function loadData() {
         try {
             const [{ data: deals, error: dealErr }, { data: customers, error: custErr }] = await Promise.all([
                 db.from('crm_deals').select('*').order('created_at', { ascending: false }),
                 db.from('customers').select('account_ref,name'),
+                loadGeneratedJobKeys(),
             ]);
             if (dealErr) throw dealErr;
             ALL_DEALS = deals || [];
@@ -360,10 +387,62 @@
 
     const stageSel = document.getElementById('dStage');
     const closeReasonGroup = document.getElementById('closeReasonGroup');
+    const createJobRow = document.getElementById('createJobRow');
+    const createJobBtn = document.getElementById('createJobBtn');
     function syncCloseReasonVisibility() {
         closeReasonGroup.style.display = (stageSel.value === 'Won' || stageSel.value === 'Lost') ? 'block' : 'none';
     }
-    stageSel.addEventListener('change', syncCloseReasonVisibility);
+    function syncCreateJobVisibility() {
+        const show = !!editingId && stageSel.value === 'Won';
+        createJobRow.style.display = show ? 'block' : 'none';
+        if (show) updateCreateJobButtonState();
+    }
+    function updateCreateJobButtonState() {
+        if (JOBS_FOR_DEALS.has(String(editingId))) {
+            createJobBtn.textContent = '✓ Job Created';
+            createJobBtn.disabled = true;
+        } else {
+            createJobBtn.textContent = 'Create Job in Job Management';
+            createJobBtn.disabled = false;
+        }
+    }
+    stageSel.addEventListener('change', () => { syncCloseReasonVisibility(); syncCreateJobVisibility(); });
+    createJobBtn.addEventListener('click', async () => {
+        if (!editingId) return;
+        const deal = ALL_DEALS.find(d => String(d.id) === String(editingId));
+        if (!deal) return;
+        const cust = CUSTOMER_BY_REF.get(deal.account_ref);
+        createJobBtn.disabled = true;
+        createJobBtn.textContent = 'Creating…';
+        const payload = {
+            action: 'addJob',
+            customer: (cust && cust.name) || deal.account_ref || '',
+            equipment: '',
+            jobType: 'Sales Follow-up',
+            priority: 'Medium',
+            assignedEngineer: deal.owner || '',
+            status: 'New',
+            scheduledDate: '',
+            startTime: '',
+            endTime: '',
+            description: `Deal won: ${deal.title}${deal.value ? ' — ' + fmtMoney(deal.value) : ''}. Unallocated — pick a date and assign an engineer. [[deal:${deal.id}]]`
+        };
+        try {
+            const response = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
+            const result = await response.json();
+            if (result && result.success) {
+                JOBS_FOR_DEALS.add(String(deal.id));
+                updateCreateJobButtonState();
+                render();
+            } else {
+                alert('Could not create the job — check Job Management / GAS_URL.');
+                updateCreateJobButtonState();
+            }
+        } catch (err) {
+            alert('Could not create the job: ' + (err.message || err));
+            updateCreateJobButtonState();
+        }
+    });
 
     function resetForm() {
         form.reset();
@@ -371,6 +450,7 @@
         custList.classList.remove('show');
         modalError.style.display = 'none';
         syncCloseReasonVisibility();
+        syncCreateJobVisibility();
     }
 
     document.getElementById('addBtn').addEventListener('click', () => {
@@ -401,6 +481,7 @@
         document.getElementById('dClose').value = d.expected_close ? String(d.expected_close).slice(0, 10) : '';
         document.getElementById('dCloseReason').value = d.close_reason || '';
         syncCloseReasonVisibility();
+        syncCreateJobVisibility();
         const viewRow = document.getElementById('viewAccountRow');
         viewRow.style.display = '';
         document.getElementById('viewAccountLink').href = `customers.html?acc=${encodeURIComponent(d.account_ref)}&tab=crm`;
