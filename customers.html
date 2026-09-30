@@ -140,6 +140,10 @@ textarea.crm-input{resize:vertical;min-height:60px}
 .crm-task-due.overdue{color:var(--red);font-weight:500}
 .crm-deal-row{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
 .crm-deal-row:last-child{border-bottom:none}
+.crm-contact-row{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
+.crm-contact-row:last-child{border-bottom:none}
+.crm-del-link{font-size:11px;color:var(--faint);cursor:pointer;flex-shrink:0;background:none;border:none;font:inherit}
+.crm-del-link:hover{color:var(--red)}
 .crm-deal-title{font-weight:500;font-size:13.5px;margin-bottom:3px}
 .crm-deal-stage{width:auto;padding:5px 8px;font-size:11px;border-radius:6px;font:inherit;cursor:pointer}
 
@@ -526,6 +530,18 @@ async function renderCrm(c) {
     </div>
 
     <div class="card" style="margin-bottom:16px;">
+      <h3>Contacts</h3>
+      <div class="crm-row">
+        <input type="text" id="crmContactName" class="crm-input" placeholder="Name" style="flex:1.4;min-width:140px;">
+        <input type="text" id="crmContactRole" class="crm-input" placeholder="Role" style="flex:1;min-width:110px;">
+        <input type="text" id="crmContactEmail2" class="crm-input" placeholder="Email" style="flex:1.4;min-width:150px;">
+        <input type="text" id="crmContactPhone2" class="crm-input" placeholder="Phone" style="flex:1;min-width:110px;">
+        <button class="crm-btn" onclick="addCrmContact()">Add Contact</button>
+      </div>
+      <div id="crmContactList"><div class="dim">Loading…</div></div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px;">
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;">
         <h3 style="margin-bottom:0">Pipeline</h3>
         <a class="dim" href="pipeline.html" style="font-size:12px;color:var(--red);text-decoration:none;">Full pipeline →</a>
@@ -567,15 +583,53 @@ async function renderCrm(c) {
 }
 
 async function loadCrmLists(ref) {
-  const [{ data: deals, error: dealErr }, { data: tasks, error: taskErr }, { data: notes, error: noteErr }] = await Promise.all([
+  const [{ data: deals, error: dealErr }, { data: tasks, error: taskErr }, { data: notes, error: noteErr }, { data: contacts, error: contactErr }] = await Promise.all([
     db.from('crm_deals').select('*').eq('account_ref', ref).order('created_at', { ascending: false }),
     db.from('crm_tasks').select('*').eq('account_ref', ref).order('done').order('due_date', { ascending: true, nullsFirst: false }),
     db.from('crm_notes').select('*').eq('account_ref', ref).order('created_at', { ascending: false }),
+    db.from('crm_contacts').select('*').eq('account_ref', ref).order('is_primary', { ascending: false }).order('created_at', { ascending: true }),
   ]);
   if (currentTab !== 'crm') return;
   renderCrmDeals(dealErr ? [] : (deals || []));
   renderCrmTasks(taskErr ? [] : (tasks || []));
   renderCrmNotes(noteErr ? [] : (notes || []));
+  renderCrmContacts(contactErr ? [] : (contacts || []));
+}
+
+function renderCrmContacts(contacts) {
+  const el = $('crmContactList'); if (!el) return;
+  if (!contacts.length) { el.innerHTML = '<div class="dim">No contacts added yet.</div>'; return; }
+  el.innerHTML = contacts.map(c => `
+    <div class="crm-contact-row">
+      <div>
+        <div class="crm-deal-title">${esc(c.name)}${c.is_primary ? ' <span class="crm-type-tag">Primary</span>' : ''}</div>
+        <div class="crm-meta">${val(c.role)}${c.role && (c.email || c.phone) ? ' · ' : ''}${c.email ? `<a href="mailto:${esc(c.email)}">${esc(c.email)}</a>` : ''}${c.email && c.phone ? ' · ' : ''}${c.phone ? `<a href="tel:${esc(c.phone.replace(/\s/g,''))}">${esc(c.phone)}</a>` : ''}</div>
+      </div>
+      <button class="crm-del-link" onclick="deleteCrmContact('${c.id}')">Remove</button>
+    </div>`).join('');
+}
+
+async function addCrmContact() {
+  const name = $('crmContactName').value.trim();
+  if (!name) return;
+  const { error } = await db.from('crm_contacts').insert({
+    account_ref: CRM_CURRENT.account_ref,
+    name,
+    role: $('crmContactRole').value.trim() || null,
+    email: $('crmContactEmail2').value.trim() || null,
+    phone: $('crmContactPhone2').value.trim() || null,
+    created_by: CRM_USER_EMAIL || null,
+  });
+  if (error) { alert('Could not add contact: ' + error.message); return; }
+  $('crmContactName').value = ''; $('crmContactRole').value = ''; $('crmContactEmail2').value = ''; $('crmContactPhone2').value = '';
+  loadCrmLists(CRM_CURRENT.account_ref);
+}
+
+async function deleteCrmContact(id) {
+  if (!confirm('Remove this contact?')) return;
+  const { error } = await db.from('crm_contacts').delete().eq('id', id);
+  if (error) { alert('Could not remove contact: ' + error.message); return; }
+  loadCrmLists(CRM_CURRENT.account_ref);
 }
 
 function toggleCrmEdit() {

@@ -2216,9 +2216,13 @@
             try {
                 const today = new Date().toISOString().slice(0, 10);
                 const in90 = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
-                const contractRes = await db.from('customer_maintenance_contract').select('id', { count: 'exact', head: true }).gte('end_date', today).lte('end_date', in90);
+                const [contractRes, overdueTaskRes] = await Promise.all([
+                    db.from('customer_maintenance_contract').select('id', { count: 'exact', head: true }).gte('end_date', today).lte('end_date', in90),
+                    db.from('crm_tasks').select('id', { count: 'exact', head: true }).eq('done', false).lte('due_date', today)
+                ]);
                 globalCounts = {
-                    contractsExpiring: contractRes.count || 0
+                    contractsExpiring: contractRes.count || 0,
+                    crmTasksDue: overdueTaskRes.count || 0
                 };
                 if (currentSection === 'dashboard') renderHomeStats(globalCounts);
             } catch (e) {
@@ -2238,6 +2242,7 @@
                 };
                 db.channel('portal-live-counts')
                     .on('postgres_changes', { event: '*', schema: 'public', table: 'customer_maintenance_contract' }, scheduleRefresh)
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'crm_tasks' }, scheduleRefresh)
                     .subscribe();
             } catch (e) {
                 // Realtime not available on this project/connection — the counts
@@ -2253,6 +2258,11 @@
                     <div class="stat-card-top"><div class="stat-icon">${ICONS.shield}</div></div>
                     <div class="stat-value" data-target="${counts.contractsExpiring}">0</div>
                     <div class="stat-label">Contracts Expiring Soon</div>
+                </div>
+                <div class="stat-card" style="cursor:pointer;" onclick="window.location.href='crm-dashboard.html'">
+                    <div class="stat-card-top"><div class="stat-icon">${ICONS.clock}</div></div>
+                    <div class="stat-value" data-target="${counts.crmTasksDue}">0</div>
+                    <div class="stat-label">CRM Tasks Due Now</div>
                 </div>
             `;
             setStagger(statsEl);
