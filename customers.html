@@ -66,6 +66,10 @@ h1 b{font-weight:500;color:var(--red)}
 .tag.contract-active{border-color:var(--green);color:var(--green)}
 .due-overdue{color:var(--red);font-weight:500}
 .dot-stop{width:7px;height:7px;border-radius:50%;background:var(--red);flex-shrink:0}
+.dot-followup{width:7px;height:7px;border-radius:50%;background:#c98a12;flex-shrink:0}
+.tag.status-Active{border-color:var(--green);color:var(--green)}
+.tag.status-Prospect{border-color:#c98a12;color:#c98a12}
+.tag.status-Lapsed,.tag.status-Lost{border-color:var(--faint);color:var(--faint)}
 .more{padding:12px;text-align:center;color:var(--faint);font-size:12px}
 
 /* Detail */
@@ -186,6 +190,7 @@ textarea.crm-input{resize:vertical;min-height:60px}
         <button class="chip" data-f="customer">Accounts</button>
         <button class="chip" data-f="site">Sites</button>
         <button class="chip" data-f="stop">On Stop</button>
+        <button class="chip" data-f="followup">Needs Follow-up</button>
       </div>
       <div class="count" id="count">Loading…</div>
     </div>
@@ -202,10 +207,10 @@ const SUPABASE_URL = 'https://hkwcdpqpduptjwroawrw.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_ym0_ostk5WkdHGhGEGSkXw_d1sHadPY';
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const LIST_COLS = 'account_ref,name,record_type,parent_account,town,county,postcode,site_route';
+const LIST_COLS = 'account_ref,name,record_type,parent_account,town,county,postcode,site_route,account_status';
 const PAGE = 1000, SHOW = 200;
 
-let all = [], byRef = new Map(), sitesByParent = new Map(), onStopRefs = new Set();
+let all = [], byRef = new Map(), sitesByParent = new Map(), onStopRefs = new Set(), followUpRefs = new Set();
 let filter = 'all', current = null, currentTab = 'details';
 
 const $ = id => document.getElementById(id);
@@ -250,6 +255,9 @@ async function loadAll() {
     db.from('customer_on_stop').select('account_ref').then(({ data: os }) => {
       if (os) { onStopRefs = new Set(os.map(r => r.account_ref)); render(); }
     });
+    db.from('crm_tasks').select('account_ref').eq('done', false).lte('due_date', new Date().toISOString().slice(0, 10)).then(({ data: ft }) => {
+      if (ft) { followUpRefs = new Set(ft.map(r => r.account_ref)); render(); }
+    });
     const params = new URLSearchParams(location.search);
     const ref = params.get('acc'), q = params.get('q'), tab = params.get('tab');
     if (ref && byRef.has(ref)) open(ref, false, tab);
@@ -273,6 +281,9 @@ function matches() {
       const stopRef = r.record_type === 'customer' ? r.account_ref : r.parent_account;
       if (!stopRef || !onStopRefs.has(stopRef)) return false;
     }
+    if (filter === 'followup') {
+      if (r.record_type !== 'customer' || !followUpRefs.has(r.account_ref)) return false;
+    }
     return terms.every(t => r._s.includes(t));
   });
 }
@@ -288,8 +299,11 @@ function render() {
       : `${esc(r.account_ref)}${where ? ' · ' + esc(where) : ''}`;
     const stopRef = r.record_type === 'customer' ? r.account_ref : r.parent_account;
     const isStop = stopRef && onStopRefs.has(stopRef);
+    const needsFollowUp = r.record_type === 'customer' && followUpRefs.has(r.account_ref);
+    const status = r.record_type === 'customer' ? (r.account_status || 'Active') : null;
     return `<button class="row${current === r.account_ref ? ' active' : ''}" data-ref="${esc(r.account_ref)}">
-      <div class="row-top">${isStop ? '<span class="dot-stop" title="On stop"></span>' : ''}<span class="row-name">${esc(r.name || '(no name)')}</span>
+      <div class="row-top">${isStop ? '<span class="dot-stop" title="On stop"></span>' : (needsFollowUp ? '<span class="dot-followup" title="Task due"></span>' : '')}<span class="row-name">${esc(r.name || '(no name)')}</span>
+      ${status ? `<span class="tag status-${esc(status)}">${esc(status)}</span>` : ''}
       <span class="tag ${r.record_type === 'customer' ? 'cust' : ''}">${r.record_type === 'customer' ? 'Account' : 'Site'}</span></div>
       <div class="row-sub">${sub}</div></button>`;
   }).join('') + (m.length > SHOW ? `<div class="more">Showing first ${SHOW} — refine your search</div>` : '');
