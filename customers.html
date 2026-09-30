@@ -247,8 +247,8 @@ async function loadAll() {
       if (os) { onStopRefs = new Set(os.map(r => r.account_ref)); render(); }
     });
     const params = new URLSearchParams(location.search);
-    const ref = params.get('acc'), q = params.get('q');
-    if (ref && byRef.has(ref)) open(ref, false);
+    const ref = params.get('acc'), q = params.get('q'), tab = params.get('tab');
+    if (ref && byRef.has(ref)) open(ref, false, tab);
     else if (q) {
       $('q').value = q;
       render();
@@ -301,8 +301,8 @@ $('chips').onclick = e => {
 $('results').onclick = e => { const b = e.target.closest('.row'); if (b) open(b.dataset.ref); };
 
 /* Detail */
-async function open(ref, push = true) {
-  current = ref; currentTab = 'details';
+async function open(ref, push = true, tab = null) {
+  current = ref; currentTab = tab || 'details';
   document.querySelectorAll('.row').forEach(r => r.classList.toggle('active', r.dataset.ref === ref));
   $('wrap').classList.add('show-detail');
   if (push) history.replaceState(null, '', '?acc=' + encodeURIComponent(ref));

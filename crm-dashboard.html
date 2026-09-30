@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script type="module" src="auth-guard.js"></script>
+<meta name="theme-color" content="#df0a1e">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&family=DM+Sans:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>CRM Dashboard - Narrow Aisle Service Portal</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { background: white !important; color-scheme: light only; }
+    body {
+        font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        color: #101010;
+        min-height: 100vh;
+    }
+
+    .header {
+        background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+        border-bottom: 3px solid #df0a1e;
+        padding: 24px 32px;
+        position: sticky; top: 0; z-index: 50;
+        display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+    }
+    .back-link { font-size: 12px; color: #707070; text-decoration: none; font-weight: 600; }
+    .back-link:hover { color: #df0a1e; }
+    .header-title { font-family: 'IBM Plex Sans', sans-serif; font-size: 28px; font-weight: 700; margin-top: 4px; }
+    .header-subtitle { font-size: 13px; color: #707070; margin-top: 2px; }
+    .header-actions { display: flex; gap: 10px; margin-top: 6px; flex-wrap: wrap; }
+
+    .btn-new {
+        padding: 12px 22px; background: #df0a1e; border: none; border-radius: 8px; color: white;
+        font-family: 'IBM Plex Sans', sans-serif; font-size: 12.5px; font-weight: 700; text-transform: uppercase;
+        letter-spacing: 0.3px; cursor: pointer; white-space: nowrap;
+    }
+    .btn-new:hover { background: #c3161e; }
+    .btn-outline {
+        padding: 12px 22px; background: white; border: 2px solid #101010; border-radius: 8px; color: #101010;
+        font-family: 'IBM Plex Sans', sans-serif; font-size: 12.5px; font-weight: 700; text-transform: uppercase;
+        letter-spacing: 0.3px; cursor: pointer; white-space: nowrap;
+    }
+    .btn-outline:hover { border-color: #df0a1e; color: #df0a1e; }
+
+    .content { max-width: 1500px; margin: 0 auto; padding: 32px; }
+
+    .totals-row { display: flex; gap: 14px; margin-bottom: 24px; flex-wrap: wrap; }
+    .totals-tile { background: white; border: 1px solid #e8e8e8; border-radius: 12px; padding: 16px 20px; flex: 1; min-width: 150px; }
+    .totals-tile .k { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #909090; margin-bottom: 4px; }
+    .totals-tile .v { font-family: 'IBM Plex Sans', sans-serif; font-size: 22px; font-weight: 700; color: #df0a1e; }
+    .totals-tile .v.money { font-size: 18px; }
+    .totals-tile.alert .v { color: #df0a1e; }
+
+    .panels { display: grid; grid-template-columns: 1.4fr 1fr; gap: 20px; align-items: start; }
+    @media (max-width: 900px) { .panels { grid-template-columns: 1fr; } }
+
+    .panel { background: white; border: 1px solid #e8e8e8; border-radius: 12px; overflow: hidden; }
+    .panel-head { padding: 16px 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .panel-title { font-family: 'IBM Plex Sans', sans-serif; font-size: 15px; font-weight: 700; }
+    .panel-body { max-height: 640px; overflow-y: auto; }
+
+    .task-tabs { display: flex; gap: 6px; }
+    .task-tab { padding: 6px 12px; border-radius: 20px; border: 1px solid #ddd; background: white; font-size: 11.5px; font-weight: 600; cursor: pointer; color: #707070; }
+    .task-tab.on { background: #101010; border-color: #101010; color: white; }
+
+    .task-row { display: flex; align-items: flex-start; gap: 12px; padding: 12px 20px; border-bottom: 1px solid #f2f2f2; }
+    .task-row:last-child { border-bottom: none; }
+    .task-check { width: 18px; height: 18px; margin-top: 2px; accent-color: #df0a1e; cursor: pointer; flex-shrink: 0; }
+    .task-main { flex: 1; min-width: 0; }
+    .task-title { font-size: 13.5px; font-weight: 600; }
+    .task-meta { font-size: 11.5px; color: #909090; margin-top: 3px; display: flex; gap: 10px; flex-wrap: wrap; }
+    .task-meta a { color: #707070; text-decoration: none; font-weight: 600; }
+    .task-meta a:hover { color: #df0a1e; }
+    .due-badge { font-family: 'DM Mono', monospace; font-size: 10.5px; padding: 2px 7px; border-radius: 6px; }
+    .due-overdue { background: #fff0f1; color: #df0a1e; font-weight: 700; }
+    .due-today { background: #fff8e6; color: #c98a12; font-weight: 700; }
+    .due-upcoming { background: #f4f4f4; color: #707070; }
+
+    .activity-row { padding: 12px 20px; border-bottom: 1px solid #f2f2f2; font-size: 13px; }
+    .activity-row:last-child { border-bottom: none; }
+    .activity-icon { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 8px; vertical-align: middle; }
+    .activity-text a { color: #101010; text-decoration: none; font-weight: 700; }
+    .activity-text a:hover { color: #df0a1e; }
+    .activity-time { font-size: 11px; color: #b0b0b0; margin-top: 3px; margin-left: 15px; }
+
+    .empty-state, .loading-state { text-align: center; padding: 50px 20px; color: #909090; font-size: 13.5px; }
+
+    /* ── Modal ── */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 300; align-items: center; justify-content: center; padding: 20px; }
+    .modal-overlay.show { display: flex; }
+    .modal { background: white; border-radius: 12px; width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto; padding: 28px; }
+    .modal-title { font-family: 'IBM Plex Sans', sans-serif; font-size: 20px; font-weight: 700; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+    .modal-close { background: none; border: none; font-size: 22px; cursor: pointer; color: #707070; line-height: 1; }
+    .modal-close:hover { color: #df0a1e; }
+    .form-group { margin-bottom: 16px; position: relative; }
+    .form-group.inline { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .form-group.inline .form-group { margin-bottom: 0; }
+    .form-group label { display: block; font-family: 'IBM Plex Sans', sans-serif; font-size: 12px; font-weight: 700; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.3px; }
+    .form-group input { width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 14px; color: #101010; }
+    .form-group input:focus { outline: none; border-color: #df0a1e; }
+    .autocomplete-list { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ddd; border-radius: 8px; margin-top: 4px; max-height: 200px; overflow-y: auto; z-index: 10; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: none; }
+    .autocomplete-list.show { display: block; }
+    .autocomplete-item { padding: 9px 12px; font-size: 13px; cursor: pointer; }
+    .autocomplete-item:hover { background: #fafafa; }
+    .autocomplete-item .aref { color: #909090; font-size: 11px; font-family: 'DM Mono', monospace; }
+    .modal-actions { display: flex; gap: 12px; margin-top: 8px; }
+    .btn { flex: 1; padding: 13px 20px; border: none; border-radius: 8px; font-family: 'IBM Plex Sans', sans-serif; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; cursor: pointer; }
+    .btn-submit { background: #df0a1e; color: white; }
+    .btn-submit:hover { background: #c3161e; }
+    .btn-submit:disabled { background: #ccc; cursor: not-allowed; }
+    .btn-cancel { background: #f0f0f0; color: #101010; }
+    .btn-cancel:hover { background: #e0e0e0; }
+    .modal-error { display: none; background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 12px 14px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; }
+
+    @media (max-width: 640px) {
+        .header, .content { padding: 16px; }
+        .header-title { font-size: 22px; }
+    }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <div>
+        <a class="back-link" href="portal-hub-professional.html">&larr; Back to Portal</a>
+        <div class="header-title">CRM Dashboard</div>
+        <div class="header-subtitle">Tasks and activity across every account</div>
+    </div>
+    <div class="header-actions">
+        <a class="btn-outline" href="pipeline.html" style="text-decoration:none;display:inline-block;text-align:center;">View Pipeline</a>
+        <button class="btn-new" id="addTaskBtn">+ Add Task</button>
+    </div>
+</div>
+
+<div class="content">
+    <div class="totals-row" id="totalsRow"></div>
+
+    <div class="panels">
+        <div class="panel">
+            <div class="panel-head">
+                <div class="panel-title">Tasks</div>
+                <div class="task-tabs" id="taskTabs">
+                    <button class="task-tab on" data-f="all">All</button>
+                    <button class="task-tab" data-f="overdue">Overdue</button>
+                    <button class="task-tab" data-f="today">Today</button>
+                    <button class="task-tab" data-f="upcoming">Upcoming</button>
+                </div>
+            </div>
+            <div class="panel-body" id="taskList"><div class="loading-state">Loading tasks&hellip;</div></div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-head">
+                <div class="panel-title">Recent Activity</div>
+            </div>
+            <div class="panel-body" id="activityList"><div class="loading-state">Loading activity&hellip;</div></div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Task Modal -->
+<div class="modal-overlay" id="taskModal">
+    <div class="modal">
+        <div class="modal-title">Add Task <button class="modal-close" id="taskClose">&times;</button></div>
+        <div class="modal-error" id="taskError"></div>
+        <form id="taskForm">
+            <div class="form-group">
+                <label for="tCustomer">Customer</label>
+                <input type="text" id="tCustomer" placeholder="Start typing a company name..." autocomplete="off" required>
+                <input type="hidden" id="tAccountRef">
+                <div class="autocomplete-list" id="tCustomerList"></div>
+            </div>
+            <div class="form-group">
+                <label for="tTitle">Task</label>
+                <input type="text" id="tTitle" placeholder="e.g. Call to discuss quote" required>
+            </div>
+            <div class="form-group inline">
+                <div class="form-group">
+                    <label for="tDue">Due Date</label>
+                    <input type="date" id="tDue">
+                </div>
+                <div class="form-group">
+                    <label for="tAssigned">Assigned To</label>
+                    <input type="text" id="tAssigned" placeholder="e.g. James Williams" list="assignedList" autocomplete="off">
+                    <datalist id="assignedList"></datalist>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-cancel" id="taskCancel">Cancel</button>
+                <button type="submit" class="btn btn-submit" id="taskSubmit">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    // ===== Supabase project config =====
+    const SUPABASE_URL = 'https://hkwcdpqpduptjwroawrw.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_ym0_ostk5WkdHGhGEGSkXw_d1sHadPY';
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    // =====================================
+
+    let ALL_TASKS = [], ALL_TASKS_ALL = [], ALL_NOTES = [], ALL_DEALS = [];
+    let CUSTOMER_BY_REF = new Map();
+    let taskFilter = 'all';
+
+    function escHtml(s){
+        return (s == null ? '' : String(s)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+    function fmtMoney(n) {
+        if (n == null) return null;
+        return '£' + Number(n).toLocaleString('en-GB', { maximumFractionDigits: 0 });
+    }
+    function fmtDate(d) {
+        if (!d) return '';
+        return new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+    function fmtRelative(ts) {
+        const diffMs = Date.now() - new Date(ts).getTime();
+        const mins = Math.round(diffMs / 60000);
+        if (mins < 60) return mins <= 1 ? 'just now' : mins + 'm ago';
+        const hrs = Math.round(mins / 60);
+        if (hrs < 24) return hrs + 'h ago';
+        const days = Math.round(hrs / 24);
+        if (days < 30) return days + 'd ago';
+        return fmtDate(ts);
+    }
+    function todayStr() { return new Date().toISOString().slice(0, 10); }
+    function custName(ref) { const c = CUSTOMER_BY_REF.get(ref); return (c && c.name) || ref || 'Unknown account'; }
+    function custLink(ref, tab) { return `customers.html?acc=${encodeURIComponent(ref)}${tab ? '&tab=' + tab : ''}`; }
+
+    function renderTotals() {
+        const today = todayStr();
+        const openDeals = ALL_DEALS.filter(d => d.stage !== 'Won' && d.stage !== 'Lost');
+        const openValue = openDeals.reduce((s, d) => s + (Number(d.value) || 0), 0);
+        const monthAhead = new Date(); monthAhead.setDate(monthAhead.getDate() + 30);
+        const closingSoon = openDeals.filter(d => d.expected_close && d.expected_close >= today && d.expected_close <= monthAhead.toISOString().slice(0, 10));
+        const overdueTasks = ALL_TASKS.filter(t => t.due_date && t.due_date < today);
+        const dueToday = ALL_TASKS.filter(t => t.due_date === today);
+        document.getElementById('totalsRow').innerHTML = `
+            <div class="totals-tile"><div class="k">Open Deals</div><div class="v">${openDeals.length}</div></div>
+            <div class="totals-tile"><div class="k">Open Pipeline Value</div><div class="v money">${fmtMoney(openValue) || '£0'}</div></div>
+            <div class="totals-tile"><div class="k">Closing Next 30 Days</div><div class="v">${closingSoon.length}</div></div>
+            <div class="totals-tile${dueToday.length ? ' alert' : ''}"><div class="k">Tasks Due Today</div><div class="v">${dueToday.length}</div></div>
+            <div class="totals-tile${overdueTasks.length ? ' alert' : ''}"><div class="k">Overdue Tasks</div><div class="v">${overdueTasks.length}</div></div>
+        `;
+    }
+
+    function renderTasks() {
+        const today = todayStr();
+        let tasks = ALL_TASKS.slice();
+        if (taskFilter === 'overdue') tasks = tasks.filter(t => t.due_date && t.due_date < today);
+        else if (taskFilter === 'today') tasks = tasks.filter(t => t.due_date === today);
+        else if (taskFilter === 'upcoming') tasks = tasks.filter(t => t.due_date && t.due_date > today);
+
+        const wrap = document.getElementById('taskList');
+        if (!tasks.length) { wrap.innerHTML = '<div class="empty-state">No open tasks here. Nice.</div>'; return; }
+
+        wrap.innerHTML = tasks.map(t => {
+            let badge = '';
+            if (t.due_date) {
+                if (t.due_date < today) badge = `<span class="due-badge due-overdue">Overdue &middot; ${fmtDate(t.due_date)}</span>`;
+                else if (t.due_date === today) badge = `<span class="due-badge due-today">Due today</span>`;
+                else badge = `<span class="due-badge due-upcoming">${fmtDate(t.due_date)}</span>`;
+            }
+            return `
+                <div class="task-row">
+                    <input type="checkbox" class="task-check" data-id="${t.id}">
+                    <div class="task-main">
+                        <div class="task-title">${escHtml(t.title)}</div>
+                        <div class="task-meta">
+                            <a href="${custLink(t.account_ref, 'crm')}">${escHtml(custName(t.account_ref))}</a>
+                            ${badge}
+                            ${t.assigned_to ? `<span>${escHtml(t.assigned_to)}</span>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        wrap.querySelectorAll('.task-check').forEach(cb => {
+            cb.addEventListener('change', () => completeTask(cb.dataset.id, cb));
+        });
+    }
+
+    async function completeTask(id, cb) {
+        cb.disabled = true;
+        const { error } = await db.from('crm_tasks').update({ done: true, completed_at: new Date().toISOString() }).eq('id', id);
+        if (error) { alert('Could not complete task: ' + error.message); cb.disabled = false; cb.checked = false; return; }
+        ALL_TASKS = ALL_TASKS.filter(t => String(t.id) !== String(id));
+        renderTotals();
+        renderTasks();
+    }
+
+    function renderActivity() {
+        const items = [];
+        ALL_NOTES.forEach(n => items.push({ ts: n.created_at, ref: n.account_ref, dot: '#2f80ed', text: `Note added: ${n.body}`, suffix: '' }));
+        ALL_DEALS.forEach(d => items.push({ ts: d.created_at, ref: d.account_ref, dot: '#df0a1e', text: `Deal created: ${d.title} `, suffix: `<span style="color:#909090;">(${escHtml(d.stage)})</span>` }));
+        ALL_TASKS_ALL.forEach(t => {
+            items.push({ ts: t.created_at, ref: t.account_ref, dot: '#c98a12', text: `Task added: ${t.title}`, suffix: '' });
+            if (t.done && t.completed_at) items.push({ ts: t.completed_at, ref: t.account_ref, dot: '#1e8e3e', text: `Task completed: ${t.title}`, suffix: '' });
+        });
+        items.sort((a, b) => new Date(b.ts) - new Date(a.ts));
+        const top = items.slice(0, 25);
+        const wrap = document.getElementById('activityList');
+        if (!top.length) { wrap.innerHTML = '<div class="empty-state">No activity yet.</div>'; return; }
+        wrap.innerHTML = top.map(i => `
+            <div class="activity-row">
+                <span class="activity-icon" style="background:${i.dot};"></span><span class="activity-text"><a href="${custLink(i.ref)}">${escHtml(custName(i.ref))}</a> &mdash; ${escHtml(i.text)}${i.suffix}</span>
+                <div class="activity-time">${fmtRelative(i.ts)}</div>
+            </div>
+        `).join('');
+    }
+
+    async function loadData() {
+        try {
+            const [{ data: tasks, error: taskErr }, { data: notes, error: noteErr }, { data: deals, error: dealErr }, { data: customers, error: custErr }] = await Promise.all([
+                db.from('crm_tasks').select('*').order('due_date', { ascending: true, nullsFirst: false }),
+                db.from('crm_notes').select('*').order('created_at', { ascending: false }).limit(30),
+                db.from('crm_deals').select('*'),
+                db.from('customers').select('account_ref,name'),
+            ]);
+            if (taskErr) throw taskErr;
+            if (noteErr) throw noteErr;
+            if (dealErr) throw dealErr;
+            (customers || []).forEach(c => CUSTOMER_BY_REF.set(c.account_ref, c));
+            ALL_TASKS_ALL = tasks || [];
+            ALL_TASKS = (tasks || []).filter(t => !t.done);
+            ALL_NOTES = notes || [];
+            ALL_DEALS = deals || [];
+            renderAssignedOptions();
+            renderTotals();
+            renderTasks();
+            renderActivity();
+        } catch (err) {
+            document.getElementById('taskList').innerHTML = '<div class="empty-state">Could not load CRM data.<br>' + (err.message || err) + '</div>';
+            document.getElementById('activityList').innerHTML = '';
+        }
+    }
+
+    function renderAssignedOptions() {
+        const names = [...new Set(ALL_TASKS_ALL.map(t => t.assigned_to).filter(Boolean))].sort();
+        document.getElementById('assignedList').innerHTML = names.map(n => `<option value="${escHtml(n)}"></option>`).join('');
+    }
+
+    document.getElementById('taskTabs').addEventListener('click', e => {
+        const b = e.target.closest('.task-tab'); if (!b) return;
+        document.querySelectorAll('.task-tab').forEach(x => x.classList.toggle('on', x === b));
+        taskFilter = b.dataset.f;
+        renderTasks();
+    });
+
+    // ── Add Task modal ──
+    const modal = document.getElementById('taskModal');
+    const form = document.getElementById('taskForm');
+    const modalError = document.getElementById('taskError');
+    const custInput = document.getElementById('tCustomer');
+    const custList = document.getElementById('tCustomerList');
+    const custRefInput = document.getElementById('tAccountRef');
+
+    document.getElementById('addTaskBtn').addEventListener('click', () => {
+        form.reset();
+        custRefInput.value = '';
+        modalError.style.display = 'none';
+        modal.classList.add('show');
+    });
+    function closeTaskModal() { modal.classList.remove('show'); }
+    document.getElementById('taskClose').addEventListener('click', closeTaskModal);
+    document.getElementById('taskCancel').addEventListener('click', closeTaskModal);
+
+    let custDeb;
+    custInput.addEventListener('input', () => {
+        custRefInput.value = '';
+        clearTimeout(custDeb);
+        const term = custInput.value.trim();
+        if (term.length < 2) { custList.classList.remove('show'); return; }
+        custDeb = setTimeout(async () => {
+            const { data } = await db.from('customers').select('account_ref,name').ilike('name', `%${term}%`).order('name').limit(15);
+            if (!data || !data.length) { custList.innerHTML = '<div class="autocomplete-item">No matches</div>'; custList.classList.add('show'); return; }
+            custList.innerHTML = data.map(c => `<div class="autocomplete-item" data-ref="${escHtml(c.account_ref)}" data-name="${escHtml(c.name)}">${escHtml(c.name)} <span class="aref">${escHtml(c.account_ref)}</span></div>`).join('');
+            custList.classList.add('show');
+        }, 200);
+    });
+    custList.addEventListener('click', (e) => {
+        const item = e.target.closest('.autocomplete-item');
+        if (!item || !item.dataset.ref) return;
+        custInput.value = item.dataset.name;
+        custRefInput.value = item.dataset.ref;
+        custList.classList.remove('show');
+    });
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.form-group')) custList.classList.remove('show');
+    });
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const submitBtn = document.getElementById('taskSubmit');
+        modalError.style.display = 'none';
+        if (!custRefInput.value) {
+            modalError.textContent = '❌ Pick a customer from the list.';
+            modalError.style.display = 'block';
+            return;
+        }
+        submitBtn.disabled = true;
+        try {
+            const { data: { session } } = await db.auth.getSession();
+            const { error } = await db.from('crm_tasks').insert({
+                account_ref: custRefInput.value,
+                title: document.getElementById('tTitle').value.trim(),
+                due_date: document.getElementById('tDue').value || null,
+                assigned_to: document.getElementById('tAssigned').value.trim() || null,
+                created_by: (session && session.user && session.user.email) || null,
+            });
+            if (error) throw error;
+            closeTaskModal();
+            loadData();
+        } catch (err) {
+            modalError.textContent = '❌ ' + (err.message || err);
+            modalError.style.display = 'block';
+        } finally {
+            submitBtn.disabled = false;
+        }
+    });
+
+    (async () => {
+        const { data: { session } } = await db.auth.getSession();
+        if (!session) {
+            document.getElementById('taskList').innerHTML = '<div class="loading-state">Not signed in — <a href="login.html">sign in</a> to view this.</div>';
+            document.getElementById('addTaskBtn').style.display = 'none';
+            return;
+        }
+        loadData();
+    })();
+</script>
+</body>
+</html>

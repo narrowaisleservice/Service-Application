@@ -82,6 +82,8 @@
     .deal-value { font-family: 'DM Mono', monospace; font-size: 12.5px; font-weight: 500; color: #101010; }
     .deal-close { font-family: 'DM Mono', monospace; font-size: 10.5px; color: #909090; }
     .deal-auto { display: inline-block; font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .3px; color: #df0a1e; background: #fff0f1; border-radius: 8px; padding: 1px 7px; margin-top: 6px; }
+    .deal-owner { font-size: 11px; color: #909090; margin-top: 6px; }
+    .deal-reason { font-size: 11px; color: #707070; font-style: italic; margin-top: 4px; }
 
     .deal-stage-select { width: 100%; margin-top: 8px; padding: 6px 8px; font-family: 'DM Sans', sans-serif; font-size: 11.5px; border-radius: 6px; cursor: pointer; }
 
@@ -143,6 +145,7 @@
 
     <div class="search-panel">
         <input type="text" id="searchInput" placeholder="Filter by deal title or customer name...">
+        <select id="ownerFilter" style="padding:11px 14px;border:1px solid #ddd;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;color:#101010;"><option value="">All owners</option></select>
     </div>
 
     <div id="boardWrap"><div class="loading-state">Loading pipeline&hellip;</div></div>
@@ -160,6 +163,9 @@
                 <input type="hidden" id="dAccountRef">
                 <div class="autocomplete-list" id="dCustomerList"></div>
             </div>
+            <div class="form-group" id="viewAccountRow" style="display:none;margin-top:-10px;">
+                <a href="#" id="viewAccountLink" target="_blank" style="font-size:12px;color:#df0a1e;font-weight:700;text-decoration:none;">View full account &rarr;</a>
+            </div>
             <div class="form-group">
                 <label for="dTitle">Deal Title</label>
                 <input type="text" id="dTitle" placeholder="e.g. New AC3 truck + 3yr contract" required>
@@ -176,9 +182,20 @@
                     </select>
                 </div>
             </div>
-            <div class="form-group">
-                <label for="dClose">Expected Close Date</label>
-                <input type="date" id="dClose">
+            <div class="form-group inline">
+                <div class="form-group">
+                    <label for="dOwner">Owner</label>
+                    <input type="text" id="dOwner" placeholder="e.g. James Williams" list="ownerList" autocomplete="off">
+                    <datalist id="ownerList"></datalist>
+                </div>
+                <div class="form-group">
+                    <label for="dClose">Expected Close Date</label>
+                    <input type="date" id="dClose">
+                </div>
+            </div>
+            <div class="form-group" id="closeReasonGroup" style="display:none;">
+                <label for="dCloseReason">Reason (Won / Lost)</label>
+                <input type="text" id="dCloseReason" placeholder="e.g. went with a competitor on price">
             </div>
             <div class="modal-actions">
                 <button type="button" class="btn btn-delete" id="delBtn" style="display:none;">Delete</button>
@@ -231,9 +248,11 @@
 
     function render() {
         const filter = document.getElementById('searchInput').value.trim().toLowerCase();
+        const ownerFilter = document.getElementById('ownerFilter').value;
         renderTotals();
 
         let deals = ALL_DEALS;
+        if (ownerFilter) deals = deals.filter(d => d.owner === ownerFilter);
         if (filter) {
             deals = deals.filter(d => {
                 const cust = CUSTOMER_BY_REF.get(d.account_ref);
@@ -263,6 +282,8 @@
                                         <span class="deal-value">${fmtMoney(d.value) || '—'}</span>
                                         <span class="deal-close">${d.expected_close ? fmtDate(d.expected_close) : ''}</span>
                                     </div>
+                                    ${d.owner ? `<div class="deal-owner">${escHtml(d.owner)}</div>` : ''}
+                                    ${d.close_reason ? `<div class="deal-reason">${escHtml(d.close_reason)}</div>` : ''}
                                     ${d.source_ref ? '<span class="deal-auto">Auto</span>' : ''}
                                     <select class="deal-stage-select" data-id="${d.id}" onclick="event.stopPropagation()">
                                         ${STAGES.map(s => `<option value="${s}" ${s===d.stage?'selected':''}>Move to ${s}</option>`).join('')}
@@ -287,10 +308,15 @@
     }
 
     async function moveStage(dealId, stage) {
-        const { error } = await db.from('crm_deals').update({ stage }).eq('id', dealId);
-        if (error) { alert('Could not move deal: ' + error.message); return; }
         const deal = ALL_DEALS.find(d => String(d.id) === String(dealId));
-        if (deal) deal.stage = stage;
+        const payload = { stage };
+        if ((stage === 'Won' || stage === 'Lost') && deal && !deal.close_reason) {
+            const reason = prompt(`Reason for marking this deal ${stage}?`, '');
+            if (reason) payload.close_reason = reason.trim();
+        }
+        const { error } = await db.from('crm_deals').update(payload).eq('id', dealId);
+        if (error) { alert('Could not move deal: ' + error.message); return; }
+        if (deal) Object.assign(deal, payload);
         render();
     }
 
@@ -303,6 +329,7 @@
             if (dealErr) throw dealErr;
             ALL_DEALS = deals || [];
             (customers || []).forEach(c => CUSTOMER_BY_REF.set(c.account_ref, c));
+            renderOwnerOptions();
             render();
         } catch (err) {
             document.getElementById('boardWrap').innerHTML =
@@ -310,7 +337,17 @@
         }
     }
 
+    function renderOwnerOptions() {
+        const owners = [...new Set(ALL_DEALS.map(d => d.owner).filter(Boolean))].sort();
+        document.getElementById('ownerList').innerHTML = owners.map(o => `<option value="${escHtml(o)}"></option>`).join('');
+        const filterSel = document.getElementById('ownerFilter');
+        const cur = filterSel.value;
+        filterSel.innerHTML = '<option value="">All owners</option>' + owners.map(o => `<option value="${escHtml(o)}">${escHtml(o)}</option>`).join('');
+        filterSel.value = cur;
+    }
+
     document.getElementById('searchInput').addEventListener('input', render);
+    document.getElementById('ownerFilter').addEventListener('change', render);
 
     // ── Add / Edit modal ──
     const modal = document.getElementById('addModal');
@@ -321,11 +358,19 @@
     const custList = document.getElementById('dCustomerList');
     const custRefInput = document.getElementById('dAccountRef');
 
+    const stageSel = document.getElementById('dStage');
+    const closeReasonGroup = document.getElementById('closeReasonGroup');
+    function syncCloseReasonVisibility() {
+        closeReasonGroup.style.display = (stageSel.value === 'Won' || stageSel.value === 'Lost') ? 'block' : 'none';
+    }
+    stageSel.addEventListener('change', syncCloseReasonVisibility);
+
     function resetForm() {
         form.reset();
         custRefInput.value = '';
         custList.classList.remove('show');
         modalError.style.display = 'none';
+        syncCloseReasonVisibility();
     }
 
     document.getElementById('addBtn').addEventListener('click', () => {
@@ -333,6 +378,7 @@
         document.getElementById('addModal').querySelector('.modal-title').firstChild.textContent = 'Add Deal ';
         delBtn.style.display = 'none';
         custInput.disabled = false;
+        document.getElementById('viewAccountRow').style.display = 'none';
         resetForm();
         modal.classList.add('show');
     });
@@ -351,7 +397,13 @@
         document.getElementById('dTitle').value = d.title || '';
         document.getElementById('dValue').value = d.value || '';
         document.getElementById('dStage').value = d.stage || 'Lead';
+        document.getElementById('dOwner').value = d.owner || '';
         document.getElementById('dClose').value = d.expected_close ? String(d.expected_close).slice(0, 10) : '';
+        document.getElementById('dCloseReason').value = d.close_reason || '';
+        syncCloseReasonVisibility();
+        const viewRow = document.getElementById('viewAccountRow');
+        viewRow.style.display = '';
+        document.getElementById('viewAccountLink').href = `customers.html?acc=${encodeURIComponent(d.account_ref)}&tab=crm`;
         modal.classList.add('show');
     }
 
@@ -399,7 +451,9 @@
             title: document.getElementById('dTitle').value.trim(),
             value: document.getElementById('dValue').value || null,
             stage: document.getElementById('dStage').value,
+            owner: document.getElementById('dOwner').value.trim() || null,
             expected_close: document.getElementById('dClose').value || null,
+            close_reason: document.getElementById('dCloseReason').value.trim() || null,
         };
 
         try {
