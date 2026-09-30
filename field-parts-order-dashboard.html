@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script type="module" src="auth-guard.js"></script>
+<meta name="theme-color" content="#df0a1e">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&family=DM+Sans:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>Parts Orders - Narrow Aisle Service Portal</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { background: white !important; color-scheme: light only; }
+    body { font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #101010; min-height: 100vh; }
+
+    .header {
+        background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+        border-bottom: 3px solid #df0a1e;
+        padding: 24px 32px;
+        position: sticky; top: 0; z-index: 50;
+        display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+    }
+    .back-link { font-size: 12px; color: #707070; text-decoration: none; font-weight: 600; }
+    .back-link:hover { color: #df0a1e; }
+    .header-title { font-family: 'IBM Plex Sans', sans-serif; font-size: 28px; font-weight: 700; margin-top: 4px; }
+    .header-subtitle { font-size: 13px; color: #707070; margin-top: 2px; }
+    .btn-new {
+        padding: 12px 22px; background: #df0a1e; border: none; border-radius: 8px; color: white;
+        font-family: 'IBM Plex Sans', sans-serif; font-size: 12.5px; font-weight: 700; text-transform: uppercase;
+        letter-spacing: 0.3px; cursor: pointer; white-space: nowrap; text-decoration: none; display: inline-block; margin-top: 6px;
+    }
+    .btn-new:hover { background: #c3161e; }
+
+    .content { max-width: 1100px; margin: 0 auto; padding: 32px; }
+
+    .totals-row { display: flex; gap: 14px; margin-bottom: 20px; flex-wrap: wrap; }
+    .totals-tile { background: white; border: 1px solid #e8e8e8; border-radius: 12px; padding: 16px 20px; flex: 1; min-width: 140px; }
+    .totals-tile .k { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #909090; margin-bottom: 4px; }
+    .totals-tile .v { font-family: 'IBM Plex Sans', sans-serif; font-size: 22px; font-weight: 700; color: #df0a1e; }
+    .totals-tile.urgent .v { color: #df0a1e; }
+
+    .toolbar { display: flex; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; align-items: center; }
+    .tabs { display: flex; gap: 6px; }
+    .tab-btn { padding: 8px 16px; border-radius: 20px; border: 1px solid #ddd; background: white; font-size: 12.5px; font-weight: 700; cursor: pointer; color: #707070; font-family: 'IBM Plex Sans', sans-serif; text-transform: uppercase; letter-spacing: .3px; }
+    .tab-btn.on { background: #101010; border-color: #101010; color: white; }
+    .search-input { flex: 1; min-width: 200px; font-family: 'DM Sans', sans-serif; font-size: 13.5px; padding: 9px 14px; border: 1px solid #ddd; border-radius: 8px; }
+    .search-input:focus { outline: none; border-color: #df0a1e; }
+
+    .bulk-bar { display: none; align-items: center; gap: 12px; background: #fff0f1; border: 1px solid #df0a1e; border-radius: 10px; padding: 10px 16px; margin-bottom: 14px; font-size: 13px; }
+    .bulk-bar.show { display: flex; }
+    .bulk-bar button { padding: 8px 16px; background: #df0a1e; color: white; border: none; border-radius: 6px; font-family: 'IBM Plex Sans', sans-serif; font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .3px; cursor: pointer; }
+    .bulk-bar button.ghost { background: none; color: #707070; border: 1px solid #ddd; }
+
+    .order-card { background: white; border: 1px solid #e8e8e8; border-radius: 12px; padding: 18px 20px; margin-bottom: 14px; }
+    .order-card.urgent { border-left: 4px solid #df0a1e; }
+    .order-card.cancelled { opacity: .6; }
+    .order-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+    .order-head-left { display: flex; align-items: flex-start; gap: 10px; }
+    .order-check { width: 18px; height: 18px; margin-top: 3px; accent-color: #df0a1e; cursor: pointer; }
+    .order-engineer { font-family: 'IBM Plex Sans', sans-serif; font-size: 15px; font-weight: 700; }
+    .order-meta { font-size: 12.5px; color: #707070; margin-top: 3px; }
+    .order-time { font-size: 11px; color: #b0b0b0; margin-top: 2px; }
+    .badge { display: inline-block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .3px; padding: 3px 9px; border-radius: 10px; margin-left: 8px; vertical-align: middle; }
+    .badge.urgent { background: #fff0f1; color: #df0a1e; }
+    .status-pill { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .3px; padding: 5px 12px; border-radius: 14px; white-space: nowrap; }
+    .status-Ordered { background: #eef2ff; color: #2f80ed; }
+    .status-Picked { background: #fff8e6; color: #c98a12; }
+    .status-Sent { background: #eafaf0; color: #1e8e3e; }
+    .status-Cancelled { background: #f4f4f4; color: #909090; }
+
+    .items-table { margin-top: 14px; border-top: 1px solid #f0f0f0; padding-top: 10px; }
+    .items-table .item-row { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; }
+    .item-row .ipn { font-family: 'DM Mono', monospace; font-size: 11px; color: #df0a1e; margin-right: 6px; }
+
+    .order-notes { font-size: 12.5px; color: #707070; margin-top: 10px; font-style: italic; }
+    .order-photo { margin-top: 10px; }
+    .order-photo img { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; cursor: pointer; border: 1px solid #e0e0e0; }
+    .cancel-reason { font-size: 12px; color: #df0a1e; margin-top: 8px; }
+
+    .order-actions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; align-items: center; }
+    .btn-sm { padding: 8px 16px; border: none; border-radius: 7px; font-family: 'IBM Plex Sans', sans-serif; font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .3px; cursor: pointer; }
+    .btn-advance { background: #101010; color: white; }
+    .btn-advance:hover { background: #df0a1e; }
+    .btn-cancel-order { background: none; border: 1px solid #ddd; color: #707070; }
+    .btn-cancel-order:hover { border-color: #df0a1e; color: #df0a1e; }
+
+    .empty-state, .loading-state { text-align: center; padding: 50px 20px; color: #909090; font-size: 14px; }
+
+    @media (max-width: 640px) {
+        .header, .content { padding: 16px; }
+        .header-title { font-size: 22px; }
+        .order-top { flex-direction: column; }
+    }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <div>
+        <a class="back-link" href="portal-hub-professional.html">&larr; Back to Portal</a>
+        <div class="header-title">Parts Orders</div>
+        <div class="header-subtitle">Field engineer requests &mdash; Ordered &rarr; Picked &rarr; Sent</div>
+    </div>
+    <a class="btn-new" href="field-parts-order-form.html">+ New Order</a>
+</div>
+
+<div class="content">
+    <div class="totals-row" id="totalsRow"></div>
+
+    <div class="toolbar">
+        <div class="tabs" id="tabs">
+            <button class="tab-btn on" data-t="active">Active</button>
+            <button class="tab-btn" data-t="sent">Sent</button>
+            <button class="tab-btn" data-t="all">All</button>
+        </div>
+        <input type="text" class="search-input" id="searchInput" placeholder="Filter by engineer, truck serial or part...">
+    </div>
+
+    <div class="bulk-bar" id="bulkBar">
+        <span id="bulkCount">0 selected</span>
+        <button type="button" id="bulkAdvanceBtn">Advance Selected</button>
+        <button type="button" class="ghost" id="bulkClearBtn">Clear</button>
+    </div>
+
+    <div id="ordersWrap"><div class="loading-state">Loading orders&hellip;</div></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    const SUPABASE_URL = 'https://hkwcdpqpduptjwroawrw.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_ym0_ostk5WkdHGhGEGSkXw_d1sHadPY';
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const NEXT_STATUS = { Ordered: 'Picked', Picked: 'Sent' };
+    let ALL_ORDERS = [], ITEMS_BY_ORDER = new Map();
+    let tab = 'active';
+    let selected = new Set();
+
+    function escHtml(s){
+        return (s == null ? '' : String(s)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+    function fmtDate(d) {
+        if (!d) return '';
+        return new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + ' ' + new Date(d).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    }
+    function fmtRelative(ts) {
+        const mins = Math.round((Date.now() - new Date(ts).getTime()) / 60000);
+        if (mins < 60) return mins <= 1 ? 'just now' : mins + 'm ago';
+        const hrs = Math.round(mins / 60);
+        if (hrs < 24) return hrs + 'h ago';
+        return Math.round(hrs / 24) + 'd ago';
+    }
+
+    function renderTotals() {
+        const active = ALL_ORDERS.filter(o => !o.cancelled_at && o.status !== 'Sent');
+        const urgent = active.filter(o => o.priority === 'Urgent');
+        const today = new Date().toISOString().slice(0, 10);
+        const sentToday = ALL_ORDERS.filter(o => o.status === 'Sent' && o.sent_at && o.sent_at.slice(0, 10) === today);
+        const sentWithTimes = ALL_ORDERS.filter(o => o.status === 'Sent' && o.sent_at && o.created_at);
+        let avgHrs = null;
+        if (sentWithTimes.length) {
+            const totalHrs = sentWithTimes.reduce((s, o) => s + (new Date(o.sent_at) - new Date(o.created_at)) / 3600000, 0);
+            avgHrs = totalHrs / sentWithTimes.length;
+        }
+        document.getElementById('totalsRow').innerHTML = `
+            <div class="totals-tile"><div class="k">Active Orders</div><div class="v">${active.length}</div></div>
+            <div class="totals-tile urgent"><div class="k">Urgent</div><div class="v">${urgent.length}</div></div>
+            <div class="totals-tile"><div class="k">Sent Today</div><div class="v">${sentToday.length}</div></div>
+            <div class="totals-tile"><div class="k">Avg Time to Sent</div><div class="v" style="font-size:18px;">${avgHrs === null ? '—' : (avgHrs < 24 ? avgHrs.toFixed(1) + 'h' : (avgHrs / 24).toFixed(1) + 'd')}</div></div>
+        `;
+    }
+
+    function matches() {
+        const term = document.getElementById('searchInput').value.trim().toLowerCase();
+        return ALL_ORDERS.filter(o => {
+            if (tab === 'active' && (o.cancelled_at || o.status === 'Sent')) return false;
+            if (tab === 'sent' && (o.cancelled_at || o.status !== 'Sent')) return false;
+            if (!term) return true;
+            const items = ITEMS_BY_ORDER.get(o.id) || [];
+            const hay = [o.engineer_name, o.truck_serial, o.site_customer, ...items.map(i => i.part_number), ...items.map(i => i.description)].filter(Boolean).join(' ').toLowerCase();
+            return hay.includes(term);
+        }).sort((a, b) => {
+            if (a.priority !== b.priority) return a.priority === 'Urgent' ? -1 : 1;
+            return new Date(b.created_at) - new Date(a.created_at);
+        });
+    }
+
+    function render() {
+        renderTotals();
+        const list = matches();
+        const wrap = document.getElementById('ordersWrap');
+        if (!list.length) { wrap.innerHTML = '<div class="empty-state">No orders here.</div>'; updateBulkBar(); return; }
+
+        wrap.innerHTML = list.map(o => {
+            const items = ITEMS_BY_ORDER.get(o.id) || [];
+            const isCancelled = !!o.cancelled_at;
+            const status = isCancelled ? 'Cancelled' : o.status;
+            const canAdvance = !isCancelled && NEXT_STATUS[o.status];
+            const canCancel = !isCancelled && o.status !== 'Sent';
+            const canSelect = tab !== 'all' && canAdvance;
+            return `
+                <div class="order-card${o.priority === 'Urgent' && !isCancelled ? ' urgent' : ''}${isCancelled ? ' cancelled' : ''}" data-id="${o.id}">
+                    <div class="order-top">
+                        <div class="order-head-left">
+                            ${canSelect ? `<input type="checkbox" class="order-check" data-id="${o.id}" data-status="${o.status}" ${selected.has(o.id) ? 'checked' : ''}>` : ''}
+                            <div>
+                                <div class="order-engineer">${escHtml(o.engineer_name)}${o.priority === 'Urgent' && !isCancelled ? '<span class="badge urgent">Urgent</span>' : ''}</div>
+                                <div class="order-meta">${[o.truck_serial, o.site_customer].filter(Boolean).map(escHtml).join(' · ') || '<span style="color:#c0c0c0;">No truck/site given</span>'}</div>
+                                <div class="order-time">${fmtDate(o.created_at)} &middot; ${fmtRelative(o.created_at)}</div>
+                            </div>
+                        </div>
+                        <span class="status-pill status-${status}">${status}</span>
+                    </div>
+                    <div class="items-table">
+                        ${items.length ? items.map(it => `<div class="item-row"><span>${it.part_number ? `<span class="ipn">${escHtml(it.part_number)}</span>` : ''}${escHtml(it.description)}</span><span>Qty ${it.qty}</span></div>`).join('') : '<div class="item-row" style="color:#c0c0c0;">No items recorded</div>'}
+                    </div>
+                    ${o.notes ? `<div class="order-notes">${escHtml(o.notes)}</div>` : ''}
+                    ${o.photo_url ? `<div class="order-photo"><img src="${escHtml(o.photo_url)}" onclick="window.open('${escHtml(o.photo_url)}','_blank')"></div>` : ''}
+                    ${isCancelled ? `<div class="cancel-reason">Cancelled${o.cancel_reason ? ': ' + escHtml(o.cancel_reason) : ''}</div>` : ''}
+                    ${(canAdvance || canCancel) ? `
+                    <div class="order-actions">
+                        ${canAdvance ? `<button type="button" class="btn-sm btn-advance" data-advance="${o.id}" data-to="${NEXT_STATUS[o.status]}">Mark ${NEXT_STATUS[o.status]}</button>` : ''}
+                        ${canCancel ? `<button type="button" class="btn-sm btn-cancel-order" data-cancel="${o.id}">Cancel Order</button>` : ''}
+                    </div>` : ''}
+                </div>
+            `;
+        }).join('');
+
+        wrap.querySelectorAll('[data-advance]').forEach(btn => {
+            btn.addEventListener('click', () => advanceOrder(btn.dataset.advance, btn.dataset.to));
+        });
+        wrap.querySelectorAll('[data-cancel]').forEach(btn => {
+            btn.addEventListener('click', () => cancelOrder(btn.dataset.cancel));
+        });
+        wrap.querySelectorAll('.order-check').forEach(cb => {
+            cb.addEventListener('change', () => {
+                if (cb.checked) selected.add(cb.dataset.id); else selected.delete(cb.dataset.id);
+                updateBulkBar();
+            });
+        });
+        updateBulkBar();
+    }
+
+    function updateBulkBar() {
+        const bar = document.getElementById('bulkBar');
+        if (!selected.size) { bar.classList.remove('show'); return; }
+        bar.classList.add('show');
+        document.getElementById('bulkCount').textContent = `${selected.size} selected`;
+    }
+
+    async function advanceOrder(id, toStatus) {
+        const patch = { status: toStatus };
+        if (toStatus === 'Picked') patch.picked_at = new Date().toISOString();
+        if (toStatus === 'Sent') patch.sent_at = new Date().toISOString();
+        const { error } = await db.from('field_parts_orders').update(patch).eq('id', id);
+        if (error) { alert('Could not update: ' + error.message); return; }
+        const o = ALL_ORDERS.find(x => x.id === id);
+        if (o) Object.assign(o, patch);
+        selected.delete(id);
+        render();
+    }
+
+    async function cancelOrder(id) {
+        const reason = prompt('Reason for cancelling this order (optional):', '');
+        if (reason === null) return;
+        const { error } = await db.from('field_parts_orders').update({ cancelled_at: new Date().toISOString(), cancel_reason: reason.trim() || null }).eq('id', id);
+        if (error) { alert('Could not cancel: ' + error.message); return; }
+        const o = ALL_ORDERS.find(x => x.id === id);
+        if (o) { o.cancelled_at = new Date().toISOString(); o.cancel_reason = reason.trim() || null; }
+        selected.delete(id);
+        render();
+    }
+
+    document.getElementById('bulkAdvanceBtn').addEventListener('click', async () => {
+        const ids = [...selected];
+        if (!ids.length) return;
+        // All selected orders share a stage (checkboxes only render for same-stage-advanceable orders),
+        // but they can span both Ordered and Picked stages together -- advance each to its own next stage.
+        for (const id of ids) {
+            const o = ALL_ORDERS.find(x => x.id === id);
+            if (!o || !NEXT_STATUS[o.status]) continue;
+            await advanceOrderSilent(id, NEXT_STATUS[o.status]);
+        }
+        selected.clear();
+        render();
+    });
+    async function advanceOrderSilent(id, toStatus) {
+        const patch = { status: toStatus };
+        if (toStatus === 'Picked') patch.picked_at = new Date().toISOString();
+        if (toStatus === 'Sent') patch.sent_at = new Date().toISOString();
+        const { error } = await db.from('field_parts_orders').update(patch).eq('id', id);
+        if (!error) { const o = ALL_ORDERS.find(x => x.id === id); if (o) Object.assign(o, patch); }
+    }
+    document.getElementById('bulkClearBtn').addEventListener('click', () => { selected.clear(); render(); });
+
+    document.getElementById('tabs').addEventListener('click', e => {
+        const b = e.target.closest('.tab-btn'); if (!b) return;
+        document.querySelectorAll('.tab-btn').forEach(x => x.classList.toggle('on', x === b));
+        tab = b.dataset.t;
+        selected.clear();
+        render();
+    });
+    document.getElementById('searchInput').addEventListener('input', render);
+
+    async function loadData() {
+        try {
+            const [{ data: orders, error: orderErr }, { data: items, error: itemErr }] = await Promise.all([
+                db.from('field_parts_orders').select('*').order('created_at', { ascending: false }),
+                db.from('field_parts_order_items').select('*'),
+            ]);
+            if (orderErr) throw orderErr;
+            if (itemErr) throw itemErr;
+            ALL_ORDERS = orders || [];
+            ITEMS_BY_ORDER = new Map();
+            (items || []).forEach(it => {
+                if (!ITEMS_BY_ORDER.has(it.order_id)) ITEMS_BY_ORDER.set(it.order_id, []);
+                ITEMS_BY_ORDER.get(it.order_id).push(it);
+            });
+            render();
+        } catch (err) {
+            document.getElementById('ordersWrap').innerHTML = '<div class="empty-state">Could not load orders.<br>' + (err.message || err) + '</div>';
+        }
+    }
+
+    (async () => {
+        const { data: { session } } = await db.auth.getSession();
+        if (!session) {
+            document.getElementById('ordersWrap').innerHTML = '<div class="loading-state">Not signed in — <a href="login.html">sign in</a> to view this.</div>';
+            document.querySelector('.btn-new').style.display = 'none';
+            return;
+        }
+        loadData();
+    })();
+</script>
+</body>
+</html>

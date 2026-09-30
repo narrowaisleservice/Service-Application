@@ -1708,9 +1708,17 @@
                 <span class="nav-label">Quotes</span>
             </div>
 
-            <div class="nav-item" title="Purchasing" onclick="window.location.href='field-parts-request.html'">
-                <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"></path><path d="M22 2l-7 20-4-9-9-4 20-7z"></path></svg></span>
-                <span class="nav-label">Purchasing</span>
+            <div class="nav-group" data-group="purchasing">
+                <div class="nav-group-header" role="button" tabindex="0" aria-expanded="false" aria-controls="navGroupPurchasing" title="Purchasing">
+                    <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"></path><path d="M22 2l-7 20-4-9-9-4 20-7z"></path></svg></span>
+                    <span class="nav-label">Purchasing</span>
+                    <span class="nav-group-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg></span>
+                </div>
+                <div class="nav-group-children" id="navGroupPurchasing">
+                    <a class="nav-subitem" href="field-parts-order-form.html">Order Parts</a>
+                    <a class="nav-subitem" href="field-parts-order-dashboard.html">My Orders</a>
+                    <a class="nav-subitem" href="field-parts-request.html">Parts Request (old)</a>
+                </div>
             </div>
 
             <div class="nav-group" data-group="engineers">
@@ -1927,7 +1935,7 @@
 
         const QUICK_ACCESS = [
             { label: 'AisleWise (AI)', icon: 'sparkle', link: 'ask-ai.html' },
-            { label: 'Order Parts', icon: 'send', link: 'field-parts-request.html' },
+            { label: 'Order Parts', icon: 'send', link: 'field-parts-order-form.html' },
             { label: 'Fault Tracker', icon: 'chart', link: 'fault-tracker.html' },
             { label: 'Customers', icon: 'people', link: 'customers.html' },
             { label: 'Maintenance Contracts', icon: 'shield', link: 'maintenance-contracts.html' },
@@ -1943,11 +1951,13 @@
                 title: 'Field Service',
                 subtitle: 'Essential tools for your daily work',
                 cards: [
-                    { title: 'Transport Quote', desc: 'Quick pallet delivery quote by postcode', icon: 'van', link: 'transport-quote-calculator.html', badge: 'New' },
+                    { title: 'Order Parts', desc: 'Submit a parts request from the field and track it to Sent', icon: 'send', link: 'field-parts-order-form.html', badge: 'New' },
+                    { title: 'My Orders', desc: 'Every parts order, Ordered → Picked → Sent', icon: 'clock', link: 'field-parts-order-dashboard.html', badge: 'New' },
+                    { title: 'Transport Quote', desc: 'Quick pallet delivery quote by postcode', icon: 'van', link: 'transport-quote-calculator.html', badge: '' },
                     { title: 'Fault Tracker', desc: 'View and manage all reported faults', icon: 'chart', link: 'fault-tracker.html', badge: 'Featured' },
                     { title: 'Return Parts', desc: 'Process and track part returns', icon: 'undo', link: 'https://narrowaisleservice.github.io/Service-Application/flexi-parts-return-white.html', badge: '' },
                     { title: 'Faults & Issues', desc: 'Report and track truck issues', icon: 'warning', link: 'fault-reporter.html', badge: '' },
-                    { title: 'Services Due', desc: 'Scheduled services and inspections, overdue first', icon: 'clock', link: 'services-due.html', badge: 'New' }
+                    { title: 'Services Due', desc: 'Scheduled services and inspections, overdue first', icon: 'clock', link: 'services-due.html', badge: '' }
                 ]
             },
             'instructions': {
