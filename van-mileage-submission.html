@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script type="module" src="auth-guard.js"></script>
+<meta name="theme-color" content="#df0a1e">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&family=DM+Sans:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>Van Mileage - Narrow Aisle Service Portal</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { background: white !important; color-scheme: light only; height: 100%; }
+    body {
+        font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        color: #101010;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+    }
+
+    .card {
+        width: 100%;
+        max-width: 420px;
+        background: white;
+        border: 1px solid #e8e8e8;
+        border-radius: 14px;
+        overflow: hidden;
+    }
+    .card-header {
+        background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+        border-bottom: 3px solid #df0a1e;
+        padding: 24px 28px;
+    }
+    .back-link { font-size: 12px; color: #707070; text-decoration: none; font-weight: 600; }
+    .back-link:hover { color: #df0a1e; }
+    .card-title { font-family: 'IBM Plex Sans', sans-serif; font-size: 22px; font-weight: 700; margin-top: 4px; }
+    .card-sub { font-size: 13px; color: #707070; margin-top: 2px; }
+
+    .card-body { padding: 28px; }
+
+    .field { margin-bottom: 18px; }
+    .field label { display: block; font-size: 11px; font-weight: 600; color: #606060; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 6px; }
+    .field select, .field input {
+        width: 100%;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 15px;
+        padding: 12px 14px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        color: #101010;
+        background: white;
+    }
+    .field select:focus, .field input:focus { outline: none; border-color: #df0a1e; }
+
+    .submit-btn {
+        width: 100%;
+        padding: 14px;
+        background: #df0a1e;
+        border: none;
+        border-radius: 8px;
+        color: white;
+        font-family: 'IBM Plex Sans', sans-serif;
+        font-size: 14px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        cursor: pointer;
+        margin-top: 4px;
+    }
+    .submit-btn:hover { background: #c3161e; }
+    .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .msg { font-size: 13px; text-align: center; margin-top: 14px; }
+    .msg.error { color: #df0a1e; }
+
+    .success-screen { display: none; text-align: center; padding: 10px 0 4px; }
+    .success-screen.active { display: block; }
+    .success-icon {
+        width: 56px; height: 56px; border-radius: 50%; background: #e8f8ec;
+        display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;
+    }
+    .success-title { font-family: 'IBM Plex Sans', sans-serif; font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+    .success-sub { font-size: 13px; color: #707070; line-height: 1.5; margin-bottom: 20px; }
+    .again-btn {
+        background: #f2f2f2; color: #505050; border: none; border-radius: 8px;
+        padding: 10px 18px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer;
+    }
+    .again-btn:hover { background: #e8e8e8; }
+</style>
+</head>
+<body>
+
+<div class="card">
+    <div class="card-header">
+        <a class="back-link" href="portal-hub-professional.html">&larr; Back to Portal</a>
+        <div class="card-title">Van Mileage</div>
+        <div class="card-sub">Submit your current mileage</div>
+    </div>
+    <div class="card-body">
+
+        <div id="formScreen">
+            <div class="field">
+                <label for="nameSelect">Your Name</label>
+                <select id="nameSelect">
+                    <option value="">Select your name…</option>
+                    <option>Alex J Coley</option>
+                    <option>Brett Stockton</option>
+                    <option>David Williams</option>
+                    <option>Graham Denman</option>
+                    <option>Harry Shearstone</option>
+                    <option>Kevin Deakin</option>
+                    <option>Lance Duncan</option>
+                    <option>Lewis Lockwood</option>
+                    <option>Mick Thornley</option>
+                    <option>Mike Adams</option>
+                    <option>Peter King</option>
+                    <option>Rob Appleyard</option>
+                    <option>Rob Lucas</option>
+                    <option>Stuart Yarwood</option>
+                    <option>Thomas Barker</option>
+                    <option value="__other__">Other / not listed…</option>
+                </select>
+            </div>
+
+            <div class="field" id="otherNameField" style="display:none;">
+                <label for="otherName">Your Name</label>
+                <input type="text" id="otherName" placeholder="Type your name">
+            </div>
+
+            <div class="field">
+                <label for="mileageInput">Current Mileage</label>
+                <input type="number" id="mileageInput" placeholder="e.g. 48210" inputmode="numeric">
+            </div>
+
+            <button class="submit-btn" id="submitBtn">Submit Mileage</button>
+            <div class="msg error" id="errorMsg"></div>
+        </div>
+
+        <div class="success-screen" id="successScreen">
+            <div class="success-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#4caf50" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+            </div>
+            <div class="success-title">Mileage submitted</div>
+            <div class="success-sub">Thanks — that's been emailed through.</div>
+            <button class="again-btn" id="againBtn">Submit another</button>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // ===== Points at the Google Apps Script Web App (see van-mileage-submission.gs) =====
+    // Paste the deployed /exec URL here after deploying that script.
+    const SCRIPT_URL = 'PASTE_YOUR_DEPLOYED_WEB_APP_URL_HERE';
+    // =======================================================================================
+
+    const $nameSelect = document.getElementById('nameSelect');
+    const $otherField = document.getElementById('otherNameField');
+    const $otherName = document.getElementById('otherName');
+    const $mileage = document.getElementById('mileageInput');
+    const $submitBtn = document.getElementById('submitBtn');
+    const $errorMsg = document.getElementById('errorMsg');
+    const $formScreen = document.getElementById('formScreen');
+    const $successScreen = document.getElementById('successScreen');
+
+    $nameSelect.addEventListener('change', () => {
+        $otherField.style.display = $nameSelect.value === '__other__' ? 'block' : 'none';
+    });
+
+    function getName() {
+        return $nameSelect.value === '__other__' ? $otherName.value.trim() : $nameSelect.value;
+    }
+
+    document.getElementById('submitBtn').addEventListener('click', () => {
+        const name = getName();
+        const mileage = $mileage.value.trim();
+        $errorMsg.textContent = '';
+
+        if (!name) { $errorMsg.textContent = 'Please select or enter your name.'; return; }
+        if (!mileage) { $errorMsg.textContent = 'Please enter your mileage.'; return; }
+
+        $submitBtn.disabled = true;
+        $submitBtn.textContent = 'Submitting…';
+
+        const payload = { name, mileage, submittedAt: new Date().toISOString() };
+        const formBody = new URLSearchParams();
+        formBody.append('payload', JSON.stringify(payload));
+
+        fetch(SCRIPT_URL, { method: 'POST', body: formBody })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    $formScreen.style.display = 'none';
+                    $successScreen.classList.add('active');
+                } else {
+                    $errorMsg.textContent = 'Submission failed: ' + (data.error || 'Unknown error');
+                    $submitBtn.disabled = false;
+                    $submitBtn.textContent = 'Submit Mileage';
+                }
+            })
+            .catch(() => {
+                $errorMsg.textContent = 'Connection error — please try again.';
+                $submitBtn.disabled = false;
+                $submitBtn.textContent = 'Submit Mileage';
+            });
+    });
+
+    document.getElementById('againBtn').addEventListener('click', () => {
+        $nameSelect.value = '';
+        $otherName.value = '';
+        $otherField.style.display = 'none';
+        $mileage.value = '';
+        $submitBtn.disabled = false;
+        $submitBtn.textContent = 'Submit Mileage';
+        $successScreen.classList.remove('active');
+        $formScreen.style.display = 'block';
+    });
+</script>
+</body>
+</html>
