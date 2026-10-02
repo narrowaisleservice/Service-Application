@@ -78,9 +78,10 @@
   .job-group summary .jg-meta{color:var(--muted);font-size:12px;}
   .job-group .visits{padding:4px 14px 10px;}
   .pill{font-size:11px;font-family:var(--mono);background:rgba(107,110,118,.12);color:var(--muted);padding:2px 8px;border-radius:12px;}
-  .tabs{display:flex;gap:4px;margin-bottom:12px;}
-  .tab-btn{font-size:12.5px;font-weight:600;padding:7px 14px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;}
+  .tabs{display:flex;gap:4px;margin-bottom:16px;flex-wrap:wrap;}
+  .tab-btn{font-size:12.5px;font-weight:600;padding:9px 16px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--muted);cursor:pointer;}
   .tab-btn.active{background:var(--red);color:#fff;border-color:var(--red);}
+  .tab-btn .count{font-family:var(--mono);font-size:11px;margin-left:4px;}
   .tabpane{display:none;}
   .tabpane.active{display:block;}
   .spec-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px 24px;}
@@ -306,58 +307,22 @@ function render(eq, resolved, d){
     <div class="stat"><div class="s-label">Parts fitted (lifetime)</div><div class="s-val">${d.parts.length}</div></div>
   </div>`;
 
-  // ---- contract + warranty row ----
-  html += `<div class="row2">`;
+  // ---- top-level tabs: Service History / Maintenance / Warranty / Parts Fitted / Jobs / Equip Specs ----
+  const grouped = by(d.visits, 'job_id');
+  const jobIds = Object.keys(grouped).sort((a,b) => new Date(grouped[b][0].visit_date) - new Date(grouped[a][0].visit_date));
 
-  html += `<div class="card"><div class="card-head"><h3>Maintenance Contract</h3></div><div class="card-body">`;
-  if (d.contracts.length) {
-    html += d.contracts.map(c => `
-      <div class="kv"><span class="k">Type</span><span class="v">${esc(c.contract_type || '—')}</span></div>
-      <div class="kv"><span class="k">Annual charge</span><span class="v">${money(c.annual_charge)}</span></div>
-      <div class="kv"><span class="k">Start</span><span class="v">${dateStr(c.start_date)}</span></div>
-      <div class="kv"><span class="k">End</span><span class="v">${dateStr(c.end_date)}</span></div>
-    `).join('<div style="height:10px"></div>');
-  } else {
-    html += `<div class="empty-note">${d.noContract ? 'Flagged on Protean\'s No Maintenance Contract report — no contract on file.' : 'No contract record found for this truck.'}</div>`;
-  }
-  html += `</div></div>`;
+  html += `<div class="tabs">
+    <button class="tab-btn active" data-tab="history">Service History <span class="count">${jobIds.length}</span></button>
+    <button class="tab-btn" data-tab="maint">Maintenance <span class="count">${d.contracts.length + d.schedule.length}</span></button>
+    <button class="tab-btn" data-tab="warranty">Warranty <span class="count">${d.warranties.length}</span></button>
+    <button class="tab-btn" data-tab="parts">Parts Fitted <span class="count">${d.parts.length}</span></button>
+    <button class="tab-btn" data-tab="jobs">Jobs (2026) <span class="count">${jobsThisYear}</span></button>
+    <button class="tab-btn" data-tab="specs">Equip Specs <span class="count">${d.attributes.length}</span></button>
+  </div>`;
 
-  html += `<div class="card"><div class="card-head"><h3>Warranty</h3><span class="count">${d.warranties.length}</span></div><div class="card-body">`;
-  if (d.warranties.length) {
-    html += d.warranties.map(w => `
-      <div class="kv"><span class="k">${esc(w.make_model || 'Item')} &middot; ${dateStr(w.order_date)}</span>
-      <span class="v">${w.warranty_months ? w.warranty_months + ' mo' : ''}${w.warranty_hours ? ' / ' + w.warranty_hours + ' hrs' : ''} &middot; exp ${dateStr(w.warranty_expires)}</span></div>
-    `).join('');
-  } else {
-    html += `<div class="empty-note">No warranty record on file.</div>`;
-  }
-  html += `</div></div>`;
-
-  html += `</div>`; // row2
-
-  // ---- scheduled service ----
-  if (d.schedule.length) {
-    html += `<div class="card"><div class="card-head"><h3>Scheduled Service</h3><span class="count">${d.schedule.length}</span></div><div class="card-body scroll-x"><table>
-      <tr><th>Service type</th><th>Next due</th><th>Route / Engineer</th><th>Contract</th></tr>`;
-    d.schedule.forEach(s => {
-      html += `<tr><td>${esc(s.service_type || '—')}</td><td>${dateStr(s.next_due)}</td><td>${esc(s.engineer || s.route || '—')}</td><td>${esc(s.contract_type || '—')}</td></tr>`;
-    });
-    html += `</table></div></div>`;
-  }
-
-  // ---- service history (tabs: Lifetime visits / 2026 jobs) ----
-  html += `<div class="card">
-    <div class="card-head"><h3>Service History</h3><span class="count">${d.visits.length} visits &middot; ${jobsThisYear} jobs in 2026</span></div>
-    <div class="card-body">
-      <div class="tabs">
-        <button class="tab-btn active" data-tab="lifetime">Lifetime (by job)</button>
-        <button class="tab-btn" data-tab="y2026">2026 job charges</button>
-      </div>
-      <div class="tabpane active" id="tab-lifetime">`;
-
-  if (d.visits.length) {
-    const grouped = by(d.visits, 'job_id');
-    const jobIds = Object.keys(grouped).sort((a,b) => new Date(grouped[b][0].visit_date) - new Date(grouped[a][0].visit_date));
+  // -- Service History tab (lifetime visits, grouped by job) --
+  html += `<div class="tabpane active" id="tab-history"><div class="card"><div class="card-body">`;
+  if (jobIds.length) {
     jobIds.forEach(jobId => {
       const vs = grouped[jobId];
       const head = vs[0];
@@ -375,10 +340,61 @@ function render(eq, resolved, d){
   } else {
     html += `<div class="empty-note">No lifetime visit history found for this truck.</div>`;
   }
+  html += `</div></div></div>`;
 
-  html += `</div><div class="tabpane" id="tab-y2026">`;
+  // -- Maintenance tab (contract + scheduled service) --
+  html += `<div class="tabpane" id="tab-maint">`;
+  html += `<div class="card"><div class="card-head"><h3>Maintenance Contract</h3></div><div class="card-body">`;
+  if (d.contracts.length) {
+    html += d.contracts.map(c => `
+      <div class="kv"><span class="k">Type</span><span class="v">${esc(c.contract_type || '—')}</span></div>
+      <div class="kv"><span class="k">Annual charge</span><span class="v">${money(c.annual_charge)}</span></div>
+      <div class="kv"><span class="k">Start</span><span class="v">${dateStr(c.start_date)}</span></div>
+      <div class="kv"><span class="k">End</span><span class="v">${dateStr(c.end_date)}</span></div>
+    `).join('<div style="height:10px"></div>');
+  } else {
+    html += `<div class="empty-note">${d.noContract ? 'Flagged on Protean\'s No Maintenance Contract report — no contract on file.' : 'No contract record found for this truck.'}</div>`;
+  }
+  html += `</div></div>`;
+  if (d.schedule.length) {
+    html += `<div class="card"><div class="card-head"><h3>Scheduled Service</h3><span class="count">${d.schedule.length}</span></div><div class="card-body scroll-x"><table>
+      <tr><th>Service type</th><th>Next due</th><th>Route / Engineer</th><th>Contract</th></tr>`;
+    d.schedule.forEach(s => {
+      html += `<tr><td>${esc(s.service_type || '—')}</td><td>${dateStr(s.next_due)}</td><td>${esc(s.engineer || s.route || '—')}</td><td>${esc(s.contract_type || '—')}</td></tr>`;
+    });
+    html += `</table></div></div>`;
+  }
+  html += `</div>`; // tab-maint
+
+  // -- Warranty tab --
+  html += `<div class="tabpane" id="tab-warranty"><div class="card"><div class="card-body">`;
+  if (d.warranties.length) {
+    html += d.warranties.map(w => `
+      <div class="kv"><span class="k">${esc(w.make_model || 'Item')} &middot; ${dateStr(w.order_date)}</span>
+      <span class="v">${w.warranty_months ? w.warranty_months + ' mo' : ''}${w.warranty_hours ? ' / ' + w.warranty_hours + ' hrs' : ''} &middot; exp ${dateStr(w.warranty_expires)}</span></div>
+    `).join('');
+  } else {
+    html += `<div class="empty-note">No warranty record on file.</div>`;
+  }
+  html += `</div></div></div>`;
+
+  // -- Parts Fitted tab --
+  html += `<div class="tabpane" id="tab-parts"><div class="card"><div class="card-body scroll-x">`;
+  if (d.parts.length) {
+    html += `<table><tr><th>Date</th><th>Part no.</th><th>Description</th><th>Qty</th><th>Doc</th></tr>`;
+    d.parts.forEach(p => {
+      html += `<tr><td>${dateStr(p.document_date)}</td><td><code>${esc(p.part_number)}</code></td><td>${esc(p.description || '—')}</td><td>${esc(p.qty)}</td><td>${esc(p.document_type || '')} ${esc(p.document_no || '')}</td></tr>`;
+    });
+    html += `</table>`;
+  } else {
+    html += `<div class="empty-note">No parts fitted history found for this truck.</div>`;
+  }
+  html += `</div></div></div>`;
+
+  // -- Jobs (2026) tab --
+  html += `<div class="tabpane" id="tab-jobs"><div class="card"><div class="card-body scroll-x">`;
   if (d.jobs2026.length) {
-    html += `<div class="scroll-x"><table>
+    html += `<table>
       <tr><th>Job</th><th>Type</th><th>Logged</th><th>Completed</th><th>Travel</th><th>Mileage</th><th>Labour</th><th>Flat</th><th></th></tr>
       ${d.jobs2026.map(j => `<tr>
         <td>${esc(j.job_no)}</td>
@@ -391,29 +407,14 @@ function render(eq, resolved, d){
         <td>${money(j.total_flat_charge)}</td>
         <td>${j.non_chargeable ? '<span class="badge neutral">Non-chargeable</span>' : ''}</td>
       </tr>`).join('')}
-    </table></div>`;
+    </table>`;
   } else {
     html += `<div class="empty-note">No 2026 jobs recorded for this truck.</div>`;
   }
   html += `</div></div></div>`;
 
-  // ---- parts fitted ----
-  html += `<div class="card"><div class="card-head"><h3>Parts Fitted</h3><span class="count">${d.parts.length}</span></div><div class="card-body scroll-x">`;
-  if (d.parts.length) {
-    html += `<table><tr><th>Date</th><th>Part no.</th><th>Description</th><th>Qty</th><th>Doc</th></tr>`;
-    d.parts.forEach(p => {
-      html += `<tr><td>${dateStr(p.document_date)}</td><td><code>${esc(p.part_number)}</code></td><td>${esc(p.description || '—')}</td><td>${esc(p.qty)}</td><td>${esc(p.document_type || '')} ${esc(p.document_no || '')}</td></tr>`;
-    });
-    html += `</table>`;
-  } else {
-    html += `<div class="empty-note">No parts fitted history found for this truck.</div>`;
-  }
-  html += `</div></div>`;
-
-  // ---- spec / attributes ----
-  html += `<div class="card"><div class="card-head"><h3>Equipment Spec</h3>
-    <span class="toggle-link" id="specToggle">Show ${d.attributes.length} attributes</span></div>
-    <div class="card-body" id="specBody" style="display:none;">`;
+  // -- Equip Specs tab (attributes + location records) --
+  html += `<div class="tabpane" id="tab-specs"><div class="card"><div class="card-body">`;
   if (d.attributes.length) {
     html += `<div class="spec-grid">` + d.attributes.map(a => `
       <div class="kv"><span class="k">${esc(a.attribute_name)}</span><span class="v">${esc(a.attribute_value || '—')}</span></div>
@@ -422,19 +423,18 @@ function render(eq, resolved, d){
     html += `<div class="empty-note">No attribute data on file.</div>`;
   }
   html += `</div></div>`;
-
-  // ---- locations (if more than the hero's) ----
   if (d.locations.length > 1 || (d.locations.length === 1 && !site)) {
     html += `<div class="card"><div class="card-head"><h3>Location Records</h3><span class="count">${d.locations.length}</span></div><div class="card-body scroll-x"><table>
       <tr><th>Status</th><th>Location</th><th>Account</th></tr>
       ${d.locations.map(l => `<tr><td>${esc(l.status||'—')}</td><td>${esc(l.location||'—')}</td><td>${esc(l.account_name||'—')}</td></tr>`).join('')}
     </table></div></div>`;
   }
+  html += `</div>`; // tab-specs
 
   document.getElementById('results').innerHTML = html;
   setState('results');
 
-  // wire up tabs + spec toggle (re-attach each render since innerHTML was replaced)
+  // wire up top-level tabs (re-attach each render since innerHTML was replaced)
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -442,13 +442,6 @@ function render(eq, resolved, d){
       btn.classList.add('active');
       document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
     });
-  });
-  const specToggle = document.getElementById('specToggle');
-  const specBody = document.getElementById('specBody');
-  specToggle.addEventListener('click', () => {
-    const open = specBody.style.display !== 'none';
-    specBody.style.display = open ? 'none' : 'block';
-    specToggle.textContent = open ? `Show ${d.attributes.length} attributes` : 'Hide attributes';
   });
 }
 
