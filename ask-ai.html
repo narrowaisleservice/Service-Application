@@ -170,23 +170,30 @@
         return (s == null ? '' : String(s)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     }
 
-    // Pulls a fenced JSON code block out of the answer text, whatever it's labelled
-    // (```chart, ```json, or no label at all -- the model doesn't always use the exact
-    // tag asked for, so we just check the parsed shape instead of trusting the tag).
-    // Returns { leadText, chartData } -- chartData is null if there's no valid chart block.
-    function extractChart(text) {
+    // Pulls EVERY fenced JSON code block that looks like a chart out of the answer text,
+    // whatever each is labelled (```chart, ```json, or no label -- the model doesn't always
+    // use the exact tag asked for, so we check the parsed shape instead of trusting the tag).
+    // A single answer can legitimately contain more than one chart (e.g. "top jobs" AND
+    // "by engineer"), so this collects all of them, not just the first.
+    // Returns { leadText, charts } -- charts is [] if none were found.
+    function extractCharts(text) {
         const fenceRe = /```[a-z]*\s*([\s\S]*?)```/gi;
+        const charts = [];
+        const leadParts = [];
+        let lastIndex = 0;
         let m;
         while ((m = fenceRe.exec(text || '')) !== null) {
-            try {
-                const parsed = JSON.parse(m[1].trim());
-                if (parsed && Array.isArray(parsed.labels) && Array.isArray(parsed.datasets)) {
-                    const leadText = (text.slice(0, m.index) + text.slice(m.index + m[0].length)).trim();
-                    return { leadText, chartData: parsed };
-                }
-            } catch (e) { /* not JSON / not a chart shape -- keep scanning other fenced blocks */ }
+            let parsed = null;
+            try { parsed = JSON.parse(m[1].trim()); } catch (e) { /* not JSON -- leave it as text */ }
+            if (parsed && Array.isArray(parsed.labels) && Array.isArray(parsed.datasets)) {
+                leadParts.push(text.slice(lastIndex, m.index));
+                lastIndex = m.index + m[0].length;
+                charts.push(parsed);
+            }
         }
-        return { leadText: text, chartData: null };
+        leadParts.push(text.slice(lastIndex));
+        const leadText = leadParts.join('').replace(/\n{3,}/g, '\n\n').trim();
+        return { leadText, charts };
     }
 
     function renderChart(canvas, chartData) {
@@ -223,12 +230,12 @@
         const wrap = document.createElement('div');
         wrap.className = 'msg ' + role;
 
-        let chartData = null;
+        let charts = [];
         let bodyText = text;
         if (role === 'assistant' && !opts.error) {
-            const extracted = extractChart(text);
-            bodyText = extracted.leadText || (extracted.chartData ? 'Here you go:' : text);
-            chartData = extracted.chartData;
+            const extracted = extractCharts(text);
+            bodyText = extracted.leadText || (extracted.charts.length ? 'Here you go:' : text);
+            charts = extracted.charts;
         }
 
         wrap.innerHTML = `
@@ -239,13 +246,16 @@
         `;
         $thread.appendChild(wrap);
 
-        if (chartData) {
-            const card = document.createElement('div');
-            card.className = 'chart-card';
-            const canvas = document.createElement('canvas');
-            card.appendChild(canvas);
-            wrap.querySelector('div:last-child').appendChild(card);
-            renderChart(canvas, chartData);
+        if (charts.length) {
+            const chartsHost = wrap.querySelector('div:last-child');
+            charts.forEach(chartData => {
+                const card = document.createElement('div');
+                card.className = 'chart-card';
+                const canvas = document.createElement('canvas');
+                card.appendChild(canvas);
+                chartsHost.appendChild(card);
+                renderChart(canvas, chartData);
+            });
         }
 
         $thread.scrollTop = $thread.scrollHeight;
