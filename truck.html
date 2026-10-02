@@ -138,7 +138,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ---------- auth guard ----------
 // If this repo already has auth-guard.js wired into other pages, swap this block
-// for <script type="module" src="auth-guard.js"></script> to stay consistent.
+// for a module script tag loading auth-guard.js, to stay consistent.
 (async function requireAuth(){
   const { data } = await sb.auth.getSession();
   if (!data.session) {
