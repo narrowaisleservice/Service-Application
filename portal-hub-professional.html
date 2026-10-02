@@ -2056,7 +2056,7 @@
                 <div class="dash-search-panel">
                     <div class="dash-search-eyebrow">Quick search</div>
                     <div class="dash-search-row">
-                        <input type="text" id="dashSearchInput" placeholder="Enter customer name..." onkeydown="if(event.key==='Enter') runDashSearch()">
+                        <input type="text" id="dashSearchInput" placeholder="Customer name or truck serial / equip no..." onkeydown="if(event.key==='Enter') runDashSearch()">
                         <button class="dash-search-btn" onclick="runDashSearch()">Go &rarr;</button>
                     </div>
                 </div>
@@ -2280,9 +2280,28 @@
             });
         }
 
-        function runDashSearch() {
+        async function runDashSearch() {
             const val = document.getElementById('dashSearchInput').value.trim();
             if (!val) return;
+
+            // Figure out whether this looks like a truck (serial no / equip no) before
+            // falling back to a customer-name search, so one box covers both.
+            try {
+                const like = `%${val}%`;
+                const [{ data: ce }, { data: hire }] = await Promise.all([
+                    db.from('customer_equipment').select('equip_no').or(`equip_no.ilike.${like},serial_no.ilike.${like}`).limit(1),
+                    db.from('equipment_on_hire').select('equip_no').or(`equip_no.ilike.${like},serial_no.ilike.${like}`).limit(1)
+                ]);
+                if ((ce && ce.length) || (hire && hire.length)) {
+                    const truckUrl = 'truck.html?q=' + encodeURIComponent(val);
+                    recordRecentLookup('truck', val, truckUrl);
+                    window.location.href = truckUrl;
+                    return;
+                }
+            } catch (e) {
+                // if the truck lookup errors, just fall through to the customer search
+            }
+
             const url = 'customers.html?q=' + encodeURIComponent(val);
             recordRecentLookup('customer', val, url);
             window.location.href = url;
@@ -2616,6 +2635,11 @@
                 const actions = [];
                 if (q) {
                     const term = query.trim();
+                    actions.push({ title: `Find truck "${term}"`, sub: 'Serial / equip no', icon: 'forklift', action: () => {
+                        const url = 'truck.html?q=' + encodeURIComponent(term);
+                        recordRecentLookup('truck', term, url);
+                        window.location.href = url;
+                    } });
                     actions.push({ title: `Search customer "${term}"`, sub: 'Customers', icon: 'people', action: () => {
                         const url = 'customers.html?q=' + encodeURIComponent(term);
                         recordRecentLookup('customer', term, url);

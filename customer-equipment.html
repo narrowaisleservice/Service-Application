@@ -145,12 +145,12 @@
 <div class="header">
     <a class="back-link" href="portal-hub-professional.html">&larr; Back to Portal</a>
     <div class="header-title">Customer Equipment</div>
-    <div class="header-subtitle">Search equipment owned by a customer</div>
+    <div class="header-subtitle">Search equipment by customer name, serial number or equip no</div>
 </div>
 
 <div class="content">
     <div class="search-panel">
-        <input type="text" id="customerInput" placeholder="Enter customer name..." autofocus>
+        <input type="text" id="customerInput" placeholder="Customer name, serial number or equip no..." autofocus>
         <button class="search-btn" id="searchBtn">Search</button>
     </div>
 
@@ -173,7 +173,7 @@
         const wrap = document.getElementById('resultsWrap');
 
         if (!items.length) {
-            wrap.innerHTML = '<div class="empty-state">No equipment found for that customer.</div>';
+            wrap.innerHTML = '<div class="empty-state">No equipment found for that customer, serial or equip no.</div>';
             return;
         }
 
@@ -181,7 +181,7 @@
             items.map(item => `
                 <div class="equip-card">
                     <div class="equip-top">
-                        <div class="equip-title"><a href="truck.html?equip=${encodeURIComponent(item.equip_no)}" style="color:inherit;text-decoration:none;">${item.manufacturer || ''} ${item.model || ''}</a>${item.on_hire ? '<span class="hire-badge">On Hire</span>' : ''}</div>
+                        <div class="equip-title"><a href="truck.html?equip_no=${encodeURIComponent(item.equip_no)}" style="color:inherit;text-decoration:none;">${item.manufacturer || ''} ${item.model || ''}</a>${item.on_hire ? '<span class="hire-badge">On Hire</span>' : ''}</div>
                         <div class="equip-serial">${item.serial_no || '—'}</div>
                     </div>
                     <div class="equip-meta">
@@ -205,14 +205,18 @@
         document.getElementById('resultsWrap').innerHTML = '<div class="loading-state">Searching customer equipment...</div>';
 
         try {
+            // Matches on customer/account name, serial number OR equip no --
+            // so a serial/equip search works here, not just a customer name.
+            const like = `%${customer}%`;
+            const orFilter = `account_name.ilike.${like},equip_no.ilike.${like},serial_no.ilike.${like}`;
             const [ceRes, hireRes] = await Promise.all([
                 db.from('customer_equipment')
                     .select('*')
-                    .ilike('account_name', `%${customer}%`)
+                    .or(orFilter)
                     .order('account_name', { ascending: true }),
                 db.from('equipment_on_hire')
                     .select('equip_no,account_name,site_name,site_address,make_model,serial_no')
-                    .ilike('account_name', `%${customer}%`)
+                    .or(orFilter)
                     .order('account_name', { ascending: true })
             ]);
             if (ceRes.error && hireRes.error) throw ceRes.error;
