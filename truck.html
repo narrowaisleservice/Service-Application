@@ -3,627 +3,456 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Truck Record | Narrow Aisle Service Portal</title>
-<script>window.ALLOWED_ROLES = ['internal', 'dealer'];</script>
-<script type="module" src="auth-guard.js"></script>
+<title>Truck Record — Narrow Aisle Service Portal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root{
-    --red:#df0a1e;
-    --black:#0a0a0a;
-    --grey-50:#f7f7f7;
-    --grey-100:#f0f0f0;
-    --grey-200:#e4e4e4;
-    --grey-500:#8a8a8a;
-    --grey-700:#4a4a4a;
+    --red:#df0a1e; --red-dark:#b50817; --black:#111214; --ink:#15161a;
+    --bg:#f5f5f7; --card:#ffffff; --border:#e3e4e8; --muted:#6b6e76;
+    --good:#1a8f4c; --warn:#b5790a; --bad:#df0a1e;
+    --radius:10px; --mono:'DM Mono',monospace;
+    --shadow:0 1px 2px rgba(0,0,0,.04), 0 2px 10px rgba(0,0,0,.04);
+  }
+  [data-theme="dark"]{
+    --bg:#0c0d0f; --card:#17181b; --border:#2a2b30; --ink:#f0f0f2; --muted:#9a9ca4;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.35);
   }
   *{box-sizing:border-box;}
-  body{margin:0;font-family:'IBM Plex Sans',sans-serif;background:var(--grey-50);color:var(--black);}
-  header{background:var(--black);color:#fff;padding:18px 28px;display:flex;align-items:center;justify-content:space-between;}
-  .brand{display:flex;align-items:center;gap:10px;}
-  .brand .mark{width:10px;height:10px;background:var(--red);border-radius:2px;}
-  .brand span{font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#ccc;}
-  .header-actions{display:flex;gap:8px;}
-  .ghost-btn{background:none;border:1px solid #444;color:#ccc;padding:7px 14px;border-radius:6px;font-size:12px;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;}
-  .ghost-btn:hover{border-color:var(--red);color:#fff;}
-  main{max-width:1180px;margin:0 auto;padding:28px;}
-  h1{font-size:22px;margin:0 0 6px;}
-  .sub{font-size:13px;color:var(--grey-700);margin:0 0 22px;}
-
-  .searchbar{display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap;}
-  input[type=search]{
-    flex:1;min-width:260px;padding:12px 14px;border:1.5px solid var(--grey-200);border-radius:8px;
-    font-family:'DM Mono',monospace;font-size:14px;background:#fff;
-  }
-  input[type=search]:focus{outline:none;border-color:var(--red);}
-  .btn{
-    background:var(--red);color:#fff;border:none;border-radius:8px;padding:12px 22px;
-    font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;
-  }
-  .btn:hover{background:#c00819;}
-  .btn.secondary{background:#fff;color:var(--grey-700);border:1.5px solid var(--grey-200);}
-  .btn.secondary:hover{background:var(--grey-100);border-color:var(--grey-500);}
-
-  .card{background:#fff;border:1px solid var(--grey-200);border-radius:8px;padding:20px 22px;margin-bottom:18px;}
-  .card h2{margin:0 0 14px;font-size:15px;font-weight:700;display:flex;align-items:center;gap:10px;}
-  .card h2 .pill{
-    font-family:'DM Mono',monospace;font-size:11px;font-weight:500;background:var(--grey-100);
-    color:var(--grey-700);border-radius:10px;padding:2px 8px;
-  }
-  .card h2 .note{font-size:11px;font-weight:400;color:var(--grey-500);text-transform:none;letter-spacing:0;margin-left:auto;}
-
-  .idcard{background:#fff;border:1px solid var(--grey-200);border-left:4px solid var(--red);border-radius:8px;padding:22px;margin-bottom:18px;}
-  .idcard .model{font-size:20px;font-weight:700;margin-bottom:2px;}
-  .idcard .serial{font-family:'DM Mono',monospace;font-size:13px;color:var(--red);margin-bottom:16px;}
-  .facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px 22px;}
-  .fact .k{font-size:11px;text-transform:uppercase;letter-spacing:.03em;color:var(--grey-500);margin-bottom:2px;}
-  .fact .v{font-size:13.5px;}
-  .fact .v a{color:var(--red);text-decoration:none;}
-  .fact .v a:hover{text-decoration:underline;}
-
-  .statrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;}
-  .stat{background:var(--grey-50);border:1px solid var(--grey-200);border-radius:8px;padding:14px 16px;}
-  .stat .k{font-size:11px;text-transform:uppercase;letter-spacing:.03em;color:var(--grey-500);margin-bottom:4px;}
-  .stat .v{font-family:'DM Mono',monospace;font-size:18px;font-weight:500;}
-  .stat .v.red{color:var(--red);}
-
-  table{width:100%;border-collapse:collapse;}
-  th,td{text-align:left;padding:9px 12px;font-size:13px;border-bottom:1px solid var(--grey-200);vertical-align:top;}
-  th{background:var(--grey-100);font-weight:600;color:var(--grey-700);text-transform:uppercase;font-size:11px;letter-spacing:.03em;}
+  body{margin:0;font-family:'IBM Plex Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);}
+  a{color:inherit;text-decoration:none;}
+  .topbar{background:var(--black);color:#fff;padding:14px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;position:sticky;top:0;z-index:50;}
+  .topbar .back{display:flex;align-items:center;gap:6px;font-size:13px;color:#cfcfd2;padding:6px 10px;border-radius:8px;}
+  .topbar .back:hover{background:rgba(255,255,255,.08);color:#fff;}
+  .topbar .title{font-weight:600;font-size:15px;letter-spacing:.2px;margin-right:auto;white-space:nowrap;}
+  .topbar .title span{color:var(--red);}
+  .searchwrap{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);border-radius:10px;padding:4px 4px 4px 12px;flex:1;min-width:220px;max-width:460px;}
+  .searchwrap input{background:transparent;border:none;color:#fff;font-size:14px;outline:none;width:100%;font-family:var(--mono);}
+  .searchwrap input::placeholder{color:#9a9ca4;}
+  .searchwrap button{background:var(--red);border:none;color:#fff;font-weight:600;font-size:13px;padding:8px 16px;border-radius:8px;cursor:pointer;white-space:nowrap;}
+  .searchwrap button:hover{background:var(--red-dark);}
+  .themebtn{background:rgba(255,255,255,.08);border:none;color:#fff;width:34px;height:34px;border-radius:8px;cursor:pointer;font-size:15px;flex-shrink:0;}
+  main{max-width:1180px;margin:0 auto;padding:24px 20px 80px;}
+  .state{text-align:center;padding:80px 20px;color:var(--muted);}
+  .state h2{color:var(--ink);font-size:18px;margin-bottom:6px;}
+  .hero{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:22px 24px;box-shadow:var(--shadow);margin-bottom:18px;}
+  .hero-top{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:14px;}
+  .hero-serial{font-family:var(--mono);font-size:26px;font-weight:500;letter-spacing:.5px;}
+  .hero-sub{color:var(--muted);font-size:14px;margin-top:4px;}
+  .badges{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;}
+  .badge{font-size:11.5px;font-weight:600;padding:4px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap;}
+  .badge.good{background:rgba(26,143,76,.12);color:var(--good);}
+  .badge.warn{background:rgba(181,121,10,.12);color:var(--warn);}
+  .badge.bad{background:rgba(223,10,30,.1);color:var(--bad);}
+  .badge.neutral{background:rgba(107,110,118,.12);color:var(--muted);}
+  .hero-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-top:18px;padding-top:16px;border-top:1px solid var(--border);}
+  .hero-grid .f-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px;}
+  .hero-grid .f-val{font-size:14px;font-weight:500;}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px;}
+  .stat{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);}
+  .stat .s-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;}
+  .stat .s-val{font-size:20px;font-weight:600;margin-top:4px;font-family:var(--mono);}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;}
+  @media (max-width:760px){.row2{grid-template-columns:1fr;}}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;margin-bottom:18px;}
+  .card-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+  .card-head h3{margin:0;font-size:14px;font-weight:600;}
+  .card-head .count{font-size:12px;color:var(--muted);font-family:var(--mono);}
+  .card-body{padding:16px 18px;}
+  .empty-note{color:var(--muted);font-size:13.5px;padding:4px 0;}
+  .kv{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--border);font-size:13.5px;}
+  .kv:last-child{border-bottom:none;}
+  .kv .k{color:var(--muted);}
+  .kv .v{font-weight:500;text-align:right;}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);padding:6px 10px;border-bottom:1px solid var(--border);white-space:nowrap;}
+  td{padding:9px 10px;border-bottom:1px solid var(--border);vertical-align:top;}
   tr:last-child td{border-bottom:none;}
-  td.mono{font-family:'DM Mono',monospace;font-size:12px;white-space:nowrap;}
-
-  .results-list{background:#fff;border:1px solid var(--grey-200);border-radius:8px;overflow:hidden;}
-  .result-row{padding:12px 16px;border-bottom:1px solid var(--grey-200);cursor:pointer;display:flex;justify-content:space-between;gap:16px;align-items:center;}
-  .result-row:last-child{border-bottom:none;}
-  .result-row:hover{background:var(--grey-50);}
-  .result-row .l{font-size:13.5px;font-weight:600;}
-  .result-row .l small{display:block;font-weight:400;color:var(--grey-700);font-size:12px;margin-top:2px;}
-  .result-row .r{font-family:'DM Mono',monospace;font-size:12px;color:var(--red);white-space:nowrap;}
-
-  .job{border-bottom:1px solid var(--grey-200);padding:14px 0;}
-  .job:first-of-type{padding-top:0;}
-  .job:last-of-type{border-bottom:none;padding-bottom:0;}
-  .job-head{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;margin-bottom:6px;}
-  .job-date{font-family:'DM Mono',monospace;font-size:12px;color:var(--red);font-weight:500;}
-  .job-title{font-size:13.5px;font-weight:600;}
-  .job-meta{font-size:12px;color:var(--grey-500);}
-  .job-body{font-size:13px;color:var(--grey-700);line-height:1.55;white-space:pre-wrap;}
-
-  .spec-list{display:flex;flex-wrap:wrap;gap:10px;}
-  .spec-link{
-    display:flex;align-items:center;gap:8px;background:var(--grey-50);border:1px solid var(--grey-200);
-    border-radius:6px;padding:10px 14px;font-size:13px;color:var(--black);text-decoration:none;
-  }
-  .spec-link:hover{border-color:var(--red);color:var(--red);}
-  .spec-link .ic{color:var(--red);font-family:'DM Mono',monospace;font-size:11px;}
-
-  .verdict{display:inline-block;font-size:11px;font-weight:600;border-radius:10px;padding:2px 9px;background:var(--grey-100);color:var(--grey-700);}
-  .verdict.crack{background:#fff4f4;color:#7a1520;}
-
-  .empty{padding:26px;text-align:center;color:var(--grey-500);font-size:13.5px;}
-  .loading{padding:26px;text-align:center;color:var(--grey-500);font-size:13.5px;}
-  .err{padding:20px;text-align:center;color:#7a1520;font-size:13px;line-height:1.5;}
-  .err code{font-family:'DM Mono',monospace;font-size:12px;background:#fff4f4;padding:1px 5px;border-radius:3px;}
-  .hidden{display:none;}
-  .showmore{text-align:center;padding-top:12px;}
+  .job-group{border:1px solid var(--border);border-radius:8px;margin-bottom:10px;overflow:hidden;}
+  .job-group summary{padding:11px 14px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13.5px;list-style:none;background:rgba(0,0,0,.015);}
+  [data-theme="dark"] .job-group summary{background:rgba(255,255,255,.02);}
+  .job-group summary::-webkit-details-marker{display:none;}
+  .job-group summary .jg-type{font-weight:600;}
+  .job-group summary .jg-meta{color:var(--muted);font-size:12px;}
+  .job-group .visits{padding:4px 14px 10px;}
+  .pill{font-size:11px;font-family:var(--mono);background:rgba(107,110,118,.12);color:var(--muted);padding:2px 8px;border-radius:12px;}
+  .tabs{display:flex;gap:4px;margin-bottom:12px;}
+  .tab-btn{font-size:12.5px;font-weight:600;padding:7px 14px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;}
+  .tab-btn.active{background:var(--red);color:#fff;border-color:var(--red);}
+  .tabpane{display:none;}
+  .tabpane.active{display:block;}
+  .spec-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px 24px;}
+  .toggle-link{font-size:12.5px;color:var(--red);cursor:pointer;font-weight:600;}
+  .scroll-x{overflow-x:auto;}
+  .search-hint{font-size:12px;color:var(--muted);text-align:center;margin-top:10px;}
+  code{font-family:var(--mono);background:rgba(107,110,118,.12);padding:1px 6px;border-radius:5px;font-size:.92em;}
 </style>
 </head>
 <body>
-<header>
-  <div class="brand"><div class="mark"></div><span>Narrow Aisle · Truck Record</span></div>
-  <div class="header-actions">
-    <button class="ghost-btn" onclick="window.location.href='portal-hub-professional.html'">Back to portal</button>
-    <button class="ghost-btn" onclick="logout()">Sign out</button>
+
+<div class="topbar">
+  <a class="back" href="portal-hub-professional.html">&larr; Portal</a>
+  <div class="title">Truck <span>Record</span></div>
+  <div class="searchwrap">
+    <input id="searchInput" type="text" placeholder="Serial / equip no e.g. 221672" autocomplete="off">
+    <button id="searchBtn">Search</button>
   </div>
-</header>
+  <button class="themebtn" id="themeBtn" title="Toggle theme">&#9680;</button>
+</div>
 
 <main>
-  <h1>Truck Record</h1>
-  <p class="sub">One equipment number — attributes, warranty, status, location, parts, job cost, maintenance contract, service history, spec sheets and weld reports.</p>
-
-  <div class="searchbar">
-    <input type="search" id="q" placeholder="Equip no or serial number — e.g. 053548" autocomplete="off">
-    <button class="btn" id="goBtn">Search</button>
-    <button class="btn secondary hidden" id="backBtn">New search</button>
+  <div id="emptyState" class="state">
+    <h2>Search a truck serial</h2>
+    <p>Type an equipment number or serial above — Service History, Parts Fitted, Contract, Warranty and Spec all come up together.</p>
   </div>
 
-  <div id="results"></div>
-  <div id="record"></div>
+  <div id="loadingState" class="state" style="display:none;">
+    <h2>Searching…</h2>
+  </div>
+
+  <div id="notFoundState" class="state" style="display:none;">
+    <h2>No records found</h2>
+    <p>Nothing on file for <strong id="notFoundTerm"></strong> across equipment, service history or parts records. Check the serial and try again.</p>
+  </div>
+
+  <div id="results" style="display:none;"></div>
 </main>
 
 <script>
-  // ===== Supabase project config =====
-  // Primary project: everything imported from Protean (equipment, customers, service history,
-  // maintenance contracts). Legacy project: only weld reports and spec-sheet PDFs still live
-  // there -- those two haven't been migrated yet, so this page talks to both.
-  const SUPABASE_URL = 'https://hkwcdpqpduptjwroawrw.supabase.co';
-  const SUPABASE_KEY = 'sb_publishable_ym0_ostk5WkdHGhGEGSkXw_d1sHadPY';
-  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const SUPABASE_URL = 'https://hkwcdpqpduptjwroawrw.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhrd2NkcHFwZHVwdGp3cm9hd3J3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk1NDMyNzcsImV4cCI6MjEwNTExOTI3N30.9W7X2SBUQunSYASrpmAgVICAZuX9F_LJCfPT7oBPh3I';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  const LEGACY_URL = 'https://dontubctlexlvifwhmbj.supabase.co';
-  const LEGACY_KEY = 'sb_publishable_99HLzSv4wMwFZHlR81yIsQ_z0A0Jpth';
-  const dbLegacy = window.supabase.createClient(LEGACY_URL, LEGACY_KEY);
-  const SPEC_BUCKET = 'truck-specs';
-  // ===================================================================================
+// ---------- theme (shared portalTheme key, same as rest of portal) ----------
+(function initTheme(){
+  const saved = localStorage.getItem('portalTheme');
+  if (saved === 'dark') document.documentElement.setAttribute('data-theme','dark');
+  document.getElementById('themeBtn').addEventListener('click', () => {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    if (isDark) { document.documentElement.removeAttribute('data-theme'); localStorage.setItem('portalTheme','light'); }
+    else { document.documentElement.setAttribute('data-theme','dark'); localStorage.setItem('portalTheme','dark'); }
+  });
+})();
 
-  async function logout(){
-    await db.auth.signOut();
-    localStorage.clear();
+// ---------- auth guard ----------
+// If this repo already has auth-guard.js wired into other pages, swap this block
+// for <script type="module" src="auth-guard.js"></script> to stay consistent.
+(async function requireAuth(){
+  const { data } = await sb.auth.getSession();
+  if (!data.session) {
     window.location.href = 'login.html';
   }
+})();
 
-  function escHtml(s){
-    return (s == null ? '' : String(s)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  }
-  function fmtDate(d){
-    if (!d) return '—';
-    return new Date(d).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
-  }
-  function fmtMoney(n){
-    if (n == null) return '—';
-    return '£' + Number(n).toLocaleString('en-GB', { minimumFractionDigits:2, maximumFractionDigits:2 });
-  }
-  function errHtml(label, error){
-    console.error(label + ' failed:', error);
-    return `<div class="err">Couldn't load ${escHtml(label)}.<br><code>${escHtml((error && (error.message || error.hint || error.code)) || 'unknown error')}</code></div>`;
-  }
+// ---------- helpers ----------
+const esc = (s) => (s === null || s === undefined) ? '' : String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money = (n) => (n === null || n === undefined) ? '—' : `£${Number(n).toLocaleString('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+const dateStr = (d) => d ? new Date(d).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : '—';
+const dateTimeStr = (d) => d ? new Date(d).toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
+const timeStr = (t) => t ? t.slice(0,5) : '—';
+const by = (arr, key) => { const m={}; (arr||[]).forEach(r=>{ (m[r[key]] ||= []).push(r); }); return m; };
 
-  const $results = document.getElementById('results');
-  const $record  = document.getElementById('record');
-  const $q       = document.getElementById('q');
-  const $back    = document.getElementById('backBtn');
+function daysUntil(d){ if(!d) return null; const ms = new Date(d) - new Date(); return Math.round(ms/86400000); }
 
-  // ---------- search ----------
-  // Two sources: customer_equipment (richest fields, but only "customer owned" gear) and
-  // equipment_location_by_status (every status -- stock, sold, retired, on hire, etc).
-  // We search both and merge by equip_no so nothing falls through the gap between them.
+// ---------- search ----------
+const searchInput = document.getElementById('searchInput');
+const searchBtn = document.getElementById('searchBtn');
+searchBtn.addEventListener('click', () => doSearch(searchInput.value));
+searchInput.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(searchInput.value); });
 
-  function normFromCustomerEquipment(r){
-    return {
-      equip_no: r.equip_no,
-      model_label: [r.manufacturer, r.model].filter(Boolean).join(' '),
-      serial_no: r.serial_no,
-      account_name: r.account_name,
-      site_name: r.site_name,
-      site_address: r.site_address,
-      category: r.category,
-      status: null
-    };
-  }
-  function normFromLocation(r){
-    return {
-      equip_no: r.equip_no,
-      model_label: r.make_model || '',
-      serial_no: r.serial_no,
-      account_name: r.account_name,
-      site_name: '',
-      site_address: r.location,
-      category: r.category,
-      status: r.status
-    };
-  }
-  function normFromHire(r){
-    return {
-      equip_no: r.equip_no,
-      model_label: r.make_model || '',
-      serial_no: r.serial_no,
-      account_name: r.account_name,
-      site_name: r.site_name,
-      site_address: r.site_address,
-      category: r.category,
-      status: 'On Hire',
-      on_hire: true
-    };
-  }
+const params = new URLSearchParams(window.location.search);
+const initial = params.get('serial') || params.get('equip_no') || params.get('q');
+if (initial) { searchInput.value = initial; }
 
-  async function search(term){
-    term = (term || '').trim();
-    if (!term) return;
-    $record.innerHTML = '';
-    $back.classList.add('hidden');
-    $results.innerHTML = '<div class="loading">Searching...</div>';
-
-    const [ceRes, locRes, hireRes] = await Promise.all([
-      db.from('customer_equipment')
-        .select('equip_no,account_name,site_name,site_address,manufacturer,model,serial_no,category')
-        .or(`equip_no.ilike.%${term}%,serial_no.ilike.%${term}%`)
-        .limit(60),
-      db.from('equipment_location_by_status')
-        .select('equip_no,make_model,serial_no,category,status,location,account_name')
-        .or(`equip_no.ilike.%${term}%,serial_no.ilike.%${term}%`)
-        .limit(60),
-      db.from('equipment_on_hire')
-        .select('equip_no,account_name,site_name,site_address,make_model,serial_no,category')
-        .or(`equip_no.ilike.%${term}%,serial_no.ilike.%${term}%`)
-        .limit(60)
-    ]);
-
-    if (ceRes.error && locRes.error && hireRes.error){ $results.innerHTML = errHtml('equipment search', ceRes.error); return; }
-
-    const merged = new Map();
-    (ceRes.data || []).forEach(r => merged.set(r.equip_no, normFromCustomerEquipment(r)));
-    (locRes.data || []).forEach(r => {
-      if (!merged.has(r.equip_no)) merged.set(r.equip_no, normFromLocation(r));
-      else merged.get(r.equip_no).status = r.status; // enrich with live status if we already had the customer_equipment row
-    });
-    (hireRes.data || []).forEach(r => {
-      if (!merged.has(r.equip_no)) merged.set(r.equip_no, normFromHire(r));
-      else {
-        const ex = merged.get(r.equip_no);
-        ex.on_hire = true;
-        if (!ex.status) ex.status = 'On Hire';
-      }
-    });
-
-    const rows = [...merged.values()];
-    if (rows.length === 1){ openRecord(rows[0]); return; }
-    if (rows.length > 1){ renderResults(rows); return; }
-
-    // Nothing in either table -- may still have spec sheets or weld reports on the legacy project.
-    const { data: specs } = await dbLegacy.rpc('truck_spec_files', { p_serial: term });
-    if (specs && specs.length){
-      openRecord({ equip_no: term, model_label: '', serial_no: term, account_name: '', site_name: '', site_address: '', category: '', status: null, specOnly: true });
-      return;
-    }
-    $results.innerHTML = '<div class="empty">No truck found for that equip no or serial number.</div>';
-  }
-
-  function renderResults(rows){
-    $results.innerHTML = `<div class="results-list">` + rows.map((r, i) => `
-      <div class="result-row" data-i="${i}">
-        <div class="l">${escHtml(r.model_label) || '(no model)'}
-          <small>${escHtml(r.account_name || '')}${r.site_name ? ' · ' + escHtml(r.site_name) : ''}${r.status ? ' · ' + escHtml(r.status) : ''}</small>
-        </div>
-        <div class="r">${escHtml(r.equip_no || r.serial_no)}</div>
-      </div>
-    `).join('') + `</div>`;
-    $results.querySelectorAll('.result-row').forEach(el => {
-      el.addEventListener('click', () => openRecord(rows[Number(el.dataset.i)]));
-    });
-  }
-
-  // ---------- record ----------
-
-  async function openRecord(eq){
-    const equipNo = eq.equip_no;
-    const serial   = eq.serial_no || eq.equip_no;
-    $results.innerHTML = '';
-    $back.classList.remove('hidden');
-    history.replaceState(null, '', '?equip=' + encodeURIComponent(equipNo));
-
-    $record.innerHTML = `
-      <div class="idcard">
-        <div class="model">${escHtml(eq.model_label) || 'Unknown model'}${eq.on_hire ? ' <span class="verdict" style="background:#fff4f4;color:var(--red);vertical-align:middle;">ON HIRE</span>' : ''}</div>
-        <div class="serial">${escHtml(equipNo)}${eq.serial_no && eq.serial_no !== equipNo ? ' · serial ' + escHtml(eq.serial_no) : ''}</div>
-        <div class="facts">
-          <div class="fact"><div class="k">Customer</div><div class="v">${
-            eq.account_name
-              ? `<a href="customer-overview.html?customer=${encodeURIComponent(eq.account_name)}">${escHtml(eq.account_name)}</a>`
-              : '—'}</div></div>
-          <div class="fact"><div class="k">Site</div><div class="v">${escHtml(eq.site_name || '—')}</div></div>
-          <div class="fact"><div class="k">Site address</div><div class="v">${escHtml(eq.site_address || '—')}</div></div>
-          <div class="fact"><div class="k">Category</div><div class="v">${escHtml(eq.category || '—')}</div></div>
-          <div class="fact"><div class="k">Status</div><div class="v">${escHtml(eq.status || '—')}</div></div>
-        </div>
-      </div>
-
-      <div class="card"><h2>Job cost summary</h2><div id="secJobCost" class="loading">Loading...</div></div>
-      <div class="card"><h2>Attributes</h2><div id="secAttrs" class="loading">Loading...</div></div>
-      <div class="card"><h2>Warranty</h2><div id="secWarranty" class="loading">Loading...</div></div>
-      <div class="card"><h2>Maintenance contract</h2><div id="secContract" class="loading">Loading...</div></div>
-      <div class="card"><h2>Hire status</h2><div id="secHire" class="loading">Loading...</div></div>
-      <div class="card"><h2>Parts fitted <span class="pill" id="partsCount"></span></h2><div id="secParts" class="loading">Loading...</div></div>
-      <div class="card"><h2>Spec sheets</h2><div id="secSpecs" class="loading">Loading...</div></div>
-      <div class="card"><h2>Weld reports</h2><div id="secWeld" class="loading">Loading...</div></div>
-      <div class="card"><h2>Service history <span class="pill" id="histCount"></span></h2><div id="secHistory" class="loading">Loading...</div></div>
-      <div class="card"><h2>Status classification <span class="note">one-off snapshot, not live</span></h2><div id="secStatusSnap" class="loading">Loading...</div></div>
-    `;
-
-    loadJobCost(equipNo);
-    loadAttributes(equipNo);
-    loadWarranty(equipNo);
-    loadContract(equipNo);
-    loadHireStatus(equipNo);
-    loadPartsFitted(equipNo);
-    loadStatusSnapshot(equipNo);
-    loadSpecs(serial);
-    loadWeld(serial, equipNo);
-    loadHistory(equipNo);
-  }
-
-  async function loadJobCost(equipNo){
-    const el = document.getElementById('secJobCost');
-    const { data, error } = await db
-      .from('equipment_job_history_summary')
-      .select('total_cost,total_value,job_count,depot,status')
-      .eq('equip_no', equipNo)
-      .maybeSingle();
-
-    if (error){ el.innerHTML = errHtml('job cost summary', error); return; }
-    if (!data){ el.innerHTML = '<div class="empty">No job cost data on file for this equipment.</div>'; return; }
-
-    const profit = (data.total_value ?? 0) - (data.total_cost ?? 0);
-    el.innerHTML = `<div class="statrow">
-      <div class="stat"><div class="k">Total cost</div><div class="v">${fmtMoney(data.total_cost)}</div></div>
-      <div class="stat"><div class="k">Total value</div><div class="v">${fmtMoney(data.total_value)}</div></div>
-      <div class="stat"><div class="k">Margin</div><div class="v${profit < 0 ? ' red' : ''}">${fmtMoney(profit)}</div></div>
-      <div class="stat"><div class="k">Jobs</div><div class="v">${data.job_count ?? '—'}</div></div>
-    </div>`;
-  }
-
-  async function loadAttributes(equipNo){
-    const el = document.getElementById('secAttrs');
-    const { data, error } = await db
-      .from('equipment_attributes')
-      .select('attribute_name,attribute_value')
-      .eq('equip_no', equipNo)
-      .order('attribute_name', { ascending: true });
-
-    if (error){ el.innerHTML = errHtml('attributes', error); return; }
-    const rows = (data || []).filter(a => a.attribute_value && a.attribute_value.trim());
-    if (!rows.length){ el.innerHTML = '<div class="empty">No attributes on file for this equipment.</div>'; return; }
-
-    el.innerHTML = `<div class="facts">` + rows.map(a => `
-      <div class="fact"><div class="k">${escHtml(a.attribute_name)}</div><div class="v">${escHtml(a.attribute_value)}</div></div>
-    `).join('') + `</div>`;
-  }
-
-  async function loadWarranty(equipNo){
-    const el = document.getElementById('secWarranty');
-    const { data, error } = await db
-      .from('equipment_warranties')
-      .select('sales_id,order_date,warranty_months,warranty_hours,warranty_expires')
-      .eq('equip_no', equipNo)
-      .order('order_date', { ascending: false });
-
-    if (error){ el.innerHTML = errHtml('warranty', error); return; }
-    if (!data || !data.length){ el.innerHTML = '<div class="empty">No warranty on file for this equipment.</div>'; return; }
-
-    const today = new Date().toISOString().slice(0,10);
-    el.innerHTML = `<table><thead><tr>
-      <th>Sales ID</th><th>Order date</th><th>Warranty</th><th>Expires</th><th>Status</th>
-    </tr></thead><tbody>` + data.map(w => {
-      const live = w.warranty_expires && w.warranty_expires >= today;
-      const term = [w.warranty_months ? w.warranty_months + ' months' : null, w.warranty_hours ? w.warranty_hours + ' hrs' : null].filter(Boolean).join(' / ');
-      return `<tr>
-        <td class="mono">${escHtml(w.sales_id || '—')}</td>
-        <td class="mono">${fmtDate(w.order_date)}</td>
-        <td>${escHtml(term || '—')}</td>
-        <td class="mono">${fmtDate(w.warranty_expires)}</td>
-        <td><span class="verdict${live ? '' : ' crack'}">${live ? 'Active' : 'Expired'}</span></td>
-      </tr>`;
-    }).join('') + '</tbody></table>';
-  }
-
-  async function loadContract(equipNo){
-    const el = document.getElementById('secContract');
-    const { data, error } = await db
-      .from('customer_maintenance_contract')
-      .select('maint_contract_id,contract_type,cust_name,site_name,annual_charge,start_date,end_date')
-      .eq('equip_no', equipNo)
-      .order('end_date', { ascending: false });
-
-    if (error){ el.innerHTML = errHtml('contract', error); return; }
-    if (!data || !data.length){ el.innerHTML = '<div class="empty">No maintenance contract on file for this truck.</div>'; return; }
-
-    const today = new Date().toISOString().slice(0,10);
-    el.innerHTML = `<table><thead><tr>
-      <th>Contract</th><th>Type</th><th>Site</th><th>Start</th><th>End</th><th>Annual charge</th><th>Status</th>
-    </tr></thead><tbody>` + data.map(c => {
-      const live = c.end_date && c.end_date >= today;
-      return `<tr>
-        <td class="mono">${escHtml(c.maint_contract_id)}</td>
-        <td>${escHtml(c.contract_type || '—')}</td>
-        <td>${escHtml(c.site_name || '—')}</td>
-        <td class="mono">${fmtDate(c.start_date)}</td>
-        <td class="mono">${fmtDate(c.end_date)}</td>
-        <td class="mono">${fmtMoney(c.annual_charge)}</td>
-        <td><span class="verdict${live ? '' : ' crack'}">${live ? 'Active' : 'Expired'}</span></td>
-      </tr>`;
-    }).join('') + '</tbody></table>';
-  }
-
-  async function loadHireStatus(equipNo){
-    const el = document.getElementById('secHire');
-    const { data, error } = await db
-      .from('equipment_on_hire')
-      .select('depot,account_name,site_name,site_address,category,contact_name,phone_no')
-      .eq('equip_no', equipNo)
-      .maybeSingle();
-
-    if (error){ el.innerHTML = errHtml('hire status', error); return; }
-    if (!data){ el.innerHTML = '<div class="empty">Not currently on hire.</div>'; return; }
-
-    el.innerHTML = `<div class="facts">
-      <div class="fact"><div class="k">Depot</div><div class="v">${escHtml(data.depot || '—')}</div></div>
-      <div class="fact"><div class="k">Customer</div><div class="v">${escHtml(data.account_name || '—')}</div></div>
-      <div class="fact"><div class="k">Site</div><div class="v">${escHtml(data.site_name || '—')}</div></div>
-      <div class="fact"><div class="k">Site address</div><div class="v">${escHtml(data.site_address || '—')}</div></div>
-      <div class="fact"><div class="k">Category</div><div class="v">${escHtml(data.category || '—')}</div></div>
-      <div class="fact"><div class="k">Contact</div><div class="v">${escHtml(data.contact_name || '—')}</div></div>
-      <div class="fact"><div class="k">Phone</div><div class="v">${escHtml(data.phone_no || '—')}</div></div>
-    </div>`;
-  }
-
-  async function loadPartsFitted(equipNo){
-    const el = document.getElementById('secParts');
-    const { data, error, count } = await db
-      .from('equipment_parts_fitted')
-      .select('part_number,description,qty,document_type,document_no,document_date', { count: 'exact' })
-      .eq('equip_no', equipNo)
-      .order('document_date', { ascending: false })
-      .limit(200);
-
-    if (error){ el.innerHTML = errHtml('parts fitted', error); return; }
-    if (!data || !data.length){ el.innerHTML = '<div class="empty">No parts fitted on file for this equipment.</div>'; return; }
-
-    document.getElementById('partsCount').textContent = count != null ? count : data.length;
-
-    el.innerHTML = `<table><thead><tr>
-      <th>Date</th><th>Part No</th><th>Description</th><th>Qty</th><th>Document</th>
-    </tr></thead><tbody>` + data.map(p => `
-      <tr>
-        <td class="mono">${fmtDate(p.document_date)}</td>
-        <td class="mono">${escHtml(p.part_number || '—')}</td>
-        <td>${escHtml(p.description || '—')}</td>
-        <td class="mono">${escHtml(p.qty || '—')}</td>
-        <td class="mono">${escHtml([p.document_type, p.document_no].filter(Boolean).join(' '))}</td>
-      </tr>
-    `).join('') + '</tbody></table>' + (count && count > data.length
-      ? `<div class="showmore">Showing the ${data.length} most recent of ${count} part lines.</div>` : '');
-  }
-
-  async function loadStatusSnapshot(equipNo){
-    const el = document.getElementById('secStatusSnap');
-    const { data, error } = await db
-      .from('equipment_status_changes')
-      .select('status,status_date,recorded_by')
-      .eq('equip_no', equipNo);
-
-    if (error){ el.innerHTML = errHtml('status classification', error); return; }
-    if (!data || !data.length){ el.innerHTML = '<div class="empty">No status record on file for this equipment.</div>'; return; }
-
-    el.innerHTML = `<div class="facts">` + data.map(s => `
-      <div class="fact"><div class="k">Classification</div><div class="v">${escHtml(s.status || '—')}</div></div>
-      <div class="fact"><div class="k">Recorded</div><div class="v">${fmtDate(s.status_date)}</div></div>
-      <div class="fact"><div class="k">Recorded by</div><div class="v">${escHtml(s.recorded_by || '—')}</div></div>
-    `).join('') + `</div>`;
-  }
-
-  async function loadSpecs(serial){
-    const el = document.getElementById('secSpecs');
-    try {
-      // Filename matching is done in Postgres (truck_spec_files) rather than with
-      // storage.list({search}) — the serials in customer_equipment aren't padded
-      // the same way as the filenames, and the RPC handles the variants.
-      // Spec sheets haven't been migrated off the legacy project yet.
-      const { data, error } = await dbLegacy.rpc('truck_spec_files', { p_serial: String(serial) });
-      if (error){ el.innerHTML = errHtml('spec sheets', error); return; }
-      if (!data || !data.length){ el.innerHTML = '<div class="empty">No spec sheet uploaded for this serial.</div>'; return; }
-
-      const names = data.map(f => f.storage_path || f.file_name);
-      const meta = {};
-      data.forEach(f => { meta[f.storage_path || f.file_name] = f; });
-      let links = [];
-
-      const signedRes = await dbLegacy.storage.from(SPEC_BUCKET).createSignedUrls(names, 3600);
-      if (signedRes.error || !Array.isArray(signedRes.data)){
-        // Fall back to signing one at a time if the batch call isn't available.
-        for (const name of names){
-          const one = await dbLegacy.storage.from(SPEC_BUCKET).createSignedUrl(name, 3600);
-          if (one.data && one.data.signedUrl) links.push({ path: name, signedUrl: one.data.signedUrl });
-        }
-      } else {
-        links = signedRes.data.filter(s => s && s.signedUrl);
-      }
-
-      if (!links.length){ el.innerHTML = errHtml('spec sheet links', signedRes.error || { message: 'no signed URLs returned' }); return; }
-
-      el.innerHTML = `<div class="spec-list">` + links.map(s => {
-        const m = meta[s.path] || {};
-        const pages = m.page_count ? ` · ${m.page_count}pp` : '';
-        return `<a class="spec-link" href="${escHtml(s.signedUrl)}" target="_blank" rel="noopener">
-          <span class="ic">PDF</span>${escHtml(m.label || (s.path || '').replace(/\.pdf$/i, ''))}${pages}
-        </a>`;
-      }).join('') + `</div>`;
-    } catch (e){
-      el.innerHTML = errHtml('spec sheets', e);
-    }
-  }
-
-  async function loadWeld(serial, equipNo){
-    const el = document.getElementById('secWeld');
-    // Weld reports haven't been migrated off the legacy project yet.
-    const { data, error } = await dbLegacy
-      .from('weld_reports')
-      .select('created_at,engineer_name,description,status,verdict,mike_notes,truck_movable,photo_urls')
-      .or(`serial_no.eq.${serial},equip_code.eq.${equipNo}`)
-      .order('created_at', { ascending: false });
-
-    if (error){ el.innerHTML = errHtml('weld reports', error); return; }
-    if (!data || !data.length){ el.innerHTML = '<div class="empty">No weld damage reports for this truck.</div>'; return; }
-
-    el.innerHTML = `<table><thead><tr>
-      <th>Reported</th><th>Engineer</th><th>Description</th><th>Verdict</th><th>Photos</th>
-    </tr></thead><tbody>` + data.map(w => `
-      <tr>
-        <td class="mono">${fmtDate(w.created_at)}</td>
-        <td>${escHtml(w.engineer_name || '—')}</td>
-        <td>${escHtml(w.description || '—')}${w.mike_notes ? `<br><span class="job-meta">${escHtml(w.mike_notes)}</span>` : ''}</td>
-        <td><span class="verdict${/crack/i.test(w.verdict || '') ? ' crack' : ''}">${escHtml(w.verdict || w.status || 'Pending')}</span></td>
-        <td class="mono">${(w.photo_urls || []).length}</td>
-      </tr>
-    `).join('') + '</tbody></table>';
-  }
-
-  async function loadHistory(equipNo){
-    const el = document.getElementById('secHistory');
-    const { data, error } = await db
-      .from('service_visits')
-      .select('job_id,session_id,visit_date,job_type,description,employee,work_report,depot')
-      .eq('equip_no', equipNo)
-      .order('visit_date', { ascending: false })
-      .limit(600);
-
-    if (error){ el.innerHTML = errHtml('service history', error); return; }
-    if (!data || !data.length){ el.innerHTML = '<div class="empty">No service history recorded against this truck.</div>'; return; }
-
-    // Roll the visit lines up into jobs — a job can span several sessions.
-    const jobs = new Map();
-    data.forEach(r => {
-      const key = r.job_id ?? ('x' + r.visit_date + r.description);
-      if (!jobs.has(key)) jobs.set(key, { job_id: r.job_id, date: r.visit_date, type: r.job_type, desc: r.description, depot: r.depot, visits: [] });
-      const j = jobs.get(key);
-      if (r.visit_date && (!j.date || r.visit_date > j.date)) j.date = r.visit_date;
-      j.visits.push(r);
-    });
-
-    const list = [...jobs.values()].sort((a,b) => (b.date || '').localeCompare(a.date || ''));
-    document.getElementById('histCount').textContent = `${list.length} job${list.length === 1 ? '' : 's'} · ${data.length} visits`;
-
-    el.innerHTML = list.map(j => {
-      const engineers = [...new Set(j.visits.map(v => v.employee).filter(Boolean))].join(', ');
-      const reports = j.visits
-        .filter(v => v.work_report && v.work_report.trim())
-        .map(v => `${fmtDate(v.visit_date)} — ${escHtml(v.work_report.trim())}`)
-        .join('\n\n');
-      return `<div class="job">
-        <div class="job-head">
-          <span class="job-date">${fmtDate(j.date)}</span>
-          <span class="job-title">${escHtml(j.desc || j.type || 'Service visit')}</span>
-          <span class="job-meta">${escHtml(j.type || '')}${j.job_id ? ' · job ' + escHtml(j.job_id) : ''}${j.visits.length > 1 ? ' · ' + j.visits.length + ' visits' : ''}${engineers ? ' · ' + escHtml(engineers) : ''}</span>
-        </div>
-        ${reports ? `<div class="job-body">${reports}</div>` : ''}
-      </div>`;
-    }).join('');
-  }
-
-  // ---------- wiring ----------
-
-  document.getElementById('goBtn').addEventListener('click', () => search($q.value));
-  $q.addEventListener('keydown', e => { if (e.key === 'Enter') search($q.value); });
-  $back.addEventListener('click', () => {
-    $record.innerHTML = '';
-    $results.innerHTML = '';
-    $back.classList.add('hidden');
-    history.replaceState(null, '', location.pathname);
-    $q.value = '';
-    $q.focus();
+function setState(name){
+  ['emptyState','loadingState','notFoundState','results'].forEach(id=>{
+    document.getElementById(id).style.display = (id===name) ? (id==='results'?'block':'') : 'none';
   });
+}
 
-  (async () => {
-    const { data: { session } } = await db.auth.getSession();
-    if (!session){
-      $results.innerHTML = '<div class="err">Not signed in — <a href="login.html">sign in</a> to search truck records.</div>';
-      return;
-    }
-    const params = new URLSearchParams(location.search);
-    const param = params.get('equip') || params.get('serial');
-    if (param){ $q.value = param; search(param); } else { $q.focus(); }
-  })();
+async function resolveEquipNo(term){
+  term = term.trim();
+  if (!term) return null;
+  const like = `%${term}%`;
+
+  let r = await sb.from('customer_equipment').select('*').ilike('equip_no', term).limit(1);
+  if (r.data && r.data.length) return { equip_no: r.data[0].equip_no, identity: r.data[0], source: 'customer_equipment' };
+
+  r = await sb.from('customer_equipment').select('*').ilike('serial_no', term).limit(1);
+  if (r.data && r.data.length) return { equip_no: r.data[0].equip_no, identity: r.data[0], source: 'customer_equipment' };
+
+  r = await sb.from('service_visits').select('equip_no, make_model, serial_no, customer_name').ilike('equip_no', term).limit(1);
+  if (r.data && r.data.length) return { equip_no: r.data[0].equip_no, identity: r.data[0], source: 'service_visits' };
+
+  r = await sb.from('service_visits').select('equip_no, make_model, serial_no, customer_name').ilike('serial_no', term).limit(1);
+  if (r.data && r.data.length) return { equip_no: r.data[0].equip_no, identity: r.data[0], source: 'service_visits' };
+
+  r = await sb.from('equipment_location_by_status').select('equip_no, make_model, serial_no, account_name, location, status').ilike('equip_no', term).limit(1);
+  if (r.data && r.data.length) return { equip_no: r.data[0].equip_no, identity: r.data[0], source: 'equipment_location_by_status' };
+
+  r = await sb.from('equipment_parts_fitted').select('equip_no, make, model').ilike('equip_no', term).limit(1);
+  if (r.data && r.data.length) return { equip_no: r.data[0].equip_no, identity: r.data[0], source: 'equipment_parts_fitted' };
+
+  // fallback: loose match anywhere in customer_equipment (serial typed with/without padding)
+  r = await sb.from('customer_equipment').select('*').or(`equip_no.ilike.${like},serial_no.ilike.${like}`).limit(1);
+  if (r.data && r.data.length) return { equip_no: r.data[0].equip_no, identity: r.data[0], source: 'customer_equipment' };
+
+  return null;
+}
+
+async function doSearch(term){
+  term = (term || '').trim();
+  if (!term) return;
+  setState('loadingState');
+
+  const resolved = await resolveEquipNo(term);
+  if (!resolved) {
+    document.getElementById('notFoundTerm').textContent = term;
+    setState('notFoundState');
+    return;
+  }
+
+  const eq = resolved.equip_no;
+  const [
+    equipment, attributes, statusChange, location, onHire, warranties,
+    contract, noContract, schedule, jobSummaryLifetime, visits, jobs2026, parts
+  ] = await Promise.all([
+    sb.from('customer_equipment').select('*').eq('equip_no', eq).limit(1),
+    sb.from('equipment_attributes').select('attribute_name, attribute_value').eq('equip_no', eq).order('attribute_name'),
+    sb.from('equipment_status_changes').select('*').eq('equip_no', eq).limit(1),
+    sb.from('equipment_location_by_status').select('*').eq('equip_no', eq),
+    sb.from('equipment_on_hire').select('*').eq('equip_no', eq).limit(1),
+    sb.from('equipment_warranties').select('*').eq('equip_no', eq).order('order_date', { ascending: false }),
+    sb.from('customer_maintenance_contract').select('*').eq('equip_no', eq),
+    sb.from('customer_no_maintenance_contract').select('*').eq('equip_no', eq).limit(1),
+    sb.from('maintenance_schedule').select('*').eq('equip_no', eq).order('next_due', { ascending: true }),
+    sb.from('equipment_job_history_summary').select('*').eq('equip_no', eq).limit(1),
+    sb.from('service_visits').select('*').eq('equip_no', eq).order('visit_date', { ascending: false }),
+    sb.from('job_summary_2026').select('*').eq('equip_no', eq).order('logged_date', { ascending: false }),
+    sb.from('equipment_parts_fitted').select('*').eq('equip_no', eq).order('document_date', { ascending: false }),
+  ]);
+
+  render(eq, resolved, {
+    equipment: equipment.data?.[0] || null,
+    attributes: attributes.data || [],
+    statusChange: statusChange.data?.[0] || null,
+    locations: location.data || [],
+    onHire: onHire.data?.[0] || null,
+    warranties: warranties.data || [],
+    contracts: contract.data || [],
+    noContract: !!(noContract.data && noContract.data.length),
+    schedule: schedule.data || [],
+    jobSummaryLifetime: jobSummaryLifetime.data?.[0] || null,
+    visits: visits.data || [],
+    jobs2026: jobs2026.data || [],
+    parts: parts.data || [],
+  });
+}
+
+function render(eq, resolved, d){
+  const idn = d.equipment || resolved.identity || {};
+  const make = idn.manufacturer || idn.make_model || idn.make || '';
+  const model = idn.model || '';
+  const makeModel = [make, model].filter(Boolean).join(' / ') || idn.make_model || '—';
+  const serial = idn.serial_no || '—';
+  const category = idn.category || '—';
+  const customer = idn.account_name || idn.customer_name || '—';
+  const site = [idn.site_name, idn.site_address].filter(Boolean).join(' — ');
+
+  // badges
+  const badges = [];
+  if (d.onHire) badges.push(`<span class="badge warn">On hire elsewhere</span>`);
+  if (d.statusChange?.status) badges.push(`<span class="badge neutral">${esc(d.statusChange.status)}</span>`);
+  const activeContract = d.contracts.find(c => !c.end_date || new Date(c.end_date) >= new Date());
+  if (activeContract) badges.push(`<span class="badge good">${esc(activeContract.contract_type || 'Maintenance contract')}</span>`);
+  else if (d.noContract || d.contracts.length) badges.push(`<span class="badge bad">No active contract</span>`);
+  const latestWarranty = d.warranties[0];
+  if (latestWarranty?.warranty_expires) {
+    const dd = daysUntil(latestWarranty.warranty_expires);
+    if (dd !== null && dd >= 0) badges.push(`<span class="badge good">Warranty to ${dateStr(latestWarranty.warranty_expires)}</span>`);
+  }
+
+  // ---- hero ----
+  let html = `
+  <div class="hero">
+    <div class="hero-top">
+      <div>
+        <div class="hero-serial">${esc(eq)}</div>
+        <div class="hero-sub">${esc(makeModel)}${serial !== '—' ? ' &middot; Serial ' + esc(serial) : ''}</div>
+      </div>
+      <div class="badges">${badges.join('') || '<span class="badge neutral">No status on file</span>'}</div>
+    </div>
+    <div class="hero-grid">
+      <div><div class="f-label">Customer</div><div class="f-val">${esc(customer)}</div></div>
+      <div><div class="f-label">Site</div><div class="f-val">${esc(site || idn.location || '—')}</div></div>
+      <div><div class="f-label">Category</div><div class="f-val">${esc(category)}</div></div>
+      <div><div class="f-label">Account ref</div><div class="f-val">${esc(idn.account_ref || '—')}</div></div>
+    </div>
+  </div>`;
+
+  // ---- stat tiles ----
+  const lifetimeCost = d.jobSummaryLifetime?.total_cost;
+  const lifetimeValue = d.jobSummaryLifetime?.total_value;
+  const lifetimeCount = d.jobSummaryLifetime?.job_count ?? d.visits.length;
+  const jobsThisYear = new Set(d.jobs2026.map(j => j.job_no)).size;
+  html += `
+  <div class="stats">
+    <div class="stat"><div class="s-label">Lifetime jobs</div><div class="s-val">${lifetimeCount ?? '—'}</div></div>
+    <div class="stat"><div class="s-label">Lifetime job cost</div><div class="s-val">${money(lifetimeCost)}</div></div>
+    <div class="stat"><div class="s-label">Lifetime revenue</div><div class="s-val">${money(lifetimeValue)}</div></div>
+    <div class="stat"><div class="s-label">Jobs in 2026</div><div class="s-val">${jobsThisYear}</div></div>
+    <div class="stat"><div class="s-label">Parts fitted (lifetime)</div><div class="s-val">${d.parts.length}</div></div>
+  </div>`;
+
+  // ---- contract + warranty row ----
+  html += `<div class="row2">`;
+
+  html += `<div class="card"><div class="card-head"><h3>Maintenance Contract</h3></div><div class="card-body">`;
+  if (d.contracts.length) {
+    html += d.contracts.map(c => `
+      <div class="kv"><span class="k">Type</span><span class="v">${esc(c.contract_type || '—')}</span></div>
+      <div class="kv"><span class="k">Annual charge</span><span class="v">${money(c.annual_charge)}</span></div>
+      <div class="kv"><span class="k">Start</span><span class="v">${dateStr(c.start_date)}</span></div>
+      <div class="kv"><span class="k">End</span><span class="v">${dateStr(c.end_date)}</span></div>
+    `).join('<div style="height:10px"></div>');
+  } else {
+    html += `<div class="empty-note">${d.noContract ? 'Flagged on Protean\'s No Maintenance Contract report — no contract on file.' : 'No contract record found for this truck.'}</div>`;
+  }
+  html += `</div></div>`;
+
+  html += `<div class="card"><div class="card-head"><h3>Warranty</h3><span class="count">${d.warranties.length}</span></div><div class="card-body">`;
+  if (d.warranties.length) {
+    html += d.warranties.map(w => `
+      <div class="kv"><span class="k">${esc(w.make_model || 'Item')} &middot; ${dateStr(w.order_date)}</span>
+      <span class="v">${w.warranty_months ? w.warranty_months + ' mo' : ''}${w.warranty_hours ? ' / ' + w.warranty_hours + ' hrs' : ''} &middot; exp ${dateStr(w.warranty_expires)}</span></div>
+    `).join('');
+  } else {
+    html += `<div class="empty-note">No warranty record on file.</div>`;
+  }
+  html += `</div></div>`;
+
+  html += `</div>`; // row2
+
+  // ---- scheduled service ----
+  if (d.schedule.length) {
+    html += `<div class="card"><div class="card-head"><h3>Scheduled Service</h3><span class="count">${d.schedule.length}</span></div><div class="card-body scroll-x"><table>
+      <tr><th>Service type</th><th>Next due</th><th>Route / Engineer</th><th>Contract</th></tr>`;
+    d.schedule.forEach(s => {
+      html += `<tr><td>${esc(s.service_type || '—')}</td><td>${dateStr(s.next_due)}</td><td>${esc(s.engineer || s.route || '—')}</td><td>${esc(s.contract_type || '—')}</td></tr>`;
+    });
+    html += `</table></div></div>`;
+  }
+
+  // ---- service history (tabs: Lifetime visits / 2026 jobs) ----
+  html += `<div class="card">
+    <div class="card-head"><h3>Service History</h3><span class="count">${d.visits.length} visits &middot; ${jobsThisYear} jobs in 2026</span></div>
+    <div class="card-body">
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="lifetime">Lifetime (by job)</button>
+        <button class="tab-btn" data-tab="y2026">2026 job charges</button>
+      </div>
+      <div class="tabpane active" id="tab-lifetime">`;
+
+  if (d.visits.length) {
+    const grouped = by(d.visits, 'job_id');
+    const jobIds = Object.keys(grouped).sort((a,b) => new Date(grouped[b][0].visit_date) - new Date(grouped[a][0].visit_date));
+    jobIds.forEach(jobId => {
+      const vs = grouped[jobId];
+      const head = vs[0];
+      html += `<details class="job-group">
+        <summary>
+          <span><span class="jg-type">${esc(head.job_type || 'Job')}</span> &middot; <span class="pill">#${esc(jobId)}</span></span>
+          <span class="jg-meta">${esc(head.job_status || '')} &middot; ${vs.length} visit${vs.length>1?'s':''} &middot; latest ${dateStr(vs[0].visit_date)}</span>
+        </summary>
+        <div class="visits scroll-x"><table>
+          <tr><th>Date</th><th>Engineer</th><th>On</th><th>Off</th><th>Work report</th></tr>
+          ${vs.map(v => `<tr><td>${dateStr(v.visit_date)}</td><td>${esc(v.employee || '—')}</td><td>${timeStr(v.time_on)}</td><td>${timeStr(v.time_off)}</td><td>${esc(v.work_report || v.description || '—')}</td></tr>`).join('')}
+        </table></div>
+      </details>`;
+    });
+  } else {
+    html += `<div class="empty-note">No lifetime visit history found for this truck.</div>`;
+  }
+
+  html += `</div><div class="tabpane" id="tab-y2026">`;
+  if (d.jobs2026.length) {
+    html += `<div class="scroll-x"><table>
+      <tr><th>Job</th><th>Type</th><th>Logged</th><th>Completed</th><th>Travel</th><th>Mileage</th><th>Labour</th><th>Flat</th><th></th></tr>
+      ${d.jobs2026.map(j => `<tr>
+        <td>${esc(j.job_no)}</td>
+        <td>${esc(j.job_type || '—')}</td>
+        <td>${dateStr(j.logged_date)}</td>
+        <td>${j.completed_date ? dateTimeStr(j.completed_date) : '—'}</td>
+        <td>${money(j.total_travel_charge)}</td>
+        <td>${money(j.total_mileage_charge)}</td>
+        <td>${money(j.total_labour_charge)}</td>
+        <td>${money(j.total_flat_charge)}</td>
+        <td>${j.non_chargeable ? '<span class="badge neutral">Non-chargeable</span>' : ''}</td>
+      </tr>`).join('')}
+    </table></div>`;
+  } else {
+    html += `<div class="empty-note">No 2026 jobs recorded for this truck.</div>`;
+  }
+  html += `</div></div></div>`;
+
+  // ---- parts fitted ----
+  html += `<div class="card"><div class="card-head"><h3>Parts Fitted</h3><span class="count">${d.parts.length}</span></div><div class="card-body scroll-x">`;
+  if (d.parts.length) {
+    html += `<table><tr><th>Date</th><th>Part no.</th><th>Description</th><th>Qty</th><th>Doc</th></tr>`;
+    d.parts.forEach(p => {
+      html += `<tr><td>${dateStr(p.document_date)}</td><td><code>${esc(p.part_number)}</code></td><td>${esc(p.description || '—')}</td><td>${esc(p.qty)}</td><td>${esc(p.document_type || '')} ${esc(p.document_no || '')}</td></tr>`;
+    });
+    html += `</table>`;
+  } else {
+    html += `<div class="empty-note">No parts fitted history found for this truck.</div>`;
+  }
+  html += `</div></div>`;
+
+  // ---- spec / attributes ----
+  html += `<div class="card"><div class="card-head"><h3>Equipment Spec</h3>
+    <span class="toggle-link" id="specToggle">Show ${d.attributes.length} attributes</span></div>
+    <div class="card-body" id="specBody" style="display:none;">`;
+  if (d.attributes.length) {
+    html += `<div class="spec-grid">` + d.attributes.map(a => `
+      <div class="kv"><span class="k">${esc(a.attribute_name)}</span><span class="v">${esc(a.attribute_value || '—')}</span></div>
+    `).join('') + `</div>`;
+  } else {
+    html += `<div class="empty-note">No attribute data on file.</div>`;
+  }
+  html += `</div></div>`;
+
+  // ---- locations (if more than the hero's) ----
+  if (d.locations.length > 1 || (d.locations.length === 1 && !site)) {
+    html += `<div class="card"><div class="card-head"><h3>Location Records</h3><span class="count">${d.locations.length}</span></div><div class="card-body scroll-x"><table>
+      <tr><th>Status</th><th>Location</th><th>Account</th></tr>
+      ${d.locations.map(l => `<tr><td>${esc(l.status||'—')}</td><td>${esc(l.location||'—')}</td><td>${esc(l.account_name||'—')}</td></tr>`).join('')}
+    </table></div></div>`;
+  }
+
+  document.getElementById('results').innerHTML = html;
+  setState('results');
+
+  // wire up tabs + spec toggle (re-attach each render since innerHTML was replaced)
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tabpane').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    });
+  });
+  const specToggle = document.getElementById('specToggle');
+  const specBody = document.getElementById('specBody');
+  specToggle.addEventListener('click', () => {
+    const open = specBody.style.display !== 'none';
+    specBody.style.display = open ? 'none' : 'block';
+    specToggle.textContent = open ? `Show ${d.attributes.length} attributes` : 'Hide attributes';
+  });
+}
+
+if (initial) doSearch(initial);
 </script>
 </body>
 </html>
