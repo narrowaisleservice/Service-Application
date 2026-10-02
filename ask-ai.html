@@ -83,6 +83,12 @@
     .empty-state { margin: auto; text-align: center; color: #909090; font-size: 14px; padding: 40px 20px; }
     .empty-state .big { font-family: 'IBM Plex Sans', sans-serif; font-size: 19px; font-weight: 700; color: #101010; margin-bottom: 8px; }
 
+    .chart-card {
+        background: #fafafa; border: 1px solid #eee; border-radius: 14px; border-top-left-radius: 4px;
+        padding: 14px 16px 10px; margin-top: 8px; max-width: 460px;
+    }
+    .chart-card canvas { max-height: 260px; }
+
     .composer {
         border-top: 1px solid #eee; padding: 16px 0 20px; display: flex; gap: 10px;
         background: white; position: sticky; bottom: 0;
@@ -143,6 +149,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 <script>
     // ===== Supabase project config =====
     const SUPABASE_URL = 'https://hkwcdpqpduptjwroawrw.supabase.co';
@@ -155,23 +162,90 @@
     const $input = document.getElementById('questionInput');
     const $send = document.getElementById('sendBtn');
 
+    // Plain-text Q&A turns only (no tool calls/results) -- just enough for the backend
+    // to resolve "this"/"that" follow-ups. Capped to the last few exchanges client-side too.
+    let conversationHistory = [];
+
     function escHtml(s){
         return (s == null ? '' : String(s)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    // Pulls a ```chart ... ``` fenced JSON block (if present) out of the answer text.
+    // Returns { leadText, chartData } -- chartData is null if there's no valid chart block.
+    function extractChart(text) {
+        const m = /```chart\s*([\s\S]*?)```/i.exec(text || '');
+        if (!m) return { leadText: text, chartData: null };
+        const leadText = (text.slice(0, m.index) + text.slice(m.index + m[0].length)).trim();
+        try {
+            const parsed = JSON.parse(m[1].trim());
+            if (parsed && Array.isArray(parsed.labels) && Array.isArray(parsed.datasets)) {
+                return { leadText, chartData: parsed };
+            }
+        } catch (e) { /* malformed chart JSON -- just fall back to plain text */ }
+        return { leadText: text, chartData: null };
+    }
+
+    function renderChart(canvas, chartData) {
+        const palette = ['#df0a1e', '#101010', '#707070', '#f2a900', '#2b7a78', '#5b5fc7'];
+        new Chart(canvas, {
+            type: chartData.type === 'line' ? 'line' : 'bar',
+            data: {
+                labels: chartData.labels,
+                datasets: chartData.datasets.map((ds, i) => ({
+                    label: ds.label || '',
+                    data: ds.data,
+                    backgroundColor: chartData.type === 'line' ? 'transparent' : palette[i % palette.length],
+                    borderColor: palette[i % palette.length],
+                    borderWidth: 2,
+                    tension: 0.25,
+                })),
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: { display: !!chartData.title, text: chartData.title || '', font: { family: 'IBM Plex Sans', size: 13, weight: '700' }, color: '#101010' },
+                    legend: { display: chartData.datasets.length > 1, labels: { font: { family: 'DM Sans', size: 11 } } },
+                },
+                scales: {
+                    x: { ticks: { font: { family: 'DM Sans', size: 11 } }, grid: { display: false } },
+                    y: { beginAtZero: true, ticks: { font: { family: 'DM Mono', size: 10 } } },
+                },
+            },
+        });
     }
 
     function addMessage(role, text, opts = {}) {
         if ($empty) $empty.remove();
         const wrap = document.createElement('div');
         wrap.className = 'msg ' + role;
+
+        let chartData = null;
+        let bodyText = text;
+        if (role === 'assistant' && !opts.error) {
+            const extracted = extractChart(text);
+            bodyText = extracted.leadText || (extracted.chartData ? 'Here you go:' : text);
+            chartData = extracted.chartData;
+        }
+
         wrap.innerHTML = `
             <div class="avatar">${role === 'user' ? 'YOU' : 'AI'}</div>
             <div>
-                <div class="bubble${opts.error ? ' error' : ''}">${opts.html ? text : escHtml(text)}</div>
+                <div class="bubble${opts.error ? ' error' : ''}">${opts.html ? bodyText : escHtml(bodyText)}</div>
             </div>
         `;
         $thread.appendChild(wrap);
+
+        if (chartData) {
+            const card = document.createElement('div');
+            card.className = 'chart-card';
+            const canvas = document.createElement('canvas');
+            card.appendChild(canvas);
+            wrap.querySelector('div:last-child').appendChild(card);
+            renderChart(canvas, chartData);
+        }
+
         $thread.scrollTop = $thread.scrollHeight;
-        return wrap;
+        return { wrap, bodyText };
     }
 
     function addTyping() {
@@ -192,24 +266,29 @@
         if (!question) return;
 
         addMessage('user', question);
+        conversationHistory.push({ role: 'user', content: question });
         $input.value = '';
         $send.disabled = true;
         addTyping();
 
         try {
             const { data, error } = await db.functions.invoke('aisle-wise', {
-                body: { question },
+                body: { question, history: conversationHistory.slice(-10) },
             });
             removeTyping();
             if (error) throw error;
             if (data && data.error) {
                 addMessage('assistant', data.error, { error: true });
+                conversationHistory.pop(); // don't poison history with a failed turn
             } else {
-                addMessage('assistant', (data && data.answer) || "I couldn't find an answer to that.");
+                const answer = (data && data.answer) || "I couldn't find an answer to that.";
+                const { bodyText } = addMessage('assistant', answer);
+                conversationHistory.push({ role: 'assistant', content: bodyText });
             }
         } catch (err) {
             removeTyping();
             addMessage('assistant', 'Something went wrong reaching AisleWise.\n' + (err.message || err), { error: true });
+            conversationHistory.pop(); // don't poison history with a failed turn
         } finally {
             $send.disabled = false;
             $input.focus();
