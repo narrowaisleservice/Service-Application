@@ -411,8 +411,8 @@
     }
 
     // ===== Supabase project config =====
-    const SUPABASE_URL = 'https://dontubctlexlvifwhmbj.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_99HLzSv4wMwFZHlR81yIsQ_z0A0Jpth';
+    const SUPABASE_URL = 'https://hkwcdpqpduptjwroawrw.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_ym0_ostk5WkdHGhGEGSkXw_d1sHadPY';
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     // =====================================
 
@@ -727,9 +727,9 @@
         if (!el) return;
         try {
             const { data, error } = await db
-                .from('maintenance_contracts')
+                .from('customer_maintenance_contract')
                 .select('*')
-                .or(`equip_code.ilike.%${serial}%,serial_no.ilike.%${serial}%`)
+                .or(`equip_no.ilike.%${serial}%,serial_no.ilike.%${serial}%`)
                 .order('end_date', { ascending: false, nullsFirst: true })
                 .limit(1);
             if (error) throw error;
