@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script type="module" src="auth-guard.js"></script>
+<meta name="theme-color" content="#df0a1e">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&family=DM+Sans:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>Van Mileage Status - Narrow Aisle Service Portal</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { background: white !important; color-scheme: light only; }
+    body {
+        font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        color: #101010;
+        min-height: 100vh;
+    }
+
+    .header {
+        background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+        border-bottom: 3px solid #df0a1e;
+        padding: 24px 32px;
+        position: sticky;
+        top: 0;
+        z-index: 50;
+    }
+    .back-link { font-size: 12px; color: #707070; text-decoration: none; font-weight: 600; }
+    .back-link:hover { color: #df0a1e; }
+    .header-title { font-family: 'IBM Plex Sans', sans-serif; font-size: 28px; font-weight: 700; margin-top: 4px; }
+    .header-subtitle { font-size: 13px; color: #707070; margin-top: 2px; }
+
+    .content { max-width: 760px; margin: 0 auto; padding: 32px; }
+
+    .loading-state { text-align: center; padding: 60px 20px; color: #909090; font-size: 14px; }
+
+    .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 640px) { .cols { grid-template-columns: 1fr; } }
+
+    .col-card { background: white; border: 1px solid #e8e8e8; border-radius: 12px; padding: 20px 22px; }
+    .col-title { font-family: 'IBM Plex Sans', sans-serif; font-size: 15px; font-weight: 700; margin-bottom: 2px; display: flex; align-items: center; gap: 8px; }
+    .col-count { font-family: 'DM Mono', monospace; font-size: 12px; color: #909090; margin-bottom: 14px; }
+
+    .name-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #f2f2f2; font-size: 14px; }
+    .name-row:last-child { border-bottom: none; }
+    .name-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .name-dot.ok { background: #4caf50; }
+    .name-dot.pending { background: #df0a1e; }
+
+    .empty-note { font-size: 13px; color: #909090; padding: 4px 0; }
+
+    @media (max-width: 640px) {
+        .header { padding: 16px 20px; }
+        .header-title { font-size: 22px; }
+        .content { padding: 16px; }
+    }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <a class="back-link" href="portal-hub-professional.html">&larr; Back to Portal</a>
+    <div class="header-title">Van Mileage Status</div>
+    <div class="header-subtitle" id="monthLabel">Who's submitted this month</div>
+</div>
+
+<div class="content">
+    <div id="statusWrap"><div class="loading-state">Loading…</div></div>
+</div>
+
+<script>
+    // ===== Points at the same Google Apps Script Web App as van-mileage-submission.html =====
+    const SCRIPT_URL = 'PASTE_YOUR_DEPLOYED_WEB_APP_URL_HERE';
+    // ==========================================================================================
+
+    function escHtml(s){
+        return (s == null ? '' : String(s)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    function renderList(names, dotClass) {
+        if (!names.length) return '<div class="empty-note">— none —</div>';
+        return names.map(n => `
+            <div class="name-row">
+                <span class="name-dot ${dotClass}"></span>
+                <span>${escHtml(n)}</span>
+            </div>
+        `).join('');
+    }
+
+    function loadStatus() {
+        fetch(`${SCRIPT_URL}?action=status`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.error) throw new Error(data.error);
+                document.getElementById('monthLabel').textContent = `Who's submitted for ${data.month}`;
+                document.getElementById('statusWrap').innerHTML = `
+                    <div class="cols">
+                        <div class="col-card">
+                            <div class="col-title">✅ Submitted</div>
+                            <div class="col-count">${data.submitted.length} of ${data.submitted.length + data.notSubmitted.length}</div>
+                            ${renderList(data.submitted, 'ok')}
+                        </div>
+                        <div class="col-card">
+                            <div class="col-title">⏳ Not yet submitted</div>
+                            <div class="col-count">${data.notSubmitted.length} of ${data.submitted.length + data.notSubmitted.length}</div>
+                            ${renderList(data.notSubmitted, 'pending')}
+                        </div>
+                    </div>
+                `;
+            })
+            .catch(err => {
+                document.getElementById('statusWrap').innerHTML =
+                    '<div class="loading-state">Could not load status.<br>' + escHtml(err.message || err) + '</div>';
+            });
+    }
+
+    loadStatus();
+</script>
+</body>
+</html>
